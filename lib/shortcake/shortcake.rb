@@ -3,7 +3,7 @@ require 'uri'
 
 class Shortcake
   VALID_NS = Regexp.compile(/^[a-z0-9]{1,5}$/)
-  VALID_CODE = Regexp.compile(/^[a-zA-Z0-9]{1,10}$/)
+  VALID_CODE = Regexp.compile(/^[a-zA-Z0-9]{1,12}$/)
   
   def initialize(namespace, redis_config)
     @redis = Redis.new(redis_config)
@@ -12,7 +12,7 @@ class Shortcake
   end
   
   def create(shortcode, url)
-    create_url(shortcode, url, true)
+    create_url(shortcode, url, false)
   end
   
   def update(shortcode, url)
@@ -28,6 +28,10 @@ class Shortcake
     @redis.get("sc:#{@ns}:codes:#{shortcode}")
   end
   
+  def flushall
+    @redis.flushall
+  end
+  
   def redis
     @redis
   end
@@ -40,11 +44,11 @@ class Shortcake
   def create_url(shortcode, url, override=false)
     raise ValidCodeRequired if !shortcode.kind_of?(String) || !shortcode.match(VALID_CODE)
     raise ValidURLRequired if (url =~ URI::regexp).nil?
+    raise CodeExists if !override && @redis.exists("sc:#{@ns}:codes:#{shortcode}")
     @redis.multi do |multi|
-      exists = @redis.exists(shortcode)
-      raise CodeExists if !override && exists
       @redis.set("sc:#{@ns}:codes:#{shortcode}", url)
     end
+    return true
   end
 end
 
