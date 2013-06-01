@@ -18,6 +18,7 @@ end
 class Group
   include DataMapper::Resource
   has n, :users
+  has n, :links
   
   property :id, Serial, :key => true
   property :name, String
@@ -26,8 +27,8 @@ end
 
 class Link
   include DataMapper::Resource
-  belongs_to :group
   has n, :link_versions
+  has n, :groups
   
   property :pid, Serial, :key => true
   property :url, String
