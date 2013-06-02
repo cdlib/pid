@@ -1,57 +1,57 @@
 require 'test/unit'
 require './shortcake'
-require 'fakeredis'
+require 'fakeredis' # mock redis used by shortcake
 
-class TestShortkut < Test::Unit::TestCase
+class TestShortcake < Test::Unit::TestCase
   
     def setup
-      @shorty = Shortcake.new('pid', {:host => "localhost", :port => 7777})
+      @shorty = Shortcake.new('id', {:host => "localhost", :port => 7777})
       @shorty.flushall
     end
     
     def test_create_new
-      pid = '1234'
+      id = '1234'
       url = 'http://cdlib.org'
-      assert_equal true, @shorty.create(pid, url)
-      assert_equal url, @shorty.get(pid)
+      assert_equal true, @shorty.create(id, url)
+      assert_equal url, @shorty.get(id)
     end
     
     def test_create_new_when_exists
-      pid = '1234'
+      id = '1234'
       url = 'http://cdlib.org'
-      @shorty.create(pid, url)
-      assert_raise(CodeExists) { @shorty.create(pid, url) }
+      @shorty.create(id, url)
+      assert_raise(CodeExists) { @shorty.create(id, url) }
     end
     
     def test_update
-      pid = '1234'
+      id = '1234'
       url = 'http://cdlib.org'
       url_update = 'http://uclibs.org'
-      assert_equal true, @shorty.create(pid, url)
-      assert_equal true, @shorty.update(pid, url_update)
-      assert_equal url_update, @shorty.get(pid)
+      assert_equal true, @shorty.create(id, url)
+      assert_equal true, @shorty.update(id, url_update)
+      assert_equal url_update, @shorty.get(id)
     end
     
     def test_update_when_does_not_exist
-      pid = '1234'
+      id = '1234'
       url_update = 'http://uclibs.org'
-      assert_raise(CodeDoesNotExists) { @shorty.update(pid, url_update) }
+      assert_raise(CodeDoesNotExists) { @shorty.update(id, url_update) }
     end
     
     def test_create_or_update_when_create
-      pid = '1234'
+      id = '1234'
       url = 'http://cdlib.org'
-      assert_equal true, @shorty.create_or_update(pid, url)
-      assert_equal url, @shorty.get(pid)
+      assert_equal true, @shorty.create_or_update(id, url)
+      assert_equal url, @shorty.get(id)
     end
     
     def test_create_or_update_when_update
-      pid = '1234'
+      id = '1234'
       url = 'http://cdlib.org'
       url_update = 'http://uclibs.org'
-      assert_equal true, @shorty.create(pid, url)
-      assert_equal true, @shorty.create_or_update(pid, url_update)
-      assert_equal url_update, @shorty.get(pid)
+      assert_equal true, @shorty.create(id, url)
+      assert_equal true, @shorty.create_or_update(id, url_update)
+      assert_equal url_update, @shorty.get(id)
     end
     
     def test_init_must_pass_valid_namespace
@@ -70,18 +70,18 @@ class TestShortkut < Test::Unit::TestCase
     end
     
     def test_create_must_use_valid_url
-      pid = '1234'
-      assert_raise(ValidURLRequired) { @shorty.create(pid, 'i am not a url') }
+      id = '1234'
+      assert_raise(ValidURLRequired) { @shorty.create(id, 'i am not a url') }
     end
     
     def test_get_all_codes_in_namespace
-      pid = '1234'
+      id = '1234'
       url = 'http://cdlib.org'
-      pid_second = '5342'
+      id_second = '5342'
       url_second = 'http://uclibs.org'
-      assert_equal true, @shorty.create(pid, url)
-      assert_equal true, @shorty.create(pid_second, url_second)
-      assert_equal [pid, pid_second], @shorty.codes
+      assert_equal true, @shorty.create(id, url)
+      assert_equal true, @shorty.create(id_second, url_second)
+      assert_equal [id, id_second], @shorty.codes
     end
     
 end

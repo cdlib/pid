@@ -32,12 +32,8 @@ class Shortcake
     @redis.flushall
   end
   
-  def redis
-    @redis
-  end
-  
   def codes
-    @redis.keys("sc:#{@ns}:codes:*").map { |key| key[13,key.length] }
+    @redis.keys("sc:#{@ns}:codes:*").map { |key| key[@ns.length+10, key.length] }
   end
   
   private 
