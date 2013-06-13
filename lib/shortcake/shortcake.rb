@@ -32,6 +32,10 @@ class Shortcake
     @redis.flushall
   end
   
+  def dbsize
+    @redis.dbsize
+  end
+  
   def codes
     @redis.keys("sc:#{@ns}:codes:*").map { |key| key[@ns.length+10, key.length] }
   end
