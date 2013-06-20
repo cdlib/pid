@@ -1,6 +1,7 @@
-ENV['DATABASE_URL'] = "sqlite3://#{Dir.pwd}/test.db"
+ENV['DATABASE_URL'] = "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/test.db"
+require_relative '../test_helper'
 require 'test/unit'
-require_relative '../../models/pid_models'
+require 'pid_models'
 require 'fakeredis' # mock redis used by shortcake
 
 class TestPid < Test::Unit::TestCase
