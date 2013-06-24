@@ -1,12 +1,13 @@
+$LOAD_PATH.unshift(File.absolute_path(File.dirname(__FILE__)))
 require 'test/unit'
-require './shortcake'
-require 'fakeredis' # mock redis used by shortcake
+require 'shortcake'
+require 'fakeredis'
 
 class TestShortcake < Test::Unit::TestCase
   
     def setup
-      @shorty = Shortcake.new('id', {:host => "localhost", :port => 7777})
-      @shorty.flushall
+      @shorty = Shortcake.new('id', {:host => "localhost", :port => 1000})
+      @shorty.flushall!
     end
     
     def test_create_new

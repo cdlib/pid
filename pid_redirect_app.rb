@@ -1,9 +1,9 @@
+$LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'models')))
 require 'sinatra'
-require './lib/shortcake/shortcake'
+require 'shortcake'
 
 redis = Redis.new
 shorty = Shortcake.new('short', {:host => "localhost", :port => 6379})
-shorty.create_or_update('1234', 'http://google.com')
 CODE_AND_PARTIAL = Regexp.compile(/^(\/[0-9]{1,12})(.*)/)
 
 get %r{/([0-9]{1,12}/.+)} do

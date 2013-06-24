@@ -28,7 +28,7 @@ class Shortcake
     @redis.get("sc:#{@ns}:codes:#{shortcode}")
   end
   
-  def flushall
+  def flushall!
     @redis.flushall
   end
   
