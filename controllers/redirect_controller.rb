@@ -1,7 +1,7 @@
 class PidApp < Sinatra::Application
   
   redis = Redis.new
-  shorty = Shortcake.new('short', {:host => "localhost", :port => 6379})
+  shorty = Shortcake.new('pid', {:host => "localhost", :port => 6379})
   CODE_AND_PARTIAL = Regexp.compile(/^(\/[0-9]{1,12})(.*)/)
 
   get %r{/([0-9]{1,12}/.+)} do

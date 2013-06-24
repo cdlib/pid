@@ -60,7 +60,7 @@ class Pid
           pid = Pid.new(params.merge(:created_at => now, :modified_at => now))
         end
         pid.pid_versions << PidVersion.new(params.merge(:created_at => now, :deactivated => pid.deactivated))
-        pid.groups = group if groups
+        pid.groups = groups if groups
         pid.mutable = true
         pid.save && @@shorty.create_or_update(pid.id.to_s, params[:url]) && pid
       rescue Exception => e
