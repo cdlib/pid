@@ -40,4 +40,3 @@ class PidApp < Sinatra::Application
     alias_method :h, :escape_html
   end
 end
-
