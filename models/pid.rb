@@ -1,54 +1,3 @@
-require 'data_mapper'
-require 'dm-transactions'
-require 'shortcake'
-
-DataMapper.setup(:default, ENV['DATABASE_URL'])
-
-class User
-  include DataMapper::Resource
-  belongs_to :group
-  
-  property :id, Serial, :key => true
-  property :handle, String, :length => 20, :format => /[a-z]{3,20}+/, :unique => true, :required => true,
-      :messages => {
-        :presence  => "A username is required.",
-        :is_unique => "We already have that username.",
-        :format    => "Usernames must be a combination of 3-20 lowercase letters."
-      }
-  property :name, String, :length => 100, :format => /\w+/, :required => true,
-      :messages => {
-        :presence  => "A name is required.",
-        :format    => "Names must be under 100 characters without symbols."
-      }
-end
-
-class Group
-  include DataMapper::Resource
-  has n, :users
-  has n, :maintainers
-  has n, :pids, :through => :maintainers
-  
-  property :id, String, :length => 10, :format => /[A-Z]+/, :unique => true, :key => true,
-    :messages => {
-      :presence  => "A group ID is required.",
-      :is_unique => "We already have that group ID.",
-      :format    => "Group ID must be a combination of 1-10 uppercase letters."
-    }
-  property :name, String, :length => 50, :format => /\w+/, :required => true,
-    :messages => {
-      :presence  => "A group name is required.",
-      :format    => "Group names must be 50 no more than characters without symbols."
-    }
-  property :description, String, :length => 250
-end
-
-class Maintainer
-  include DataMapper::Resource
-  belongs_to :group
-  belongs_to :pid
-  property :id, Serial, :key => true
-end
-
 class PidVersion
   include DataMapper::Resource
   belongs_to :pid
@@ -164,6 +113,3 @@ class Pid
     throw :halt
   end
 end
-
-DataMapper::Model.raise_on_save_failure = true
-DataMapper.finalize.auto_upgrade!

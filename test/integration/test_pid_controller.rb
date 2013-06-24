@@ -1,11 +1,10 @@
 require_relative '../test_helper'
-require 'pid_manage_app'
 
 class PidManageApp < Test::Unit::TestCase
   include Rack::Test::Methods
 
   def app
-    Sinatra::Application
+    PidApp
   end
 
   def setup
@@ -14,12 +13,6 @@ class PidManageApp < Test::Unit::TestCase
     @user = User.new(:handle => 'test_user', :name => 'Test User')
     @group.users << @user
     @group.save
-  end
-  
-  def test_it_loads
-    get '/'
-    assert last_response.ok?
-    assert_equal 'Success', last_response.body
   end
   
   def test_view_pid
@@ -33,4 +26,5 @@ class PidManageApp < Test::Unit::TestCase
     get '/pid/1234'
     assert !last_response.ok?
   end
+  
 end

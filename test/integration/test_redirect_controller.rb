@@ -1,11 +1,10 @@
 require_relative '../test_helper'
-require 'pid_redirect_app'
 
 class PidRedirectApp < Test::Unit::TestCase
   include Rack::Test::Methods
 
   def app
-    Sinatra::Application
+    PidApp
   end
   
   def setup
@@ -36,4 +35,5 @@ class PidRedirectApp < Test::Unit::TestCase
     get '/1/search?q=elmo'
     assert_equal 404, last_response.status
   end
+  
 end

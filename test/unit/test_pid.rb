@@ -1,5 +1,4 @@
 require_relative '../test_helper'
-require 'pid_models'
 
 class TestPid < Test::Unit::TestCase
   
