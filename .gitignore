@@ -1,2 +1,3 @@
 *.db
+dump.rdb
 .DS_Store
