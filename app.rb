@@ -4,14 +4,11 @@
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
 require 'shortcake'
 
-# miniframework, object relational model
-require 'sinatra'
-require 'data_mapper'
-require 'dm-transactions'
-
 class PidApp < Sinatra::Application
   enable :sessions # enable cookie-based sessions
   set :session_secret, 'super secret'
+  
+  set :root, File.dirname(__FILE__)
   
   configure :production do
     ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/db/prod.db"
