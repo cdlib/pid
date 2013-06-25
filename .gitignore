@@ -1,3 +1,4 @@
+.bundle
 *.db
-dump.rdb
+*.rdb
 .DS_Store
