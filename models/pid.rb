@@ -17,7 +17,12 @@ class Pid
   has n, :maintainers
   has n, :groups, :through => :maintainers
   
-  property :id, Serial, :key => true
+  #property :id, Serial, :key => true
+  property :id, String, :key => true, :format => /^[a-zA-Z0-9]{1,12}$/, :length => 50,
+  	:messages => {
+  		:format => "The PID must be between 1 and 12 characters long."
+  	}
+  	  
   property :deactivated, Boolean, :default  => false, :index => true
   property :change_category, String, :length => 20, :format => /[a-zA-Z\_]+/, :required => true,
     :messages => {
@@ -51,20 +56,42 @@ class Pid
       begin
         now = Time.now
         groups = params.delete(:groups)
-        if params[:id]
-          pid = Pid.get(params[:id])
-          return nil if pid.nil?
+
+        if params[:id]					
+        	pid = Pid.get(params[:id])
+        	
+        	#If the user is seed we will need to create the pid
+        	if pid.nil? && params[:username] == 'seed_user'
+
+        		pid = Pid.new(params)	
+
+        	elsif pid.nil?
+          	return nil
+          end
+          
           params.delete(:id)
           pid.attributes = params.merge(:modified_at => now)
         else
           pid = Pid.new(params.merge(:created_at => now, :modified_at => now))
         end
+
         pid.pid_versions << PidVersion.new(params.merge(:created_at => now, :deactivated => pid.deactivated))
         pid.groups = groups if groups
+        
         pid.mutable = true
+        
+puts "Saving #{pid.id} => #{pid.url}"        
+        
         pid.save && @@shorty.create_or_update(pid.id.to_s, params[:url]) && pid
+        
       rescue Exception => e
         t.rollback
+        
+puts "error in pid.rb"        
+pid.errors.each do |err|
+	puts err
+end         
+        
         raise e
       end
     end

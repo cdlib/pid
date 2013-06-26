@@ -1,6 +1,6 @@
 class PidApp < Sinatra::Application
   
-  get '/pid/:id' do
+  get '/PID/:id' do
     @pid = Pid.get(params[:id])
     if @pid
       erb :pid

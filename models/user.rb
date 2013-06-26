@@ -14,4 +14,16 @@ class User
         :presence  => "A name is required.",
         :format    => "Names must be under 100 characters without symbols."
       }
+  property :email, String, :length => 100, :format => /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}/, :required => false,
+  		:messages => {
+  			:format => "The value you entered us not a valid email address!"
+  		}
+	property :affiliation, String, :length => 100, :format => /\.*/, :required => false,
+			:messages => {
+				:format	=> "Affiliations must be less than 100 characters long!"
+			}
+  property :password_hint, String, :length => 50, :format => /\.*/, :required => false,
+  		:messages => {
+  			:format => "The password hint must be less than 50 characters long!"
+  		}
 end
