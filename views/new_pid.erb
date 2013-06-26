@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <title>Create a PID</title>
+    </head>
+    <div>
+        <% if @pid && @pid.errors %>
+        Validation Error</br>
+            <% @pid.errors.full_messages.each do | message | %>
+                <%= message %></br>
+            <% end %>
+        </br>
+        <% end %>
+        <form action="/PID" method="post">
+            <input type="text" name="pid[url]">  
+            <input type="submit" name="Create">
+        </form>
+    </div>
+</html>

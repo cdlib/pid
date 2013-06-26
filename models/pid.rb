@@ -17,12 +17,8 @@ class Pid
   has n, :maintainers
   has n, :groups, :through => :maintainers
   
-  #property :id, Serial, :key => true
-  property :id, String, :key => true, :format => /^[a-zA-Z0-9]{1,12}$/, :length => 50,
-  	:messages => {
-  		:format => "The PID must be between 1 and 12 characters long."
-  	}
-  	  
+  property :id, Serial, :key => true
+  
   property :deactivated, Boolean, :default  => false, :index => true
   property :change_category, String, :length => 20, :format => /[a-zA-Z\_]+/, :required => true,
     :messages => {
@@ -97,21 +93,26 @@ class Pid
         end
 
 				#Save the version
-				params = params.reject!{|k, v| ['id', 'modified_at', 'groups'].include?(k.to_s)}.merge(:pid => pid)
+        version_params = {}
+        [:change_category, :url, :username, :notes].each { |key| version_params[key] = params[key] }
+        
 				if is_seed
 				
-					pid.pid_versions << PidVersion.new(params.merge(:created_at => pid.modified_at))
+					pid.pid_versions << PidVersion.new(version_params.merge(:created_at => pid.modified_at))
 				else
 					
-        	pid.pid_versions << PidVersion.new(params.merge(:created_at => now, :deactivated => pid.deactivated))
+        	pid.pid_versions << PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
         end
-        	
+        
         #pid.groups = groups if groups
         
         pid.mutable = true
         
         pid.save && @@shorty.create_or_update(pid.id.to_s, params[:url]) && pid
         
+      rescue DataMapper::SaveFailureError => e
+        #no rollback needed, nothing saved
+        pid
       rescue Exception => e
         t.rollback       
         raise e

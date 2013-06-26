@@ -11,6 +11,7 @@ group_maintainers = {}
 pid_maintainers = {}
 
 if settings.development?
+  puts "shouldn't run this"
 	groups_file = File.open('db/legacy_db/groups.csv', 'r')
 	users_file = File.open('db/legacy_db/users.csv', 'r')
 	versions_file = File.open('db/legacy_db/versions_sample.csv', 'r')
