@@ -39,5 +39,7 @@ Dir.glob("models/*.rb").each { |r| require_relative r }
 DataMapper::Model.raise_on_save_failure = true
 DataMapper.finalize.auto_upgrade!
 
-# Create Seed Data
-require_relative 'db/seed.rb'
+# Create Seed Data if we're in dev or test
+if settings.development? || settings.test?
+	require_relative 'db/seed.rb'
+end

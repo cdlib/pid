@@ -1,5 +1,5 @@
 
-  <h1>PID: <%= @pid.id %></h1>
+  <h1>PID: <%= @pid.id %><% if(@pid.deactivated) %><span class="red">Inactive</span><% end %></h1>
 	<div id="pid">
 		<span><span class="bold">PID URL:</span> <a href="<%= @pid.url %>"><%= @pid.url %></a></span>
 		<span><span class="bold">Maintainers:</span> <%= @pid.groups.map { |group| group.id }.join(',') %></span>

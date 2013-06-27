@@ -10,10 +10,25 @@ group_maintainers = {}
 
 pid_maintainers = {}
 
+if settings.development?
+	groups_file = File.open('db/legacy_db/groups.csv', 'r')
+	users_file = File.open('db/legacy_db/users.csv', 'r')
+	versions_file = File.open('db/legacy_db/versions_sample.csv', 'r')
+	
+	group_users_file = File.open('db/legacy_db/group_users.csv', 'r')
+	pid_users_file = File.open('db/legacy_db/purl_users.csv', 'r')
+else
+	groups_file = File.open('db/legacy_db/groups.csv', 'r')
+	users_file = File.open('db/legacy_db/users.csv', 'r')
+	versions_file = File.open('db/legacy_db/versions.csv', 'r')
+	
+	group_users_file = File.open('db/legacy_db/group_users.csv', 'r')
+	pid_users_file = File.open('db/legacy_db/purl_users.csv', 'r')
+end
+
 # ---------------------------------------------------------------
 # Process the group records
 # ---------------------------------------------------------------
-groups_file = File.open('db/legacy_db/groups.csv', 'r')
 while line = groups_file.gets
 	id, name, description = line.split(',')
 	
@@ -41,7 +56,6 @@ end
 # ---------------------------------------------------------------
 # Process the user records
 # ---------------------------------------------------------------
-users_file = File.open('db/legacy_db/users.csv', 'r')
 while line = users_file.gets
 	userid, name, email, affiliation = line.split(',')
 	
@@ -77,7 +91,6 @@ dflt_group.save
 # ---------------------------------------------------------------
 # Process the group user connections (excluding default group)
 # ---------------------------------------------------------------
-group_users_file = File.open('db/legacy_db/group_users.csv', 'r')
 while line = group_users_file.gets
 	group, user, maintainer = line.split(',')
 	
@@ -116,45 +129,10 @@ Group.all.each do |group|
 end
 =end
 
-=begin
-# ---------------------------------------------------------------
-# Process the initial purl records
-# ---------------------------------------------------------------
-pids_file = File.open('db/legacy_db/pids_sample.csv', 'r') 
-while line = pids_file.gets
-	id, url, created, modified, deactivated, username, category = line.split(",")
-	
-	begin
-		unless url.nil?
-		
-			unless Pid.mint(:id => id,
-						 	 				:url => url, 
-						 	 				:username => username, 
-						 	 				:change_category => category.gsub("\n", ''), 
-					 		 				:notes => 'Entered by seeding script', 
-					 		 				:created_at => created,
-					 		 				:modified_at => modified,
-					 		 				:deactivated => deactivated,
-					 		 				:is_seed => true) 
-			
-				puts "Unable to save PID: #{id}!"
-			end
-		else
-			puts "Skipping PID #{id} because the target did not match its validation or it was null."
-		end
-		
-	rescue Exception => e
-		puts "error saving PID :id"
-		puts e.message
-	end
-	
-end
-=end
 
 # ---------------------------------------------------------------
 # Process the purl version records
 # ---------------------------------------------------------------
-versions_file = File.open('db/legacy_db/versions_sample.csv', 'r')
 while line = versions_file.gets
 	id, url, modified, deactivated, userid, category = line.split(',')
 	
@@ -162,32 +140,17 @@ while line = versions_file.gets
 
 	unless pid.nil?
 		begin
-			#pid.url = url unless url.nil?
-			#pid.username = userid
-			#pid.change_category =  category.gsub("\n", '')
-			#pid.modified_at = modified
-			#pid.deactivated = (url == 'NULL') ? 1 : 0
-			
 			pid.revise({:url => (url.nil?) ? pid.url : url,
 									:username => userid,
 									:change_category => category.gsub("\n", ''),
 									:modified_at => modified,
 									:deactivated => (url == 'NULL') ? 1 : 0,
 									:is_seed => true})	
-			
-			#Pid.mint(:id => id,
-			#				 :url => (url.nil?) ? pid.url : url,
-			#				 :username => userid,
-			#				 :change_category => category.gsub("\n", ''),
-			#				 :notes => pid.notes,
-			#				 :created_at => pid.created_at,
-			#				 :modified_at => modified,
-			#				 :deactivated => (url == 'NULL') ? 1 : 0,
-			#				 :is_seed => true)
-
 		rescue
-			puts "Unable to add history for pid #{pid.id}"
-			pid.errors.each{ |err| puts err }
+			puts "Unable to add history for pid #{id}"
+			unless pid.nil? 
+				pid.errors.each{ |err| puts err } 
+			end
 			puts pid.inspect
 		end		
 			
@@ -203,28 +166,29 @@ while line = versions_file.gets
 					 		 			 :deactivated => (url == 'NULL') ? 1 : 0,
 					 		 			 :is_seed => true) 
 		rescue Exception => e
-			puts "Unable to mint new pid #{pid.id}"
-			pid.errors.each{ |err| puts err }
+			puts "Unable to mint new pid #{id}"
+			unless pid.nil? 
+				pid.errors.each{ |err| puts err }
+			end
 			puts e.message
 		end
 	end
 	
 end
 
-
+=begin
 Pid.all.each do |pid|
 	puts "#{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username}"
 	pid.pid_versions.each do |ver|
 		puts "      #{ver.url} : #{ver.created_at} - #{ver.username}"
 	end
 end
-
+=end
 
 # Save the groups
 
-=begin
 # Save the users
-users.each do |userid, user|
+Pid.all.each do |pid|
 	begin
 		user.save
 	rescue
@@ -232,7 +196,7 @@ users.each do |userid, user|
 		puts user.inspect
 	end
 end
-=end
+
 
 =begin
 # ---------------------------------------------------------------
