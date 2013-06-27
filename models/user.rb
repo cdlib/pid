@@ -1,6 +1,7 @@
 class User
   include DataMapper::Resource
-  belongs_to :group
+  
+  has n, :groups, :through => Resource			
   
   property :id, Serial, :key => true
   property :handle, String, :length => 20, :format => /[a-z]{3,20}+/, :unique => true, :required => true,
@@ -14,9 +15,9 @@ class User
         :presence  => "A name is required.",
         :format    => "Names must be under 100 characters without symbols."
       }
-  property :email, String, :length => 100, :format => /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}/, :required => false,
+  property :email, String, :length => 100, :format => /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/, :required => false,
   		:messages => {
-  			:format => "The value you entered us not a valid email address!"
+  			:format => "The value you entered does not a valid email address!"
   		}
 	property :affiliation, String, :length => 100, :format => /\.*/, :required => false,
 			:messages => {
@@ -26,4 +27,8 @@ class User
   		:messages => {
   			:format => "The password hint must be less than 50 characters long!"
   		}
+  		
+  def self.flush!
+    DataMapper.auto_migrate!()#:default)
+  end
 end
