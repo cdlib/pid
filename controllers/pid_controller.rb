@@ -17,7 +17,7 @@ class PidApp < Sinatra::Application
   	params[:url].lines do |line|
   	
   		if line =~ @@url_pattern
-  			url = line.gsub("\r\n", "")
+  			url = line.strip.gsub("\r\n", "")
   			
   			unless url[-1] == "/"
   				url += "/"
@@ -60,7 +60,7 @@ class PidApp < Sinatra::Application
     	return 500
     	
 		elsif @successes.size == 1 && @failures.empty?
-			redirect "/link/#{successes[0].id}"
+			redirect "/link/#{@successes[0]}"
 		
 		elsif @failures.size == 1 && @successes.empty?
 			status 400
