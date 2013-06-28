@@ -1,11 +1,8 @@
 <html>
-    <head>
-        <title>PID <%= @pid.id %></title>
-    </head>
-        <div><b>PID: <%= @pid.id %></b><br/>
-            PID URL: <a href="http://scollett.ad.ucop.edu:3000/<%= @pid.id %>">http://scollett.ad.ucop.edu:3000/<%= @pid.id %></a><br/> 
-            Maintainers: <%= @pid.groups.map { |group| group.id }.join(',') %>
-        </div>
+    <div><b>PID: <%= @pid.id %></b><br/>
+        PID URL: <a href="http://scollett.ad.ucop.edu:3000/<%= @pid.id %>">http://scollett.ad.ucop.edu:3000/<%= @pid.id %></a><br/> 
+        Maintainers: <%= @pid.groups.map { |group| group.id }.join(',') %>
+    </div>
     <br/>
     <% @pid.pid_versions.reverse.each do | version | %>
     <div>    

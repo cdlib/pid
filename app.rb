@@ -29,6 +29,10 @@ class PidApp < Sinatra::Application
   helpers do
     include Rack::Utils
     alias_method :h, :escape_html
+    
+    def base_url
+      @base_url ||= "#{request.env['rack.url_scheme']}://#{request.env['HTTP_HOST']}"
+    end
   end
 end
 

@@ -40,7 +40,7 @@ class PidManageApp < Test::Unit::TestCase
   
   def test_create_pid
     post '/link', { :url => 'http://cdlib.org' }
-    assert_equal 201, last_response.status
+    assert_equal 302, last_response.status
   end
   
   def test_create_pid_bad_data

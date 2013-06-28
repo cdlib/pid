@@ -10,8 +10,9 @@ class PidApp < Sinatra::Application
     return 500 if @pid.nil?    
 
     if @pid && @pid.valid?
-      status 201
-      erb :show_pid
+      # restful: redirect vs. create status, resourcelocation, render?
+      # status 201; headers('Location' => "#{base_url}/link/#{@pid.id}"); erb :show_pid
+      redirect "/link/#{@pid.id}"
     else
       status 400
       erb :new_pid
