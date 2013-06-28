@@ -44,3 +44,7 @@ label {
 table td {
   padding:        0 10px 0 10px;
 }
+
+#url { 
+  width:      200px;
+}

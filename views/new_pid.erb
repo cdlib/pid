@@ -1,4 +1,4 @@
-<header>Create a new PID</header>
+<header>Create PID(s)</header>
 
 <section id="pid_new">
 
@@ -11,7 +11,9 @@
   </div>
   
   <form action="/link" method="post">
-    <label>Url: <input type="url" id="url" name="url" title="The url should include the protocol (e.g. http:// or https://)." /></label>
+    <label>Url(s): <textarea name="url" required
+                        title="One URL per line.\nEach URL should include its protocol (e.g. http://)">
+                    </textarea></label>
         
     <input type="submit" name="Create">
   </form>
