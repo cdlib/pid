@@ -30,8 +30,9 @@ class PidApp < Sinatra::Application
     include Rack::Utils
     alias_method :h, :escape_html
     
-    def base_url
-      @base_url ||= "#{request.env['rack.url_scheme']}://#{request.env['HTTP_HOST']}"
+    def link_to(body, url=nil)
+      url ||= body
+      "<a href=\"#{url}\">#{body || url}</a>"
     end
   end
 end
