@@ -6,6 +6,7 @@
 	<ul>
 		<li>
 		  <table>
+		    <tr><td class="bold">PID:</td><td><a href="<%= @hostname %><%= @pid.id %>"><%= @hostname %><%= @pid.id %></a></td></tr>
 		    <tr><td class="bold">PID URL:</td><td><a href="<%= @pid.url %>"><%= @pid.url %></a></td></tr>
 		    <tr><td class="bold">Maintainers:</td><td><%= @pid.groups.map { |group| group.id }.join(',') %></td></tr>
 		    <tr><td class="bold">Creation Date:</td><td><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>

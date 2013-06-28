@@ -1,18 +1,19 @@
-<html>
-    <head>
-        <title>Create a PID</title>
-    </head>
-    <div>
-        <% if @pid && @pid.errors %>
-        Validation Error</br>
-            <% @pid.errors.full_messages.each do | message | %>
-                <%= message %></br>
-            <% end %>
-        </br>
-        <% end %>
-        <form action="/link" method="post">
-            <input type="text" name="url">  
-            <input type="submit" name="Create">
-        </form>
-    </div>
-</html>
+<header>Create a new PID</header>
+
+<section id="pid_new">
+
+  <div class="red">
+    <% if @pid && @pid.errors %>
+      <% @pid.errors.full_messages.each do | message | %>
+        <%= message %></br>
+      <% end %>
+    <% end %>
+  </div>
+  
+  <form action="/link" method="post">
+    <label>Url: <input type="url" id="url" name="url" title="The url should include the protocol (e.g. http:// or https://)." /></label>
+        
+    <input type="submit" name="Create">
+  </form>
+
+</section>
