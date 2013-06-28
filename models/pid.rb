@@ -18,7 +18,7 @@ class Pid
   has n, :groups, :through => :maintainers
   
   property :id, Serial, :key => true
-  	  
+
   property :deactivated, Boolean, :default  => false, :index => true
   property :change_category, String, :length => 20, :format => /[a-zA-Z\_]+/, :required => true,
     :messages => {
@@ -31,10 +31,10 @@ class Pid
       :format    => "Must be valid URL of under 2000 characters."
     }
   property :username, String, :length => 20, :format => /[a-z]{3,20}/, :required => true,
-  	:messages => {
-  		:presence	=> "A username is required.",
-  		:format		=> "Username should be between 3 to 20 alpha characters."
-  	}
+    :messages => {
+      :presence	=> "A username is required.",
+      :format		=> "Username should be between 3 to 20 alpha characters."
+    }
   property :created_at, DateTime, :required => true, :index => true
   property :modified_at, DateTime, :required => true, :index => true
   property :notes, String, :length => 250
@@ -44,47 +44,43 @@ class Pid
   
   @@shorty = Shortcake.new('pid', {:host => "localhost", :port => 6379})
   
-  def revise(params)
-  	
-  	#If we're seeding its ok for the modified_at to come through as a param
-  	unless params[:is_seed]
-
-    	params = self.attributes.clone.merge({:notes => nil}.merge(params))
-    	params.delete(:modified_at)
-    	params.delete(:created_at)
+  def revise(params)  
+    #If we're seeding its ok for the modified_at to come through as a param
+    unless params[:is_seed]
+      params = self.attributes.clone.merge({:notes => nil}.merge(params))
+      params.delete(:modified_at)
+      params.delete(:created_at)
     else
-
-    	params = self.attributes.clone.merge(params)
+      params = self.attributes.clone.merge(params)
     end
-    
     Pid.create_or_update(params)
   end
   
   
   def self.create_or_update(params)
-  	is_seed = params[:is_seed]
-  	params.delete(:is_seed)	
-	
+    is_seed = params[:is_seed]
+    params.delete(:is_seed)	
+
     Pid.transaction do |t|
       begin
         now = Time.now
         #groups = params.delete(:groups)
 
-				#If an ID was specified then we're updating or inserting (if this is the DB seed)
+        #If an ID was specified then we're updating or inserting (if this is the DB seed)
         if params[:id]					
-        	pid = Pid.get(params[:id])
-        	
-        	#If we're seeding the DB and the ID doesn't exist
-        	if pid.nil? && is_seed
-        		pid = Pid.new(params)	
-
-					#If we're not seeding and the ID is missing exit
-        	elsif pid.nil?
-          	return nil
-          	
+          pid = Pid.get(params[:id])
+          
+          #If we're seeding the DB and the ID doesn't exist
+          if pid.nil? && is_seed
+            pid = Pid.new(params)	
+            
+          #If we're not seeding and the ID is missing exit
+          elsif pid.nil?
+            return nil
+            
           #Otherwise we're updating so set the modified_at to now
           else
-          	pid.attributes = params.merge(:modified_at => (is_seed) ? params[:modified_at] : now)
+            pid.attributes = params.merge(:modified_at => (is_seed) ? params[:modified_at] : now)
           end
         
         #Otherwise we're creating a new PID
@@ -93,21 +89,25 @@ class Pid
           params = params.merge(pid.attributes.clone.merge(params))
         end
 
-				#Save the version
-				params.delete_if{|k, v| ['id', 'modified_at', 'groups'].include?(k.to_s)}
-				if is_seed
-				
-					pid.pid_versions << PidVersion.new(params.merge(:created_at => pid.modified_at))
-				else
-        	pid.pid_versions << PidVersion.new(params.merge(:created_at => now, :deactivated => pid.deactivated))
+        #Save the version
+        version_params = {}
+        [:change_category, :url, :username, :notes].each { |key| version_params[key] = params[key] }
+        
+        if is_seed
+          pid.pid_versions << PidVersion.new(version_params.merge(:created_at => pid.modified_at))
+        else
+          pid.pid_versions << PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
         end
-        	
+        
         #pid.groups = groups if groups
         
         pid.mutable = true
         
         pid.save && @@shorty.create_or_update(pid.id.to_s, params[:url]) && pid
         
+      rescue DataMapper::SaveFailureError => e
+        #no rollback needed, nothing saved
+        pid
       rescue Exception => e
       puts pid.inspect
       

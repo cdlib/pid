@@ -18,6 +18,10 @@ class PidApp < Sinatra::Application
     ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/db/dev.db"
   end
   
+  configure :seeded do
+    ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/db/seeded.db"
+  end
+  
   configure :test do
     ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/test/test.db"
   end
@@ -25,6 +29,10 @@ class PidApp < Sinatra::Application
   helpers do
     include Rack::Utils
     alias_method :h, :escape_html
+    
+    def base_url
+      @base_url ||= "#{request.env['rack.url_scheme']}://#{request.env['HTTP_HOST']}"
+    end
   end
 end
 
@@ -40,6 +48,6 @@ DataMapper::Model.raise_on_save_failure = true
 DataMapper.finalize.auto_upgrade!
 
 # Create Seed Data if we're in dev or test
-if settings.development? || settings.test?
-	require_relative 'db/seed.rb'
+if ENV['RACK_ENV'].to_sym == :seeded 
+  require_relative 'db/seed.rb'
 end
