@@ -109,7 +109,6 @@ class Pid
         #no rollback needed, nothing saved
         pid
       rescue Exception => e
-      puts pid.inspect
       
         t.rollback       
         raise e
