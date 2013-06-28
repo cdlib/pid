@@ -17,11 +17,7 @@ class Pid
   has n, :maintainers
   has n, :groups, :through => :maintainers
   
-  #property :id, Serial, :key => true
-  property :id, String, :key => true, :format => /^[a-zA-Z0-9]{1,12}$/, :length => 50,
-  	:messages => {
-  		:format => "The PID must be between 1 and 12 characters long."
-  	}
+  property :id, Serial, :key => true
   	  
   property :deactivated, Boolean, :default  => false, :index => true
   property :change_category, String, :length => 20, :format => /[a-zA-Z\_]+/, :required => true,
@@ -94,15 +90,15 @@ class Pid
         #Otherwise we're creating a new PID
         else
           pid = Pid.new(params.merge(:created_at => now, :modified_at => now))
+          params = params.merge(pid.attributes.clone.merge(params))
         end
 
 				#Save the version
-				params = params.reject!{|k, v| ['id', 'modified_at', 'groups'].include?(k.to_s)}.merge(:pid => pid)
+				params.delete_if{|k, v| ['id', 'modified_at', 'groups'].include?(k.to_s)}
 				if is_seed
 				
 					pid.pid_versions << PidVersion.new(params.merge(:created_at => pid.modified_at))
 				else
-					
         	pid.pid_versions << PidVersion.new(params.merge(:created_at => now, :deactivated => pid.deactivated))
         end
         	
@@ -113,6 +109,8 @@ class Pid
         pid.save && @@shorty.create_or_update(pid.id.to_s, params[:url]) && pid
         
       rescue Exception => e
+      puts pid.inspect
+      
         t.rollback       
         raise e
       end
