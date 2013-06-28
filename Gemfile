@@ -5,6 +5,9 @@ gem 'data_mapper'
 gem 'dm-sqlite-adapter'
 gem 'dm-transactions'
 gem 'redis'
-gem 'fakeredis'
 gem 'thin'
-gem 'rack-test', :require => 'rack/test'
+
+group :test do
+  gem 'rack-test', :require => 'rack/test'
+  gem 'fakeredis'
+end

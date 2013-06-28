@@ -77,10 +77,6 @@ class PidApp < Sinatra::Application
   
   
   get '/link/:id' do
-  
-  	# To-Do: consider offloading this hard-coded '/PID/' to a config file or db table
-  	@hostname = "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/PID/"
-  	
     @pid = Pid.get(params[:id])
     
     if @pid
