@@ -91,7 +91,7 @@ class Pid
 
         #Save the version
         version_params = {}
-        [:change_category, :url, :username, :notes].each { |key| version_params[key] = params[key] }
+        [:change_category, :url, :username, :notes, :deactivated].each { |key| version_params[key] = params[key] }
         
         if is_seed
           pid.pid_versions << PidVersion.new(version_params.merge(:created_at => pid.modified_at))

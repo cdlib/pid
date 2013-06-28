@@ -1,3 +1,5 @@
+puts "Seeding the database"
+
 # Setup the Seed group and user
 Pid.flush!
 User.flush!
@@ -10,23 +12,14 @@ group_maintainers = {}
 
 pid_maintainers = {}
 
-if settings.development?
-  puts "shouldn't run this"
-	groups_file = File.open('db/legacy_db/groups.csv', 'r')
-	users_file = File.open('db/legacy_db/users.csv', 'r')
-	versions_file = File.open('db/legacy_db/versions_sample.csv', 'r')
+groups_file = File.open('db/legacy_db/groups.csv', 'r')
+users_file = File.open('db/legacy_db/users.csv', 'r')
+versions_file = File.open('db/legacy_db/versions_sample.csv', 'r')
 	
-	group_users_file = File.open('db/legacy_db/group_users.csv', 'r')
-	pid_users_file = File.open('db/legacy_db/purl_users.csv', 'r')
-else
-	groups_file = File.open('db/legacy_db/groups.csv', 'r')
-	users_file = File.open('db/legacy_db/users.csv', 'r')
-	versions_file = File.open('db/legacy_db/versions.csv', 'r')
-	
-	group_users_file = File.open('db/legacy_db/group_users.csv', 'r')
-	pid_users_file = File.open('db/legacy_db/purl_users.csv', 'r')
-end
+group_users_file = File.open('db/legacy_db/group_users.csv', 'r')
+pid_users_file = File.open('db/legacy_db/purl_users.csv', 'r')
 
+puts ".... planting groups"
 # ---------------------------------------------------------------
 # Process the group records
 # ---------------------------------------------------------------
@@ -54,6 +47,7 @@ end
 =end
 
 
+puts ".... planting users"
 # ---------------------------------------------------------------
 # Process the user records
 # ---------------------------------------------------------------
@@ -89,6 +83,7 @@ end
 dflt_group.save
 
 
+puts ".... planting group <-> user connections"
 # ---------------------------------------------------------------
 # Process the group user connections (excluding default group)
 # ---------------------------------------------------------------
@@ -130,7 +125,7 @@ Group.all.each do |group|
 end
 =end
 
-
+puts ".... planting PIDs"
 # ---------------------------------------------------------------
 # Process the purl version records
 # ---------------------------------------------------------------
@@ -186,60 +181,4 @@ Pid.all.each do |pid|
 end
 =end
 
-# Save the groups
-
-# Save the users
-Pid.all.each do |pid|
-	begin
-		user.save
-	rescue
-		user.errors.each { |err| puts err }
-		puts user.inspect
-	end
-end
-
-
-=begin
-# ---------------------------------------------------------------
-# Run seed validation tests
-# ---------------------------------------------------------------
-puts "Validating PID seed"
-
-# URL tests
-truths = {58 => "http://www.unhcr.org/cgi-bin/texis/vtx/home/opendoc.htm?tbl=RSDCOI&id=3ae6a6be4&page=research",
-					1294 => "http://openurl.cdlib.org/?sid=SCP:SCP&genre=article&__char_set=utf8&issn=1432-9123",
-					1484 => "http://openurl.cdlib.org/?sid=SCP:SCP&genre=article&__char_set=utf8&issn=0266-2671",
-					3495 => "http://openurl.cdlib.org/?sid=SCP:SCP&genre=article&__char_set=utf8&issn=0019-2805",
-					183321 => "http://opac.newsbank.com/select/shaw/1365"}
-					
-lies = {62 => "http://www.cdlib.org",		#Didn't load because the url was null
-				101 => "http://www.cdlib.org",	#Didn't load because the url was another PID
-				183312 => "http://openurl.cdlib.org/?sid=SCP:SCP&genre=article&__char_set=utf8&issn=1432-9123"} #Didn't pass because different url
-
-lies.each do |key, value|
-	pid = Pid.first(:id => key)
-	if pid.nil?
-		 puts ".... pass - PID #{key} was not found."
-	else
-		unless pid.url == value
-			puts ".... pass - PID #{key} exists different url"
-		else
-			puts ".... fail - PID #{key} did not pass test"
-		end
-	end
-end
-
-truths.each do |key, value|
-	pid = Pid.first(:id => key)
-	unless pid.nil?
-		if pid.url == value
-			puts ".... pass - PID #{key} has the correct url"
-		else
-			puts ".... fail - PID #{key} does not have the correct url"
-		end
-	else
-		puts ".... fail - PID #{key} was not found"
-	end
-end
-
-=end
+puts "Finished seeding the database"

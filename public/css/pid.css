@@ -1,5 +1,5 @@
 body {
-	
+	font-family:   monospace;
 }
 
 h1: {
@@ -9,20 +9,38 @@ h2 {
 
 }
 
-.bold {
+.red { color: red; }
+.center{
+  text-align:   center;
+}
+
+.bold, label, header {
 	font-weight:	bold;
 }
 
-#pid{
-
+header {
+  font-size:    14pt;
+  
+  margin-left:  15px;
 }
-#pid span{
 
+label {
+  margin-right: 15px;
 }
 
-#pid_version{
-	
+#pid_info ul, #pid_history ul {
+  list-style:   none;
 }
-#pid_version span{
 
+#pid_info ul li, #pid_history ul li {
+  margin-bottom: 3px;
+  
+}
+
+#pid_history ul li.pid_version {
+  margin-bottom:  25px;
+}
+
+table td {
+  padding:        0 10px 0 10px;
 }

@@ -20,7 +20,9 @@ class PidApp < Sinatra::Application
   end
   
   get '/link/:id' do
+  
     @pid = Pid.get(params[:id])
+    
     if @pid
       erb :show_pid
     else
