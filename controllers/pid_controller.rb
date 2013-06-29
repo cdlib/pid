@@ -28,7 +28,7 @@ class PidApp < Sinatra::Application
   			req = Net::HTTP.new(uri.host, uri.port)
   			res = req.request_head(uri.path)
 
-  			if res.code.to_i < 300
+  			if res.code.to_i < 400
   		
   				begin
   					pid = Pid.mint(:url => line.gsub("\r\n", ""), 
@@ -56,10 +56,7 @@ class PidApp < Sinatra::Application
   		end
   	end
     
-		if @successes.empty?
-    	return 500
-    	
-		elsif @successes.size == 1 && @failures.empty?
+		if @successes.size == 1 && @failures.empty?
 			redirect "/link/#{@successes[0]}"
 		
 		elsif @failures.size == 1 && @successes.empty?
@@ -71,7 +68,9 @@ class PidApp < Sinatra::Application
 			
 			status 200
 			erb :results_pid
-		end
+		else
+		  500
+	  end
 		
   end
   
