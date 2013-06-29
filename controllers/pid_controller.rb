@@ -23,12 +23,14 @@ class PidApp < Sinatra::Application
   				url += "/"
   			end
   			
+  			# Temporarily uncomment. SCP not allowed by contract to check live URLs automatically
+  			# for all journals. Will happen while loading seed data, editing in masse.
   			#Test to make sure this a valid URL
-  			uri = URI.parse(url)
-  			req = Net::HTTP.new(uri.host, uri.port)
-  			res = req.request_head(uri.path)
+        # uri = URI.parse(url)
+        # req = Net::HTTP.new(uri.host, uri.port)
+        # res = req.request_head(uri.path)
 
-  			if res.code.to_i < 400
+  			if true #res.code.to_i < 400
   		
   				begin
   					pid = Pid.mint(:url => line.gsub("\r\n", ""), 
