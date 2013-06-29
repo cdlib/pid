@@ -12,12 +12,12 @@ group_maintainers = {}
 
 pid_maintainers = {}
 
-groups_file = File.open('db/legacy_db/groups.csv', 'r')
-users_file = File.open('db/legacy_db/users.csv', 'r')
-versions_file = File.open('db/legacy_db/versions_sample.csv', 'r')
+groups_file = File.open('../pid_legacy_db/groups.csv', 'r')
+users_file = File.open('../pid_legacy_db/users.csv', 'r')
+versions_file = File.open('../pid_legacy_db/versions_sample.csv', 'r')
 	
-group_users_file = File.open('db/legacy_db/group_users.csv', 'r')
-pid_users_file = File.open('db/legacy_db/purl_users.csv', 'r')
+group_users_file = File.open('../pid_legacy_db/group_users.csv', 'r')
+pid_users_file = File.open('../pid_legacy_db/purl_users.csv', 'r')
 
 puts ".... planting groups"
 # ---------------------------------------------------------------
