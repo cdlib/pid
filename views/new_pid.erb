@@ -10,18 +10,18 @@
     <% end %>
     
     <% unless @failures.empty? %>
-    	The URLs below could not be validated. Please ensure that you have included the 
-    	protocol (e.g. http://), and that each URL appears on its own line before 
-    	resubmitting the form.
+      The URLs below could not be validated. Please ensure that you have included the 
+      protocol (e.g. http://), and that each URL appears on its own line before 
+      resubmitting the form.
     <% end %>
   </div>
   
   <% urls = "" %>
   <%unless @failures.empty? %>
-		<% @failures.each do |url, msg| %>
-			<% urls += url.strip + "\r\n" %>
-		<% end %>
-	<% end %>
+    <% @failures.each do |url, msg| %>
+      <% urls += url.strip + "\r\n" %>
+    <% end %>
+  <% end %>
   
   <form action="/link" method="post">
     <label>Url(s): <textarea name="url" id="url" required
@@ -31,11 +31,11 @@
   </form>
   
   <% unless @successes.empty? %>
-  	<h3>Successfully created the following PIDs:</h3>
-  	<ul>
-  		<% @successes.each do |success| %>
-      	<li><a href="<%= @hostname %><%= success %>">View PID <%= success %></li>
-    	<% end %>
+    <h3>Successfully created the following PIDs:</h3>
+    <ul>
+      <% @successes.each do |success| %>
+        <li><a href="<%= @hostname %><%= success %>">View PID <%= success %></li>
+      <% end %>
     </ul>
   <% end %>
 
