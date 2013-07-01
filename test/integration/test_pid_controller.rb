@@ -15,19 +15,19 @@ class PidManageApp < Test::Unit::TestCase
     @group.save
   end
   
-  def test_view_pid
+  def test_show_pid
     link = Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
     get '/link/1'
     assert last_response.ok?
   end
    
-  def test_view_404_pid
+  def test_show_404_pid
     link = Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
     get '/link/1234'
     assert !last_response.ok?
   end
   
-  def test_view_404_pid
+  def test_show_404_pid
     link = Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
     get '/link/1234'
     assert !last_response.ok?
