@@ -2,8 +2,9 @@ namespace :redis do
   desc 'Start redis'
   task :start do
     config_file = File.join(Dir.pwd, 'db/redis.conf')
-    STDOUT.puts "Starting Redis with #{config_file}"
-    exec "redis-server #{config_file}"
+    command = ("redis-server" + " #{config_file}") if File.exists?(config_file)
+    STDOUT.puts "Starting Redis"
+    exec command || "redis-server"
   end
 
   desc 'Stop redis'
