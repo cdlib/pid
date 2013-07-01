@@ -34,6 +34,10 @@ class PidApp < Sinatra::Application
       url ||= body
       "<a href=\"#{url}\">#{body || url}</a>"
     end
+    
+    def hostname()
+      "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/"
+    end 
   end
 end
 

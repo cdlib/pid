@@ -1,0 +1,20 @@
+<section id="search_criteria">
+
+  <form action="link/search" method="post">
+    <label>URL: <input type="text" id="url" name="url" value="<%= url %>" /></label>
+    <label>PID: <input type="number" min="1" max="999999" id="pid" name="pid" value="<%= pid %>" /></label>
+    
+    <input type="submit" name="Search" />
+  </form>
+
+</section>
+
+<% unless @results.nil? %>
+  <section id="search_results">
+    <header>Search Results:</header>
+
+    <% @results.each do |result| %>
+      <%= result %>
+    <% end %>
+  </section>
+<% end %>
