@@ -43,8 +43,23 @@ class PidManageApp < Test::Unit::TestCase
     assert_equal 302, last_response.status
   end
   
+  def test_create_multiple_pids
+    post '/link', { :url => "http://cdlib.org\nhttp://google.com" }
+    assert_equal 200, last_response.status
+  end
+  
   def test_create_pid_bad_data
     post '/link', { :url => 'cdlib.org' }
+    assert_equal 400, last_response.status
+  end
+  
+  def test_create_multiple_pids_good_and_bad_data
+    post '/link', { :url => "cdlib.org\nhttp://google.com" }
+    assert_equal 400, last_response.status
+  end
+  
+  def test_create_multiple_pids_all_bad_data
+    post '/link', { :url => "cdlib.org\ngoogle.com" }
     assert_equal 400, last_response.status
   end
 end
