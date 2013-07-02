@@ -15,6 +15,11 @@ class PidManageApp < Test::Unit::TestCase
     @group.save
   end
   
+  def test_search_pids
+    get '/link/search'
+    assert last_response.ok?
+  end
+  
   def test_show_pid
     link = Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
     get '/link/1'
