@@ -29,11 +29,21 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
 # Display the PIDs search form
 # ---------------------------------------------------------------  
-  get 'link/search' do
+  get '/link/search' do
+    @results = []
+    erb :search_pid
+  end
+  
+# ---------------------------------------------------------------
+# Process the PIDs search form
+# ---------------------------------------------------------------  
+  post '/link/search' do
     @results = []
     
     unless params.nil?
-      @results = Pid.all(url.like => params[:url])
+      args = {:url.like => params[:url]}
+      
+      @results = Pid.all(args)
     end
     
     erb :search_pid
