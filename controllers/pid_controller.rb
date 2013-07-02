@@ -43,6 +43,7 @@ class PidApp < Sinatra::Application
 # Process new PID requests
 # ---------------------------------------------------------------  
   post '/link' do
+    @hostname = "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/link/"
     @successes = []
     @failures = {}
     
@@ -96,20 +97,14 @@ class PidApp < Sinatra::Application
     
     if @successes.size == 1 && @failures.empty?
       redirect "/link/#{@successes[0]}"
-    
-    elsif @failures.size == 1 && @successes.empty?
+    elsif @failures.size >= 1
       status 400
       erb :new_pid
-    
-    elsif @successes.size > 1 || @failures.size > 1
-      @hostname = "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/link/"
-      
+    elsif @successes.size >= 1
       status 200
       erb :new_pid
     else
       500
     end
-    
   end
-
 end
