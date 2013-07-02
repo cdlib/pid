@@ -4,7 +4,7 @@ class User
   has n, :groups, :through => Resource			
   
   property :id, Serial, :key => true
-  property :handle, String, :length => 20, :format => /[a-z]{3,20}+/, :unique => true, :required => true,
+  property :login, String, :length => 20, :format => /[a-z]{3,20}+/, :unique => true, :required => true,
       :messages => {
         :presence  => "A username is required.",
         :is_unique => "We already have that username.",

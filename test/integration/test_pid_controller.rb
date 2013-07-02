@@ -10,7 +10,7 @@ class PidManageApp < Test::Unit::TestCase
   def setup
     Pid.flush!
     @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:handle => 'test_user', :name => 'Test User')
+    @user = User.new(:login => 'test_user', :name => 'Test User')
     @group.users << @user
     @group.save
   end
@@ -26,10 +26,10 @@ class PidManageApp < Test::Unit::TestCase
   end
   
   def test_search_by_url_pass
-    Pid.mint(:url => 'http://www.testme.abc', :username => @user.handle, :change_category => 'User_Entered')
-    Pid.mint(:url => 'http://maps.testme.abc', :username => @user.handle, :change_category => 'User_Entered')
-    Pid.mint(:url => 'http://test.cdlib.abc', :username => @user.handle, :change_category => 'User_Entered')
-    Pid.mint(:url => 'http://www.testit.abc', :username => @user.handle, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://www.testme.abc', :username => @user.login, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://maps.testme.abc', :username => @user.login, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://test.cdlib.abc', :username => @user.login, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://www.testit.abc', :username => @user.login, :change_category => 'User_Entered')
     
     # Warning, any tests to count the number of <tr> returned should account for the <th> row!
     
@@ -76,7 +76,7 @@ class PidManageApp < Test::Unit::TestCase
   
   def test_search_by_pid_range_pass
     urls = *(1..20)
-    urls.each{ |url| Pid.mint(:url => 'http://www.wikipedia.org/#{url}', :username => @user.handle, :change_category => 'User_Entered')}
+    urls.each{ |url| Pid.mint(:url => 'http://www.wikipedia.org/#{url}', :username => @user.login, :change_category => 'User_Entered')}
     
     post '/link/search', {:min_pid => 5, :max_pid => 12}
     assert last_response.ok?
@@ -86,7 +86,7 @@ class PidManageApp < Test::Unit::TestCase
 
 =begin
   def test_search_by_minter
-    Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://cdlib.org', :username => @user.login, :change_category => 'User_Entered')
     
     post 'link/search', {:username => @user.handle}
     assert last_response.ok?
@@ -100,7 +100,7 @@ class PidManageApp < Test::Unit::TestCase
   end
   
   def test_search_by_maintainer
-    Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered', :maintainer => @group.id)
+    Pid.mint(:url => 'http://cdlib.org', :username => @user.login, :change_category => 'User_Entered', :maintainer => @group.id)
     
     post 'link/search', {:maintainer => @group.id}
     assert last_response.ok?
@@ -118,13 +118,13 @@ class PidManageApp < Test::Unit::TestCase
 # Show PID tests
 # ---------------------------------------------------------------
   def test_show_pid
-    link = Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
+    link = Pid.mint(:url => 'http://cdlib.org', :username => @user.login, :change_category => 'User_Entered')
     get '/link/1'
     assert last_response.ok?
   end
    
   def test_show_404_pid
-    link = Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
+    link = Pid.mint(:url => 'http://cdlib.org', :username => @user.login, :change_category => 'User_Entered')
     get '/link/1234'
     assert !last_response.ok?
   end
