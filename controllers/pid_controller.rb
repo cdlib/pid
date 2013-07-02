@@ -41,7 +41,7 @@ class PidApp < Sinatra::Application
   
 # ---------------------------------------------------------------
 # Process new PID requests
-# ---------------------------------------------------------------  
+# ---------------------------------------------------------------
   post '/link' do
     @hostname = "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/link/"
     @successes = []
