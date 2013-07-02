@@ -14,11 +14,30 @@ class PidApp < Sinatra::Application
   end
   
 # ---------------------------------------------------------------
+# Display the PIDs search form
+# ---------------------------------------------------------------  
+  get '/link/search' do
+    @results = []
+    erb :search_pid
+  end
+  
+# ---------------------------------------------------------------
 # Display the specified purl
 # ---------------------------------------------------------------  
   get '/link/:id' do
     @pid = Pid.get(params[:id])
     
+    @back_link = "/link"
+    @back_label = "Home Page"
+    
+    if request.referrer == "#{hostname}link/new" 
+      @back_link += "/new"
+      @back_label = " New PID(s)"
+    elsif request.referrer == "#{hostname}link/search"
+      @back_link += "/search"
+      @back_label = " Search"
+    end
+
     if @pid
       erb :show_pid
     else
@@ -27,11 +46,10 @@ class PidApp < Sinatra::Application
   end
   
 # ---------------------------------------------------------------
-# Display the PIDs search form
+# Display the main menu
 # ---------------------------------------------------------------  
-  get '/link/search' do
-    @results = []
-    erb :search_pid
+  get '/link' do
+    erb :index
   end
   
 # ---------------------------------------------------------------
@@ -41,9 +59,14 @@ class PidApp < Sinatra::Application
     @results = []
     
     unless params.nil?
-      args = {:url.like => params[:url]}
+      args = {:limit => 50}
+      
+      unless params[:url].nil?
+        args[:url.like] = '%' + params[:url] + '%'
+      end
       
       @results = Pid.all(args)
+      status 200
     end
     
     erb :search_pid
@@ -59,7 +82,7 @@ class PidApp < Sinatra::Application
     
     change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
     
-    params[:url].lines do |line|
+    params[:new_urls].lines do |line|
     
       url = line.strip.gsub("\r\n", "")
       
@@ -86,7 +109,7 @@ class PidApp < Sinatra::Application
                              :notes => "Incoming request from #{request.ip} to mint #{line}")
 
               unless pid.nil? || !pid.valid?
-                @successes << pid.id
+                @successes << pid
               else
                 @failures[url.to_s] = "Unable to save."
               end
@@ -105,9 +128,7 @@ class PidApp < Sinatra::Application
       end  # end if empty
     end    # end loop
     
-    if @successes.size == 1 && @failures.empty?
-      redirect "/link/#{@successes[0]}"
-    elsif @failures.size >= 1
+    if @failures.size >= 1
       status 400
       erb :new_pid
     elsif @successes.size >= 1

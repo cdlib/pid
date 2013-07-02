@@ -1,7 +1,20 @@
-<header>Create PID(s)</header>
-
 <section id="pid_new">
+  <h3>Create new PID(s)</h3>
+  
+  <% urls = "" %>
+  <%unless @failures.empty? %>
+    <% @failures.each do |url, msg| %>
+      <% urls += url.strip + "\r\n" %>
+    <% end %>
+  <% end %>
 
+  <form action="/link" method="post">
+    <div><label>Url(s):</label></div>
+    <textarea name="new_urls" id="new_urls" required
+                title="One URL per line.\nEach URL should include its protocol (e.g. http://)"><%= urls %></textarea>
+    <div><input type="submit" name="Create"></div>
+  </form>
+  
   <div class="red">
     <% if @pid && @pid.errors %>
       <% @pid.errors.full_messages.each do | message | %>
@@ -10,33 +23,25 @@
     <% end %>
     
     <% unless @failures.empty? %>
-      The URLs below could not be validated. Please ensure that you have included the 
-      protocol (e.g. http://), and that each URL appears on its own line before 
+      The URLs above could not be validated!<br />
+      Please ensure that you have included the protocol (e.g. http://), and that each URL appears on its own line before 
       resubmitting the form.
     <% end %>
   </div>
   
-  <% urls = "" %>
-  <%unless @failures.empty? %>
-    <% @failures.each do |url, msg| %>
-      <% urls += url.strip + "\r\n" %>
-    <% end %>
-  <% end %>
-  
-  <form action="/link" method="post">
-    <label>Url(s): <textarea name="url" id="url" required
-                        title="One URL per line.\nEach URL should include its protocol (e.g. http://)"><%= urls %></textarea></label>
-        
-    <input type="submit" name="Create">
-  </form>
-  
   <% unless @successes.empty? %>
     <h3>Successfully created the following PIDs:</h3>
-    <ul>
-      <% @successes.each do |success| %>
-        <li><a href="<%= @hostname %><%= success %>">View PID <%= success %></li>
+    
+    <table>
+        <tr><th>View</th><th>URL</th></tr>
+        <% @successes.each do |success| %>
+          <tr>
+            <td style="width: 5%"><a href="<%= @hostname %><%= success.id %>">PID: <%= success.id %></a></td>
+            <td><a href="<%= success.url %>"><%= success.url %></a></td>
+          </tr>
       <% end %>
-    </ul>
+    </table>
+        
   <% end %>
 
 </section>

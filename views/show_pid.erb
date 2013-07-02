@@ -1,26 +1,29 @@
-<header>PID Information Display</header>
+<header> PID Profile</header>
 
 <section id="pid_info">
-  <header class="red"><% if(@pid.deactivated) %>Inactive<% end %></header>
+  <h3>PID Information</h3>
+  <h4 class="red"><% if(@pid.deactivated) %>Inactive<% end %></h4>
   
-	<ul>
-		<li>
-		  <table>
-		    <tr><td class="bold">PID:</td><td><%= link_to(to("/PID/#{@pid.id}")) %></a></td></tr>
-		    <tr><td class="bold">PID URL:</td><td><%= link_to(@pid.url) %></td></tr>
-		    <tr><td class="bold">Maintainers:</td><td><%= @pid.groups.map { |group| group.id }.join(',') %></td></tr>
-		    <tr><td class="bold">Creation Date:</td><td><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
-		    <tr><td class="bold">Last Modified:</td><td><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
-		    <tr><td class="bold">Change Category:</td><td><%= @pid.change_category %></td></tr>
-		  </table
-		</li>
+  <a href="<%= @back_link %>">Return to <%= @back_label %></a>
+  
+  <ul>
+    <li>
+      <table>
+        <tr><td class="bold">PID:</td><td><%= link_to(to("/PID/#{@pid.id}")) %></a></td></tr>
+        <tr><td class="bold">PID URL:</td><td><%= link_to(@pid.url) %></td></tr>
+        <tr><td class="bold">Maintainers:</td><td><%= @pid.groups.map { |group| group.id }.join(',') %></td></tr>
+        <tr><td class="bold">Creation Date:</td><td><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
+        <tr><td class="bold">Last Modified:</td><td><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
+        <tr><td class="bold">Change Category:</td><td><%= @pid.change_category %></td></tr>
+      </table
+    </li>
   </ul>
   
   <hr />
 </section>
 
 <section id="pid_history">
-  <header>History</header>
+  <h3>History</h3>
   
   <ul>
     <% @pid.pid_versions.each do | version | %>

@@ -1,20 +1,37 @@
 <section id="search_criteria">
-
-  <form action="link/search" method="post">
-    <label>URL: <input type="text" id="url" name="url" value="<%= url %>" /></label>
-    <label>PID: <input type="number" min="1" max="999999" id="pid" name="pid" value="<%= pid %>" /></label>
+  <h3>Search Criteria:</h3>
+  
+  <form action="/link/search" method="post">
+    <label>URL: <input type="text" id="url" name="url" value="<%= params[:url] %>" /></label>
     
     <input type="submit" name="Search" />
+    <article class="warning">This utility will only return 100 results at a time. If your search returned 100 PIDs, you should refine your criteria.</article>
   </form>
-
+  
 </section>
 
-<% unless @results.nil? %>
+<% if request.request_method == "POST" %>
+  
   <section id="search_results">
-    <header>Search Results:</header>
-
-    <% @results.each do |result| %>
-      <%= result %>
+    <h3>Search Results:</h3>
+    
+    <% unless @results.empty? %>
+      <table>
+        <tr><th>View</th><th>URL</th><th>user</th><th>created</th><th>last modified</th><th>active</th></tr>
+        <% @results.each do |result| %>
+          <tr>
+            <td style="width: 5%"><a href="<%= @hostname %><%= result.id %>">PID: <%= result.id %></a></td>
+            <td><a href="<%= result.url %>"><%= result.url %></a></td>
+            <td style="width: 5%"><%= result.username %></td>
+            <td style="width: 6%"><%= result.created_at.strftime("%m/%d/%Y") %></td>
+            <td style="width: 6%"><%= result.modified_at.strftime("%m/%d/%Y") %></td>
+            <td style="width: 5%" class="center"><%= (result.deactivated) ? "No" : "Yes" %></td>
+          </tr>
+        <% end %>
+      </table>
+    
+    <% else %>
+      <article>No PIDs matched your search criteria!</article>
     <% end %>
   </section>
 <% end %>

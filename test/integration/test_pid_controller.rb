@@ -19,88 +19,96 @@ class PidManageApp < Test::Unit::TestCase
 # Search page tests
 # ---------------------------------------------------------------
   def test_search_empty_params
-    get '/link/search'
-    assert last_response.body.empty?
+    post '/link/search'
+    assert last_response.ok?
+    assert last_response.body.include?('"no_results"')
   end
   
   def test_search_by_url_pass
-    Pid.mint(:url => 'http://www.google.com', :username => @user.handle, :change_category => 'User_Entered')
-    Pid.mint(:url => 'http://maps.google.com', :username => @user.handle, :change_category => 'User_Entered')
-    Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
-    Pid.mint(:url => 'http://www.ebay.com', :username => @user.handle, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://www.testme.abc', :username => @user.handle, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://maps.testme.abc', :username => @user.handle, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://test.cdlib.abc', :username => @user.handle, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://www.testit.abc', :username => @user.handle, :change_category => 'User_Entered')
+    
+    # Warning, any tests to count the number of <tr> returned should account for the <th> row!
     
     # wilcard match 2 urls
-    get '/link/search', {:url => 'google.com'}
+    post '/link/search', {:url => 'testme.abc'}
     assert last_response.ok?
-    assert last_response.body.include?('to-do')  #make sure it returned 2 google PIDs
+    assert_equal 3, last_response.body.gsub("<tr>").count  #make sure it returned 2 google PIDs
     
     # wilcard match 1 url
-    get '/link/search', {:url => 'www.ebay.com'}
+    post '/link/search', {:url => 'www.testit.abc'}
     assert last_response.ok?
-    assert last_response.body.include?('to-do')  #make sure it returned 1 PID for ebay
+    assert_equal 2, last_response.body.gsub('<tr>').count  #make sure it returned 1 PID for ebay
     
     # wilcard match ALL urls
-    get '/link/search', {:url => 'http://'}
+    post '/link/search', {:url => '.abc'}
     assert last_response.ok?
-    assert last_response.body.include?('to-do')  #make sure it returned 4 PIDs
+    assert_equal 5, last_response.body.gsub('<tr>').count  #make sure it returned 4 PIDs
     
     # specific url match
-    get '/link/search', {:url => 'http://cdlib.org'}
+    post '/link/search', {:url => 'http://test.cdlib.abc'}
     assert last_response.ok?
-    assert last_response.body.include?('to-do')  #make sure it returned the cdlib PID
+    assert_equal 2, last_response.body.gsub('<tr>').count  #make sure it returned the cdlib PID
     
     # wilcard match with over 50 hits returns only 50 PIDs
     urls = *(1..60)
-    urls.each{ |url| Pid.mint(:url => 'http://www.wikipedia.org/#{url}', :username => @user.handle, :change_category => 'User_Entered')}
+    urls.each{ |url| Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.handle, :change_category => 'User_Entered')}
     
-    get '/link/search', {:url => 'wikipedia.org/'}
+    post '/link/search', {:url => 'testwikipedia.org/'}
     assert last_response.ok?
-    assert last_response.body.include?('to-do')  #make sure there are only 50 results
+    assert_equal 51, last_response.body.gsub('<tr>').count  #make sure there are only 50 results
   end
   
   def test_search_by_url_404
-    get '/link/search', {:url => 'http://owa.cdlib.org/'}
-    assert_equal 404, last_response
+    post '/link/search', {:url => 'http://owa.cdlib.org/'}
+    assert last_response.body.include?('"no_results"')
   end
-  
-  def test_search_by_pid_range_404
-    get '/link/search', {:min_pid => 50, :max_pid => 75}
-    assert_equal 404, last_response
+
+=begin
+  def test_search_by_pid_range_no_match
+    post '/link/search', {:min_pid => 50, :max_pid => 75}
+    assert last_response.ok?
+    assert last_response.body.include?('"no_results"')
   end
   
   def test_search_by_pid_range_pass
     urls = *(1..20)
     urls.each{ |url| Pid.mint(:url => 'http://www.wikipedia.org/#{url}', :username => @user.handle, :change_category => 'User_Entered')}
     
-    get '/link/search', {:min_pid => 5, :max_pid => 12}
+    post '/link/search', {:min_pid => 5, :max_pid => 12}
     assert last_response.ok?
     assert last_response.body.include?('to-do') #make sure it returned 7 PIDs
   end
-  
+=end
+
 =begin
   def test_search_by_minter
     Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered')
     
-    get 'link/search', {:username => @user.handle}
+    post 'link/search', {:username => @user.handle}
     assert last_response.ok?
     assert last_response.body.include?('to-do') #make sure it returned the PID we minted
   end
   
-  def test_search_by_minter_404
-    get 'link/search', {:username => @user.handle}
-    assert_equal 404, last_response
+  def test_search_by_minter_no_match
+    post 'link/search', {:username => @user.handle}
+    assert last_response.ok?
+    assert last_response.body.include?('"no_results"')
   end
   
   def test_search_by_maintainer
     Pid.mint(:url => 'http://cdlib.org', :username => @user.handle, :change_category => 'User_Entered', :maintainer => @group.id)
     
-    get 'link/search', {:maintainer => @group.id}
+    post 'link/search', {:maintainer => @group.id}
     assert last_response.ok?
   end
   
-  def test_search_by_maintainer_404
-    get 'link/search', {:maintainer => @group.id}
-    assert_equal 404, last_response
+  def test_search_by_maintainer_no_match
+    post 'link/search', {:maintainer => @group.id}
+    assert last_response.ok?
+    assert last_response.body.include?('"no_results"')
   end
   
 =end
@@ -129,27 +137,27 @@ class PidManageApp < Test::Unit::TestCase
   end
   
   def test_create_pid
-    post '/link', { :url => 'http://cdlib.org' }
+    post '/link', { :new_urls => 'http://cdlib.org' }
     assert_equal 302, last_response.status
   end
   
   def test_create_multiple_pids
-    post '/link', { :url => "http://cdlib.org\nhttp://google.com" }
+    post '/link', { :new_urls => "http://cdlib.org\nhttp://google.com" }
     assert_equal 200, last_response.status
   end
   
   def test_create_pid_bad_data
-    post '/link', { :url => 'cdlib.org' }
+    post '/link', { :new_urls => 'cdlib.org' }
     assert_equal 400, last_response.status
   end
   
   def test_create_multiple_pids_good_and_bad_data
-    post '/link', { :url => "cdlib.org\nhttp://google.com" }
+    post '/link', { :new_urls => "cdlib.org\nhttp://google.com" }
     assert_equal 400, last_response.status
   end
   
   def test_create_multiple_pids_all_bad_data
-    post '/link', { :url => "cdlib.org\ngoogle.com" }
+    post '/link', { :new_urls => "cdlib.org\ngoogle.com" }
     assert_equal 400, last_response.status
   end
 end

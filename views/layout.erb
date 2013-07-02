@@ -1,12 +1,33 @@
 <html>
   <head>
-  	<title>PID <%= @pid.id if @pid %></title>
-  	
-  	<link rel="stylesheet" type="text/css" href="../css/pid.css">
+    <title>PID <%= @pid.id if @pid %></title>
+    
+    <link rel="stylesheet" type="text/css" href="../css/pid.css">
   </head>
   
   <body>
-  
+    <header>
+      <img src="../cdl_logo.gif" width="198" height="71" border="0" 
+              alt="California Digital Library" title="California Digital Library">
+    </header>
+    
+    <nav>
+      <div class="nav_spacer">
+        <ul>
+          <li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
+          <li class="grey">|</li>
+          <li><a href="/link">Home</a></li>
+          <li class="grey">|</li>
+          <li><a href="/link/search">Search</a></li>
+          <li class="grey">|</li>
+          <li><a href="/link/new">Mint</a></li>
+          <li class="grey">|</li>
+          <li><a href="/link/report">Reports</a></li>
+          <li class="grey">|</li>
+          <li><a href="/link/help">Help</a></li>
+        </ul>
+      </div>
+    </nav>
     <%= yield %>
   
   </body>

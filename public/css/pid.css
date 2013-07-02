@@ -1,51 +1,90 @@
 body {
-	font-family:   monospace;
+  font-family:        Arial, Helvetica, sans-serif;
+  color:              rgb(88, 89, 91);
+  font-size:          12px;
+  line-height:        16.625px;
 }
 
-h1: {
-
-}
-h2 {
-
+a { 
+  color:              rgb(88, 89, 91);
+  text-decoration:    none;
 }
 
-.red { color: red; }
-.center{
-  text-align:   center;
-}
+
+h1, h2, h3, h4 { color: #005695; }
+
+.red { color:         red; }
+.navy { color:        #005695; }
+.center{ text-align:  center; }
+.grey { color:        #d9d9d9; }
 
 .bold, label, header {
-	font-weight:	bold;
-}
+  font-weight:        bold;}
 
 header {
-  font-size:    14pt;
+  font-size:          14pt;
   
-  margin-left:  15px;
+  margin-left:        15px;
+}
+
+nav {
+  height:             26px;
+  
+  font-size:          12px;
+  font-weight:        bold;
+  text-align:         left;
+}
+nav ul{
+  background-image:   url(../topnav_bg.jpg);
+  border-radius:      11px;
+  padding:            1px 0 3px 0;
+  list-style:         none;
+}
+nav ul li{
+  display:            inline;
+  margin:             20px 15px 0 20px;
+}
+
+section {
+  margin:             0 0 0 30px;
+}
+
+.warning {
+  margin:             10px 30px 15px 30px;
 }
 
 label {
-  margin-right: 15px;
+  margin-right:       12px;
+  vertical-align:     middle;
 }
 
-#pid_info ul, #pid_history ul {
-  list-style:   none;
+#pid_info ul, #pid_history ul {list-style:  none;}
+
+#pid_info ul li, #pid_history ul li {margin-bottom:  3px;}
+
+#pid_history ul li.pid_version {margin-bottom:  25px;}
+
+table {
+  font-size:          12px;
+  border-spacing:     0;
+}
+table tr:nth-child(odd) {
+  background-color:   #d9d9d9;
+}
+table tr > td { 
+  padding:            3px 5px 3px 5px;
+}
+table th {
+  background-color:   rgb(103, 140, 188);
+  color:              #fff;
 }
 
-#pid_info ul li, #pid_history ul li {
-  margin-bottom: 3px;
-  
+#pid_new form > div {
+  display:            inline;
+  vertical-align:     middle;
 }
 
-#pid_history ul li.pid_version {
-  margin-bottom:  25px;
-}
-
-table td {
-  padding:        0 10px 0 10px;
-}
-
-#url { 
-  width:      40%;
-  height:     10%;
+#new_urls { 
+  width:              80%;
+  height:             20%;
 }
