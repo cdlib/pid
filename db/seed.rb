@@ -61,7 +61,7 @@ puts '.... sowing users'
 while line = users_file.gets
   userid, name, email, affiliation = line.split(',')
   
-  user = User.new(:handle => userid.downcase,
+  user = User.new(:login => userid.downcase,
                   :name => (name == 'NULL') ? nil : name,
                   :email => (email == 'NULL') ? nil : email.downcase,
                   :affiliation => (affiliation == 'NULL') ? nil : affiliation.gsub("\n", ''))
@@ -109,8 +109,8 @@ Group.all.each do |group|
   unless group == dflt_group
   
     begin
-      group_users[group.id].each do |handle|
-        user = User.first(:handle => handle)
+      group_users[group.id].each do |login|
+        user = User.first(:login => login)
         
         unless user.nil?
           group.users << user
