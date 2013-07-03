@@ -15,23 +15,64 @@
   <section id="search_results">
     <h3>Search Results:</h3>
     
+    <% i = 1 %>
     <% unless @results.empty? %>
       <table>
-        <tr><th>View</th><th>URL</th><th>user</th><th>created</th><th>last modified</th><th>active</th></tr>
+        <tr><th /><th>View</th><th>URL</th><th>user</th><th>created</th><th>last modified</th><th>active</th></tr>
         <% @results.each do |result| %>
           <tr>
-            <td style="width: 5%"><a href="<%= @hostname %><%= result.id %>">PID: <%= result.id %></a></td>
+            <td style="width: 2%;"><%= i %>)</td>
+            <td style="width: 5%;">
+              <a href="#open_modal_<%= result.id %>" class="open_dialog">PID: <%= result.id %></a>
+
+              <div id="open_modal_<%= result.id %>" class="modal_dialog">
+                <div>
+                  <div id="content_<%= result.id %>"></div>
+                    
+                  <a href="#close" title="Close" class="close">X</a>
+                </div>
+              </div>
+
+              <a href="<%= @hostname %><%= result.id %>">PID: <%= result.id %></a>
+
+            </td>
             <td><a href="<%= result.url %>"><%= result.url %></a></td>
-            <td style="width: 5%"><%= result.username %></td>
-            <td style="width: 6%"><%= result.created_at.strftime("%m/%d/%Y") %></td>
-            <td style="width: 6%"><%= result.modified_at.strftime("%m/%d/%Y") %></td>
-            <td style="width: 5%" class="center"><%= (result.deactivated) ? "No" : "Yes" %></td>
+            <td style="width: 5%;"><%= result.username %></td>
+            <td style="width: 6%;"><%= result.created_at.strftime("%m/%d/%Y") %></td>
+            <td style="width: 6%;"><%= result.modified_at.strftime("%m/%d/%Y") %></td>
+            <td style="width: 5%;" class="center"><%= (result.deactivated) ? "No" : "Yes" %></td>
           </tr>
+          
+          <% i = i.next %>
         <% end %>
       </table>
     
     <% else %>
-      <article>No PIDs matched your search criteria!</article>
+      <article id="no_results">No PIDs matched your search criteria!</article>
     <% end %>
   </section>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".open_dialog").click( function(event){
+      var href = $(this).attr("href");
+      var pid = href.match(/[\d]+/)
+      
+      $.ajax({
+        url:      '/link/' + pid + '?ajax=1',
+        type:     'get',
+        success:  function(data) {
+          $("#content_" + pid).html(data);
+        },
+        error: function(data) {
+          $("#content_" + pid).html(data);
+        },
+        complete: {}
+      });
+
+    });
+  });
+</script>
+
 <% end %>
+

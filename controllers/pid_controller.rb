@@ -4,6 +4,59 @@ class PidApp < Sinatra::Application
   
   @@url_pattern = /https?:\/\/([A-Za-z0-9\-_:\.]+){2,6}(\/([A-Za-z0-9`~!@#\$%\^&\*\(\)\-_=\+\[{\]}\\\|;:'",\.\?]?)+){0,}(\.[A-Za-z0-9]+)?/
   
+  helpers do
+    def verify_url(url)
+      # SCP - not allowed by contract to check live URLs automatically
+      # for all journals. Will happen while loading seed data, editing in masse.
+      
+      unless url[-1] == "/"
+        url += "/"
+      end
+      
+      #Test to make sure this a valid URL
+      uri = URI.parse(url)
+      req = Net::HTTP.new(uri.host, uri.port)
+      res = req.request_head(uri.path)
+      
+      res.code.to_i
+    end
+    
+    
+    def mint_pid(new_url, referrer, username)
+      change_category = (referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
+      
+      url = new_url.strip.gsub("\r\n", "")
+      
+      unless url.empty?
+        if url =~ @@url_pattern
+        
+          begin
+            pid = Pid.mint(:url => url, 
+                           :username => username,
+                           :change_category => change_category,
+                           :notes => "Incoming request from #{request.ip} to mint #{url}")
+            
+            unless pid.nil? || !pid.valid?
+              {:code => 200, :message => pid}
+            else
+              {:code => 500, :message => "Unable to create PID for #{url}"}
+            end
+              
+          rescue Exception => e
+            {:code => 500, :message => "Unable to create PID for #{url} - #{e.message}"}
+          end
+            
+        else
+          {:code => 400, :message => "Invalid URL format for #{url}"}
+        end
+        
+      else
+        {:code => 404, :message => "URL was empty #{url}"}
+      end
+      
+    end
+  end
+  
 # ---------------------------------------------------------------
 # Display the new PID form
 # ---------------------------------------------------------------  
@@ -26,19 +79,10 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   get '/link/:id' do
     @pid = Pid.get(params[:id])
-    
-    @back_link = "/link"
-    @back_label = "Home Page"
-    
-    if request.referrer == "#{hostname}link/new" 
-      @back_link += "/new"
-      @back_label = " New PID(s)"
-    elsif request.referrer == "#{hostname}link/search"
-      @back_link += "/search"
-      @back_label = " Search"
-    end
 
-    if @pid
+    if !request.query_string.nil? && @pid
+      erb :show_pid, :layout => false
+    elsif @pid
       erb :show_pid
     else
       404
@@ -59,7 +103,7 @@ class PidApp < Sinatra::Application
     @results = []
     
     unless params.nil?
-      args = {:limit => 50}
+      args = {:limit => 100}
       
       unless params[:url].nil?
         args[:url.like] = '%' + params[:url] + '%'
@@ -73,69 +117,35 @@ class PidApp < Sinatra::Application
   end
   
 # ---------------------------------------------------------------
-# Process new PID requests
+# Mint PID(s)
 # ---------------------------------------------------------------
   post '/link' do
-    @hostname = "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/link/"
+    fatal = false
     @successes = []
     @failures = {}
     
-    change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
-    
     params[:new_urls].lines do |line|
-    
-      url = line.strip.gsub("\r\n", "")
+      resp = mint_pid(line, request.referrer, 'placeholder')
       
-      unless url.empty?
-        if url =~ @@url_pattern
+      if resp[:code] == 200
+        @successes << resp[:message]
         
-          #unless url[-1] == "/"
-          #	url += "/"
-          #end
-          
-          # Temporarily uncomment. SCP not allowed by contract to check live URLs automatically
-          # for all journals. Will happen while loading seed data, editing in masse.
-          #Test to make sure this a valid URL
-          # uri = URI.parse(url)
-          # req = Net::HTTP.new(uri.host, uri.port)
-          # res = req.request_head(uri.path)
-
-          if true #res.code.to_i < 400
-      
-            begin
-              pid = Pid.mint(:url => line.gsub("\r\n", ""), 
-                             :username => 'placeholder', 
-                             :change_category => change_category,
-                             :notes => "Incoming request from #{request.ip} to mint #{line}")
-
-              unless pid.nil? || !pid.valid?
-                @successes << pid
-              else
-                @failures[url.to_s] = "Unable to save."
-              end
-              
-            rescue Exception => e
-              @failures[url.to_s] = "Unable to save #{e.message}"
-            end
-            
-          else
-            @failures[line.gsub("\r\n", "")] = "Invalid URL."
-          end
-        else
-          @failures[line.gsub("\r\n", "")] = "Invalid URL format."
-        end
-        
-      end  # end if empty
-    end    # end loop
-    
-    if @failures.size >= 1
-      status 400
-      erb :new_pid
-    elsif @successes.size >= 1
-      status 200
-      erb :new_pid
-    else
-      500
+      elsif resp[:code] == 500
+        fatal = true
+      else
+        @failures[line.strip] = resp[:message]
+      end
     end
+    
+    if fatal                      # If any 500s were returned we should flag it with a 500
+      response.status = 500
+    elsif @failures.count > 0     # If we had at least one failure return a 400
+      response.status = 400
+    else                          # We had no failures 302 (per PURL spec for success minting)
+      response.status = 302
+    end
+    
+    erb :new_pid
   end
+  
 end

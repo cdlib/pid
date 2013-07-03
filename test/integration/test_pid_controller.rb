@@ -20,6 +20,7 @@ class PidManageApp < Test::Unit::TestCase
 # ---------------------------------------------------------------
   def test_search_empty_params
     post '/link/search'
+    
     assert last_response.ok?
     assert last_response.body.include?('"no_results"')
   end
@@ -52,13 +53,13 @@ class PidManageApp < Test::Unit::TestCase
     assert last_response.ok?
     assert_equal 2, last_response.body.gsub('<tr>').count  #make sure it returned the cdlib PID
     
-    # wilcard match with over 50 hits returns only 50 PIDs
-    urls = *(1..60)
+    # wilcard match with over 100 hits returns only 100 PIDs
+    urls = *(1..110)
     urls.each{ |url| Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.handle, :change_category => 'User_Entered')}
     
     post '/link/search', {:url => 'testwikipedia.org/'}
     assert last_response.ok?
-    assert_equal 51, last_response.body.gsub('<tr>').count  #make sure there are only 50 results
+    assert_equal 101, last_response.body.gsub('<tr>').count  #make sure there are only 50 results
   end
   
   def test_search_by_url_404
@@ -143,7 +144,7 @@ class PidManageApp < Test::Unit::TestCase
   
   def test_create_multiple_pids
     post '/link', { :new_urls => "http://cdlib.org\nhttp://google.com" }
-    assert_equal 200, last_response.status
+    assert_equal 302, last_response.status
   end
   
   def test_create_pid_bad_data

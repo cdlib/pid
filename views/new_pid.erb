@@ -4,14 +4,14 @@
   <% urls = "" %>
   <%unless @failures.empty? %>
     <% @failures.each do |url, msg| %>
-      <% urls += url.strip + "\r\n" %>
+      <% urls += url %>
     <% end %>
   <% end %>
 
   <form action="/link" method="post">
     <div><label>Url(s):</label></div>
     <textarea name="new_urls" id="new_urls" required
-                title="One URL per line.\nEach URL should include its protocol (e.g. http://)"><%= urls %></textarea>
+                title="One URL per line. Each URL should include its protocol (e.g. http://)"><%= urls %></textarea>
     <div><input type="submit" name="Create"></div>
   </form>
   
@@ -36,7 +36,17 @@
         <tr><th>View</th><th>URL</th></tr>
         <% @successes.each do |success| %>
           <tr>
-            <td style="width: 5%"><a href="<%= @hostname %><%= success.id %>">PID: <%= success.id %></a></td>
+            <td style="width: 5%">
+              <a href="#open_modal_<%= success.id %>" class="open_dialog">PID: <%= success.id %></a>
+
+              <div id="open_modal_<%= success.id %>" class="modal_dialog">
+                <div>
+                  <div id="content_<%= success.id %>"></div>
+                    
+                  <a href="#close" title="Close" class="close">X</a>
+                </div>
+              </div>
+            </td>
             <td><a href="<%= success.url %>"><%= success.url %></a></td>
           </tr>
       <% end %>
@@ -45,3 +55,25 @@
   <% end %>
 
 </section>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".open_dialog").click( function(event){
+      var href = $(this).attr("href");
+      var pid = href.match(/[\d]+/)
+      
+      $.ajax({
+        url:      '/link/' + pid + '?ajax=1',
+        type:     'get',
+        success:  function(data) {
+          $("#content_" + pid).html(data);
+        },
+        error: function(data) {
+          $("#content_" + pid).html(data);
+        },
+        complete: {}
+      });
+
+    });
+  });
+</script>
