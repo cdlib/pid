@@ -32,7 +32,7 @@ class PidApp < Sinatra::Application
     
     def link_to(body, url=nil)
       url ||= body
-      "<a href=\"#{url}\">#{body || url}</a>"
+      "<a href=\"#{url}\" target=\"_blank\">#{body || url}</a>"
     end
     
     def hostname()

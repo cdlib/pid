@@ -1,7 +1,7 @@
 body {
   font-family:        Arial, Helvetica, sans-serif;
   color:              rgb(88, 89, 91);
-  font-size:          12px;
+  font-size:          14px;
   line-height:        16.625px;
 }
 
@@ -65,7 +65,7 @@ label {
 #pid_history ul li.pid_version {margin-bottom:  25px;}
 
 table {
-  font-size:          12px;
+  font-size:          14px;
   border-spacing:     0;
 }
 table tr:nth-child(odd) {
