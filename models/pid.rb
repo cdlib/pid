@@ -75,7 +75,7 @@ class Pid
       begin
         now = Time.now
         #groups = params.delete(:groups)
-
+        
         #If an ID was specified then we're updating or inserting (if this is the DB seed)
         if params[:id]
           pid = Pid.get(params[:id])
@@ -103,7 +103,7 @@ class Pid
         end
 
         #Save the version
-        version_params = {:id => pid.id}
+        version_params = {:pid => pid}
         [:change_category, :url, :username, :notes, :deactivated].each { |key| version_params[key] = params[key] }
         
 # DEBUG
@@ -116,14 +116,11 @@ class Pid
         else
           ver = PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
         end
-        
-        unless ver.nil? || !ver.valid?
-          pid.pid_versions << ver
-        else
           
-          if ver.errors.count == 1 && ver.errors.first == "Pid must not be blank"
-            raise Exception.new(:msg => ver.errors.each { |e| puts "#{e}\n" })
-          end
+        if (ver.errors.count == 1 && ver.errors.first != "Pid must not be blank") || ver.errors.count > 1
+          raise Exception.new(:msg => "Unable to record history: #{ver.errors.each { |e| puts "#{e}\n" }}")
+        else
+          pid.pid_versions << ver
         end
         
         #pid.groups = groups if groups
@@ -168,6 +165,9 @@ class Pid
   end
   
   before :save do |post|
+  
+    #To-Do - Should they be able to save anyway? What if they want to reactivate?
+  
     if self.deactivated == true && self.attribute_dirty?(:url)
       throw :halt
     end

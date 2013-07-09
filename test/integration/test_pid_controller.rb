@@ -170,6 +170,8 @@ class PidManageApp < Test::Unit::TestCase
     original = Pid.mint(:url => 'http://testing.cdlib.org/edit', :username => @user.handle, :change_category => 'User_Entered')
     assert_equal 'http://testing.cdlib.org/edit', original.url
     
+puts "revising"    
+
     post "/link/edit/#{original.id}", {:url => "http://testing.cdlib.org/news", :active => "on", :maintainers => nil}
     assert_equal 200, last_response.status
     

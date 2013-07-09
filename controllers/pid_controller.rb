@@ -61,6 +61,8 @@ class PidApp < Sinatra::Application
         {:code => 200, :message => "Your changes have been saved."}
         
       rescue Exception => e
+puts "id: #{pid.id}"
+puts "Unable to save your changes.\n#{e.message}"
         {:code => 500, :message => "Unable to save your changes.\n#{e.message}"}
       end
     else
