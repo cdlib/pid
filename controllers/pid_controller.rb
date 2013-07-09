@@ -4,71 +4,70 @@ class PidApp < Sinatra::Application
   
   @@url_pattern = /https?:\/\/([A-Za-z0-9\-_:\.]+){2,6}(\/([A-Za-z0-9`~!@#\$%\^&\*\(\)\-_=\+\[{\]}\\\|;:'",\.\?]?)+){0,}(\.[A-Za-z0-9]+)?/
   
-  helpers do
-    def verify_url(url)
-      # SCP - not allowed by contract to check live URLs automatically
-      # for all journals. Will happen while loading seed data, editing in masse.
+  def verify_url(url)
+    # SCP - not allowed by contract to check live URLs automatically
+    # for all journals. Will happen while loading seed data, editing in masse.
       
-      unless url[-1] == "/"
-        url += "/"
-      end
-      
-      #Test to make sure this a valid URL
-      uri = URI.parse(url)
-      req = Net::HTTP.new(uri.host, uri.port)
-      res = req.request_head(uri.path)
-      
-      res.code.to_i
+    unless url[-1] == "/"
+      url += "/"
     end
+      
+    #Test to make sure this a valid URL
+    uri = URI.parse(url)
+    req = Net::HTTP.new(uri.host, uri.port)
+    res = req.request_head(uri.path)
+      
+    res.code.to_i
+  end
     
     
-    def mint_pid(new_url, referrer, username)
-      change_category = (referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
+  def mint_pid(new_url, referrer, username)
+    change_category = (referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
       
-      url = new_url.strip.gsub("\r\n", "")
+    url = new_url.strip.gsub("\r\n", "")
       
-      unless url.empty?
-        if url =~ @@url_pattern
-        
-          begin
-            pid = Pid.mint(:url => url, 
-                           :username => username,
-                           :change_category => change_category,
-                           :notes => "Incoming request from #{request.ip} to mint #{url}")
-            
-            {:code => 200, :message => pid}
-              
-          rescue Exception => e
-            {:code => 500, :message => "Unable to create PID for #{url}.\n#{e.message}"}
-          end
-            
-        else
-          {:code => 400, :message => "Invalid URL format for #{url}"}
-        end
-        
-      else
-        {:code => 404, :message => "URL was empty #{url}"}
-      end
+    unless url.empty?
+      if url =~ @@url_pattern
       
-    end
-    
-    def revise_pid(pid, params)
-      unless pid.nil?
         begin
-          pid.revise({:url => params[:url],
-                      :deactivated => params[:active],
-                      :maintainers =>  params[:maintainers]})
-            
-          {:code => 200, :message => "Your changes have been saved."}
+          pid = Pid.mint(:url => url, 
+                         :username => username,
+                         :change_category => change_category,
+                         :notes => "Incoming request from #{request.ip} to mint #{url}")
+          
+          {:code => 200, :message => pid}
           
         rescue Exception => e
-          {:code => 500, :message => "Unable to save your changes.\n#{e.message}"}
+          {:code => 500, :message => "Unable to create PID for #{url}.\n#{e.message}"}
         end
+        
       else
-        {:code => 404, :message => "No PID specified"}
+        {:code => 400, :message => "Invalid URL format for #{url}"}
       end
+      
+    else
+      {:code => 404, :message => "URL was empty #{url}"}
+    end
+      
+  end
+    
+  def revise_pid(pid, params)
+    unless pid.nil?
+      begin
+        pid.revise({:url => params[:url],
+                    :deactivated => params[:active],
+                    :maintainers =>  params[:maintainers]})
+        
+        {:code => 200, :message => "Your changes have been saved."}
+        
+      rescue Exception => e
+        {:code => 500, :message => "Unable to save your changes.\n#{e.message}"}
+      end
+    else
+      {:code => 404, :message => "No PID specified"}
     end
   end
+  
   
 # ---------------------------------------------------------------
 # Display the new PID form
