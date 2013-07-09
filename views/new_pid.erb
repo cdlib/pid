@@ -4,15 +4,15 @@
   <% urls = "" %>
   <%unless @failures.empty? %>
     <% @failures.each do |url, msg| %>
-      <% urls += url %>
+      <% urls += url + "\n" %>
     <% end %>
   <% end %>
 
   <form action="/link" method="post">
-    <div><label>Url(s):</label></div>
+    <div><label style="vertical-align: 70px;">Url(s):</label></div>
     <textarea name="new_urls" id="new_urls" required
                 title="One URL per line. Each URL should include its protocol (e.g. http://)"><%= urls %></textarea>
-    <div><input type="submit" name="Create"></div>
+    <div><input type="submit" name="Create" style="vertical-align: 70px;"></div>
   </form>
   
   <div class="red">

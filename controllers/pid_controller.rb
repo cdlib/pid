@@ -75,6 +75,35 @@ class PidApp < Sinatra::Application
   end
   
 # ---------------------------------------------------------------
+# Display the reports page
+# ---------------------------------------------------------------  
+  get '/link/report' do
+    erb :reports
+  end
+
+# ---------------------------------------------------------------
+# Display the help page
+# ---------------------------------------------------------------  
+  get '/link/help' do
+    erb :help
+  end
+
+# ---------------------------------------------------------------
+# Display the edit page
+# ---------------------------------------------------------------    
+  get '/link/edit/:id' do
+    @pid = Pid.get(params[:id])
+
+    if !request.query_string.nil? && @pid
+      erb :edit_pid, :layout => false
+    elsif @pid
+      erb :edit_pid
+    else
+      404
+    end
+  end
+  
+# ---------------------------------------------------------------
 # Display the specified purl
 # ---------------------------------------------------------------  
   get '/link/:id' do
@@ -92,9 +121,12 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
 # Display the main menu
 # ---------------------------------------------------------------  
-  get '/link' do
-    erb :index
+  ['/link/index', '/link', '/link/'].each do |path|
+    get path do
+      erb :index
+    end
   end
+
   
 # ---------------------------------------------------------------
 # Process the PIDs search form
@@ -114,6 +146,41 @@ class PidApp < Sinatra::Application
     end
     
     erb :search_pid
+  end
+
+# ---------------------------------------------------------------
+# Edit PID(s)
+# ---------------------------------------------------------------
+  post '/link/edit/:id' do
+  @pid = Pid.get(params[:id])
+    @message = "Unable to save your changes."
+
+    unless @pid.nil? 
+    
+      begin
+        @pid = @pid.revise({:url => params[:url],
+                            :deactivated => (params[:active] == "on") ? false : true,
+                            :maintainers => nil})
+      
+        if @pid
+          #To-Do - switch to doing flash message
+          @message = "Your changes have been saved."	
+        end
+        
+      rescue Exception => e
+        puts "Unable to save changes to #{params[:id]} - #{e.message}"
+      end
+      
+    end
+
+    if !request.query_string.nil? && @pid
+      erb :edit_pid, :layout => false
+    elsif @pid
+      erb :edit_pid
+    else
+      @message = "PID #{params[:id]} does not exist!"
+      404
+    end
   end
   
 # ---------------------------------------------------------------

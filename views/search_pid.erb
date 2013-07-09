@@ -2,7 +2,7 @@
   <h3>Search Criteria:</h3>
   
   <form action="/link/search" method="post">
-    <label>URL: <input type="text" id="url" name="url" value="<%= params[:url] %>" /></label>
+    <label>URL: <input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" /></label>
     
     <input type="submit" name="Search" />
     <article class="warning">This utility will only return 100 results at a time. If your search returned 100 PIDs, you should refine your criteria.</article>
@@ -32,8 +32,6 @@
                   <a href="#close" title="Close" class="close">X</a>
                 </div>
               </div>
-
-              <a href="<%= @hostname %><%= result.id %>">PID: <%= result.id %></a>
 
             </td>
             <td><a href="<%= result.url %>"><%= result.url %></a></td>

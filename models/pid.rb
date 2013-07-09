@@ -58,8 +58,8 @@ class Pid
   
   
   def self.create_or_update(params)
-    is_seed = params[:is_seed]
-    params.delete(:is_seed)	
+    is_seed = (params[:is_seed].nil?) ? false : params[:is_seed]
+    params.delete(:is_seed)
 
     Pid.transaction do |t|
       begin
@@ -67,12 +67,12 @@ class Pid
         #groups = params.delete(:groups)
 
         #If an ID was specified then we're updating or inserting (if this is the DB seed)
-        if params[:id]					
+        if params[:id]
           pid = Pid.get(params[:id])
           
           #If we're seeding the DB and the ID doesn't exist
           if pid.nil? && is_seed
-            pid = Pid.new(params)	
+            pid = Pid.new(params)
             
           #If we're not seeding and the ID is missing exit
           elsif pid.nil?
@@ -80,7 +80,10 @@ class Pid
             
           #Otherwise we're updating so set the modified_at to now
           else
-            pid.attributes = params.merge(:modified_at => (is_seed) ? params[:modified_at] : now)
+            revise_params = {}
+            [:change_category, :url, :username, :notes, :deactivated].each { |key| revise_params[key] = params[key] }
+            
+            pid.attributes = revise_params.merge(:modified_at => (is_seed) ? revise_params[:modified_at] : now)
           end
         
         #Otherwise we're creating a new PID
@@ -96,6 +99,7 @@ class Pid
         if is_seed
           pid.pid_versions << PidVersion.new(version_params.merge(:created_at => pid.modified_at))
         else
+        
           pid.pid_versions << PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
         end
         

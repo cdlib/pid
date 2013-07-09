@@ -1,0 +1,54 @@
+<section id="pid_info">
+  <h3>PID <%= @pid.id %></h3>
+  <h4 class="red"><% if(@pid.deactivated) %>Inactive!<% end %></h4>
+  
+  <div id="edit_message" class="red"><%= @message %></div>
+  
+  <% maintainers = "" %>
+  <% @pid.groups.each do |group| %> 
+    <% maintainers += "#{group.id}\n"  %><br />
+  <% end %>
+  
+  <ul>
+    <li>
+      <form id="edit_pid_form" action="/link/edit" method="post">
+        <table>
+          <tr><td class="bold">URL:</td><td><input type="text" id="url" name="url" style="width: 450px;" value="<%= @pid.url %>" /></td></tr>
+          <tr><td class="bold">Maintainers:</td><td>
+            <textarea id="maintainers" name="maintainers" style="width: 160px; height: 60px;"><%= maintainers %></textarea>
+          </td></tr>
+          <tr><td class="bold">Active:</td><td><input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %>" /></td></tr>
+          <tr><td colspan="2">&nbsp;</td></tr>
+          <tr><td></td><td><button id="save_pid" name="save_pid">Save<input type="hidden" id="pid" value="<%= @pid.id %>" /></td></tr>
+        </table>
+      </form>
+    </li>
+  </ul>
+  
+</section>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#save_pid").click( function(event){
+      
+      event.preventDefault();
+      
+      var pid = $("#pid").val();
+      
+      $.ajax({
+        url:      '/link/edit/' + pid + '?ajax=1',
+        data:     $("#edit_pid_form").serialize(),
+        type:     'post',
+        success:  function(data) {
+          alert("we posted!");
+          $("#content_" + pid).html(data);
+        },
+        error: function(data) {
+          $("#content_" + pid).html(data);
+        },
+        complete: {}
+      });
+
+    });
+  });
+</script>

@@ -5,13 +5,18 @@
   <ul>
     <li>
       <table>
-        <tr><td class="bold">PID:</td><td><%= link_to(to("/PID/#{@pid.id}")) %></a></td></tr>
+        <tr><td class="bold">PID:</td><td>
+          <%= link_to(to("/PID/#{@pid.id}")) %>
+          <button onclick="alert('This will copy the PID url to the user\'s clipboard');" style="margin-left: 20px;">Copy</button>
+        </td></tr>
         <tr><td class="bold">URL:</td><td><%= link_to(@pid.url) %></td></tr>
         <tr><td class="bold">Maintainers:</td><td><%= @pid.groups.map { |group| group.id }.join(',') %></td></tr>
         <tr><td class="bold">Creation Date:</td><td><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
         <tr><td class="bold">Last Modified:</td><td><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
         <tr><td class="bold">Change Category:</td><td><%= @pid.change_category %></td></tr>
-      </table
+        <tr><td colspan="2">&nbsp;</td></tr>
+        <tr><td></td><td><button id="edit_pid">Edit</td><input type="hidden" id="pid" value="<%= @pid.id %>" /></tr>
+      </table>
     </li>
   </ul>
   
@@ -22,7 +27,7 @@
   <h3>History</h3>
   
   <ul>
-    <% @pid.pid_versions.each do | version | %>
+    <% @pid.pid_versions.sort{ |x,y| y.created_at <=> x.created_at }.each do | version | %>
       
       <% unless @pid.url == version.url && @pid.modified_at == version.created_at %>
         <li class="pid_version">
@@ -32,6 +37,7 @@
             <tr><td class="bold">Created on:</td><td><%= version.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
             <tr><td class="bold">Change category:</td><td><%= version.change_category %></td></tr>
             <tr><td class="bold">Notes:</td><td><%= version.notes %></td></tr>
+            <tr><td class="bold">Active:</td><td><%= (version.deactivated) ? "No" : "Yes" %></td></tr>
           </table>
         </li>
       <% end %>
@@ -40,3 +46,28 @@
   </ul>
   
 </section>
+
+<script type="text/javascript">
+  
+  //To-Do: The modal does not scroll in the browser if its longer than the parent page!
+  
+  $(document).ready(function() {
+    $("#edit_pid").click( function(event){
+      
+      var pid = $("#pid").val();
+      
+      $.ajax({
+        url:      '/link/edit/' + pid + '?ajax=1',
+        type:     'get',
+        success:  function(data) {
+          $("#content_" + pid).html(data);
+        },
+        error: function(data) {
+          $("#content_" + pid).html(data);
+        },
+        complete: {}
+      });
+
+    });
+  });
+</script>
