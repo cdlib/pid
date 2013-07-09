@@ -36,14 +36,10 @@ class PidApp < Sinatra::Application
                            :change_category => change_category,
                            :notes => "Incoming request from #{request.ip} to mint #{url}")
             
-            unless pid.nil? || !pid.valid?
-              {:code => 200, :message => pid}
-            else
-              {:code => 500, :message => "Unable to create PID for #{url}"}
-            end
+            {:code => 200, :message => pid}
               
           rescue Exception => e
-            {:code => 500, :message => "Unable to create PID for #{url} - #{e.message}"}
+            {:code => 500, :message => "Unable to create PID for #{url}.\n#{e.message}"}
           end
             
         else
@@ -54,6 +50,23 @@ class PidApp < Sinatra::Application
         {:code => 404, :message => "URL was empty #{url}"}
       end
       
+    end
+    
+    def revise_pid(pid, params)
+      unless pid.nil?
+        begin
+          pid.revise({:url => params[:url],
+                      :deactivated => params[:active],
+                      :maintainers =>  params[:maintainers]})
+            
+          {:code => 200, :message => "Your changes have been saved."}
+          
+        rescue Exception => e
+          {:code => 500, :message => "Unable to save your changes.\n#{e.message}"}
+        end
+      else
+        {:code => 404, :message => "No PID specified"}
+      end
     end
   end
   
@@ -93,8 +106,8 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------    
   get '/link/edit/:id' do
     @pid = Pid.get(params[:id])
-
-    if !request.query_string.nil? && @pid
+    
+    if !request.query_string.empty? && @pid
       erb :edit_pid, :layout => false
     elsif @pid
       erb :edit_pid
@@ -108,8 +121,8 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   get '/link/:id' do
     @pid = Pid.get(params[:id])
-
-    if !request.query_string.nil? && @pid
+    
+    if !request.query_string.empty? && @pid
       erb :show_pid, :layout => false
     elsif @pid
       erb :show_pid
@@ -152,25 +165,22 @@ class PidApp < Sinatra::Application
 # Edit PID(s)
 # ---------------------------------------------------------------
   post '/link/edit/:id' do
-  @pid = Pid.get(params[:id])
+    @pid = Pid.get(params[:id])
     @message = "Unable to save your changes."
-
-    unless @pid.nil? 
     
-      begin
-        @pid = @pid.revise({:url => params[:url],
-                            :deactivated => (params[:active] == "on") ? false : true,
-                            :maintainers => nil})
-      
-        if @pid
-          #To-Do - switch to doing flash message
-          @message = "Your changes have been saved."	
-        end
+    params[:active] = (params[:active] == "on") ? false : true
+    # To-Do parse out the maintainers param into an array
+    params[:maintainers] = nil
+    
+    unless @pid.nil? 
+      # Don't save if nothing has changed!
+      if @pid.url != params[:url] || @pid.maintainers != params[:maintainers] || 
+                                                   @pid.deactivated != params[:active] 
+        resp = revise_pid(@pid, params)
         
-      rescue Exception => e
-        puts "Unable to save changes to #{params[:id]} - #{e.message}"
+        status resp[:code]
+        @message = resp[:message]
       end
-      
     end
 
     if !request.query_string.nil? && @pid
@@ -179,7 +189,7 @@ class PidApp < Sinatra::Application
       erb :edit_pid
     else
       @message = "PID #{params[:id]} does not exist!"
-      404
+      status 404
     end
   end
   

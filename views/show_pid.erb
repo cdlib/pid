@@ -15,7 +15,12 @@
         <tr><td class="bold">Last Modified:</td><td><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
         <tr><td class="bold">Change Category:</td><td><%= @pid.change_category %></td></tr>
         <tr><td colspan="2">&nbsp;</td></tr>
-        <tr><td></td><td><button id="edit_pid">Edit</td><input type="hidden" id="pid" value="<%= @pid.id %>" /></tr>
+        <tr><td></td><td>
+          <form id="edit_pid_form" action="/link/edit/<%= @pid.id %>" method="get">
+            <button id="edit_pid">Edit</button>
+            <input type="hidden" id="pid" value="<%= @pid.id %>" />
+          </form>
+        </td></tr>
       </table>
     </li>
   </ul>
@@ -56,18 +61,26 @@
       
       var pid = $("#pid").val();
       
-      $.ajax({
-        url:      '/link/edit/' + pid + '?ajax=1',
-        type:     'get',
-        success:  function(data) {
-          $("#content_" + pid).html(data);
-        },
-        error: function(data) {
-          $("#content_" + pid).html(data);
-        },
-        complete: {}
-      });
-
+      // if the content_[pid] element exists then the edit is in a modal dialog so perform
+      // an ajax request back to the server to load the edit form
+      if($("#content_" + pid).length !== 0){
+        event.preventDefault();
+        $.ajax({
+          url:      '/link/edit/' + pid + '?ajax=1',
+          type:     'get',
+          success:  function(data) {
+            $("#content_" + pid).html(data);
+          },
+          error: function(data) {
+            $("#content_" + pid).html(data);
+          },
+          complete: {}
+        });
+      
+      }else{
+        // We're not in a modal dialog situation so just go to the edit form
+        $("#edit_pid_form").submit();
+      }
     });
   });
 </script>

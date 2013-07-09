@@ -161,4 +161,40 @@ class PidManageApp < Test::Unit::TestCase
     post '/link', { :new_urls => "cdlib.org\ngoogle.com" }
     assert_equal 400, last_response.status
   end
+  
+  
+# ---------------------------------------------------------------
+# Revise PID tests
+# ---------------------------------------------------------------
+  def test_edit_pid
+    original = Pid.mint(:url => 'http://testing.cdlib.org/edit', :username => @user.handle, :change_category => 'User_Entered')
+    assert_equal 'http://testing.cdlib.org/edit', original.url
+    
+    post "/link/edit/#{original.id}", {:url => "http://testing.cdlib.org/news", :active => "on", :maintainers => nil}
+    assert_equal 200, last_response.status
+    
+    #reload the pid to make sure the save worked
+    changed = Pid.first(:id == original.id)
+    assert_equal  "http://testing.cdlib.org/news", changed.url
+    assert_not_equal original.url, changed.url
+  end
+  
+  def test_edit_pid_bad_data
+    original = Pid.mint(:url => 'http://testing.cdlib.org/edit/bad', :username => @user.handle, :change_category => 'User_Entered')
+    assert_equal 'http://testing.cdlib.org/edit/bad', original.url
+    
+    # Bad url
+    post "/link/edit/#{original.id}", {:url => "Google Search", :active => "on"}
+    
+    changed = Pid.first(:id == original.id)
+    assert_equal  "http://testing.cdlib.org/edit/bad", changed.url
+    
+    assert_equal 500, last_response.status
+  end
+  
+  def test_edit_pid_404
+    post "/link/edit/9999999", {:url => "http://testing.cdlib.org/edit/404", :active => "on"}
+    assert_equal 404, last_response.status
+  end
+  
 end

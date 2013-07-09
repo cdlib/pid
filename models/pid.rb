@@ -32,8 +32,8 @@ class Pid
     }
   property :username, String, :length => 20, :format => /[a-z]{3,20}/, :required => true,
     :messages => {
-      :presence	=> "A username is required.",
-      :format		=> "Username should be between 3 to 20 alpha characters."
+      :presence => "A username is required.",
+      :format => "Username should be between 3 to 20 alpha characters."
     }
   property :created_at, DateTime, :required => true, :index => true
   property :modified_at, DateTime, :required => true, :index => true
@@ -45,22 +45,32 @@ class Pid
   @@shorty = Shortcake.new('pid', {:host => "localhost", :port => 6379})
   
   def revise(params)  
-    #If we're seeding its ok for the modified_at to come through as a param
-    unless params[:is_seed]
-      params = self.attributes.clone.merge({:notes => nil}.merge(params))
-      params.delete(:modified_at)
-      params.delete(:created_at)
-    else
-      params = self.attributes.clone.merge(params)
+    begin
+      #If we're seeding its ok for the modified_at to come through as a param
+      unless params[:is_seed]
+        params = self.attributes.clone.merge({:notes => nil}.merge(params))
+        params.delete(:modified_at)
+        params.delete(:created_at)
+      else
+        params = self.attributes.clone.merge(params)
+      end
+      
+      Pid.create_or_update(params)
+      
+    rescue Exception => e
+      raise e
     end
-    Pid.create_or_update(params)
   end
   
   
   def self.create_or_update(params)
     is_seed = (params[:is_seed].nil?) ? false : params[:is_seed]
     params.delete(:is_seed)
-
+    
+    # To-Do - DataMapper :format => :url allows the url to exclude the protocol (e.g. http://)
+    #         our regex on the screens does not though, we need to either add it if its missing
+    #         here or allow it on the screens (see the regex on pid_controller.rb)
+    
     Pid.transaction do |t|
       begin
         now = Time.now
@@ -93,27 +103,43 @@ class Pid
         end
 
         #Save the version
-        version_params = {}
+        version_params = {:id => pid.id}
         [:change_category, :url, :username, :notes, :deactivated].each { |key| version_params[key] = params[key] }
         
-        if is_seed
-          pid.pid_versions << PidVersion.new(version_params.merge(:created_at => pid.modified_at))
-        else
+# DEBUG
+#puts "pid: #{pid.id}"
+#puts "params: #{version_params}"
         
-          pid.pid_versions << PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
+        ver = nil
+        if is_seed
+          ver = PidVersion.new(version_params.merge(:created_at => pid.modified_at))
+        else
+          ver = PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
+        end
+        
+        unless ver.nil? || !ver.valid?
+          pid.pid_versions << ver
+        else
+          
+          if ver.errors.count == 1 && ver.errors.first == "Pid must not be blank"
+            raise Exception.new(:msg => ver.errors.each { |e| puts "#{e}\n" })
+          end
         end
         
         #pid.groups = groups if groups
         
         pid.mutable = true
         
-        pid.save && @@shorty.create_or_update(pid.id.to_s, params[:url]) && pid
+        if pid.valid?
+          pid.save && @@shorty.create_or_update(pid.id.to_s, params[:url]) && pid
+        else
+          raise Exception.new(:msg => pid.errors.each { |e| puts "#{e}\n" })
+        end
         
       rescue DataMapper::SaveFailureError => e
         #no rollback needed, nothing saved
-        pid
+        raise e
       rescue Exception => e
-      
         t.rollback       
         raise e
       end
