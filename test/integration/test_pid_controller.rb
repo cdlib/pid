@@ -169,10 +169,8 @@ class PidManageApp < Test::Unit::TestCase
   def test_edit_pid
     original = Pid.mint(:url => 'http://testing.cdlib.org/edit', :username => @user.handle, :change_category => 'User_Entered')
     assert_equal 'http://testing.cdlib.org/edit', original.url
-    
-puts "revising"    
 
-    post "/link/edit/#{original.id}", {:url => "http://testing.cdlib.org/news", :active => "on", :maintainers => nil}
+    put "/link", {:pid => original.id, :url => "http://testing.cdlib.org/news", :active => "on", :maintainers => nil}
     assert_equal 200, last_response.status
     
     #reload the pid to make sure the save worked
@@ -186,7 +184,7 @@ puts "revising"
     assert_equal 'http://testing.cdlib.org/edit/bad', original.url
     
     # Bad url
-    post "/link/edit/#{original.id}", {:url => "Google Search", :active => "on"}
+    put "/link", {:pid => original.id, :url => "Google Search", :active => "on"}
     
     changed = Pid.first(:id == original.id)
     assert_equal  "http://testing.cdlib.org/edit/bad", changed.url
@@ -195,7 +193,7 @@ puts "revising"
   end
   
   def test_edit_pid_404
-    post "/link/edit/9999999", {:url => "http://testing.cdlib.org/edit/404", :active => "on"}
+    put "/link", {:pid => 9999999, :url => "http://testing.cdlib.org/edit/404", :active => "on"}
     assert_equal 404, last_response.status
   end
   

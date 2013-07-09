@@ -61,8 +61,6 @@ class PidApp < Sinatra::Application
         {:code => 200, :message => "Your changes have been saved."}
         
       rescue Exception => e
-puts "id: #{pid.id}"
-puts "Unable to save your changes.\n#{e.message}"
         {:code => 500, :message => "Unable to save your changes.\n#{e.message}"}
       end
     else
@@ -165,11 +163,13 @@ puts "Unable to save your changes.\n#{e.message}"
 # ---------------------------------------------------------------
 # Edit PID(s)
 # ---------------------------------------------------------------
-  post '/link/edit/:id' do
-    @pid = Pid.get(params[:id])
+  put '/link' do
+  
+    @pid = Pid.get(params[:pid])
     @message = "Unable to save your changes."
     
     params[:active] = (params[:active] == "on") ? false : true
+    
     # To-Do parse out the maintainers param into an array
     params[:maintainers] = nil
     
@@ -182,14 +182,17 @@ puts "Unable to save your changes.\n#{e.message}"
         status resp[:code]
         @message = resp[:message]
       end
-    end
-
-    if !request.query_string.nil? && @pid
-      erb :edit_pid, :layout => false
-    elsif @pid
-      erb :edit_pid
+      
+      #reload the pid before we pass it to the erb
+      @pid = Pid.get(params[:pid])
+      
+      if !request.query_string.empty? && @pid
+        erb :edit_pid, :layout => false
+      elsif @pid
+        erb :edit_pid
+      end
     else
-      @message = "PID #{params[:id]} does not exist!"
+      @message = "PID #{params[:pid]} does not exist!"
       status 404
     end
   end

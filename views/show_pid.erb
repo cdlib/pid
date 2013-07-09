@@ -14,6 +14,7 @@
         <tr><td class="bold">Creation Date:</td><td><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
         <tr><td class="bold">Last Modified:</td><td><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
         <tr><td class="bold">Change Category:</td><td><%= @pid.change_category %></td></tr>
+        <tr><td class="bold">Active:</td><td><%= (@pid.deactivated) ? "No" : "Yes" %></td></tr>
         <tr><td colspan="2">&nbsp;</td></tr>
         <tr><td></td><td>
           <form id="edit_pid_form" action="/link/edit/<%= @pid.id %>" method="get">
@@ -41,7 +42,6 @@
             <tr><td class="bold">Created by:</td><td><%= version.username %></td></tr>
             <tr><td class="bold">Created on:</td><td><%= version.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
             <tr><td class="bold">Change category:</td><td><%= version.change_category %></td></tr>
-            <tr><td class="bold">Notes:</td><td><%= version.notes %></td></tr>
             <tr><td class="bold">Active:</td><td><%= (version.deactivated) ? "No" : "Yes" %></td></tr>
           </table>
         </li>
