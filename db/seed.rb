@@ -12,14 +12,15 @@ group_maintainers = {}
 
 pid_maintainers = {}
 
-groups_file = File.open('../pid_legacy_db/groups.csv', 'r')
-users_file = File.open('../pid_legacy_db/users.csv', 'r')
-versions_file = File.open('../pid_legacy_db/versions_sample.csv', 'r')
+groups_file = File.open(ENV['HOME']+'/pid_legacy_db/groups.csv', 'r')
+users_file = File.open(ENV['HOME']+'/pid_legacy_db/users.csv', 'r')
+#versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions_sample.csv', 'r')
+versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions.csv', 'r')
   
-group_users_file = File.open('../pid_legacy_db/group_users.csv', 'r')
-pid_users_file = File.open('../pid_legacy_db/purl_users.csv', 'r')
+group_users_file = File.open(ENV['HOME']+'/pid_legacy_db/group_users.csv', 'r')
+pid_users_file = File.open(ENV['HOME']+'/pid_legacy_db/purl_users.csv', 'r')
 
-puts ".... planting groups"
+puts ".... sowing groups"
 # ---------------------------------------------------------------
 # Process the group records
 # ---------------------------------------------------------------
@@ -47,7 +48,7 @@ end
 =end
 
 
-puts ".... planting users"
+puts ".... sowing users"
 # ---------------------------------------------------------------
 # Process the user records
 # ---------------------------------------------------------------
@@ -83,7 +84,7 @@ end
 dflt_group.save
 
 
-puts ".... planting group <-> user connections"
+puts ".... grafting group <-> user connections"
 # ---------------------------------------------------------------
 # Process the group user connections (excluding default group)
 # ---------------------------------------------------------------
@@ -125,48 +126,49 @@ Group.all.each do |group|
 end
 =end
 
-puts ".... planting PIDs"
+puts ".... sowing PIDs"
 # ---------------------------------------------------------------
 # Process the purl version records
 # ---------------------------------------------------------------
 while line = versions_file.gets
-  id, url, modified, deactivated, userid, category = line.split(',')
+  id, url, modified, userid, category = line.split(',')
   
   pid = Pid.first(:id => id)
 
   unless pid.nil?
     begin
-      pid.revise({:url => (url.nil?) ? pid.url : url,
-                  :username => userid,
+      pid.revise({:url => (url == 'NULL') ? pid.url : url,
+                  :username => userid.downcase,
                   :change_category => category.gsub("\n", ''),
                   :modified_at => modified,
                   :deactivated => (url == 'NULL') ? 1 : 0,
-                  :is_seed => true})	
-    rescue
-      puts "Unable to add history for pid #{id}"
+                  :is_seed => true})
+                  
+    rescue Exception => e
+      puts "Unable to add history for pid #{id} - #{e.message}"
       unless pid.nil? 
-        pid.errors.each{ |err| puts err } 
+        pid.errors.each{ |k,v| puts "#{k} - #{v}" }
       end
-      puts pid.inspect
     end
       
   else
     begin
-      pid = Pid.mint(:id => id,
-                     :url => url, 
-                     :username => userid, 
-                     :change_category => category.gsub("\n", ''), 
-                     :notes => 'Entered by seeding script', 
-                     :created_at => modified,
-                     :modified_at => modified,
-                     :deactivated => (url == 'NULL') ? 1 : 0,
-                     :is_seed => true) 
-    rescue Exception => e
-      puts "Unable to mint new pid #{id}"
-      unless pid.nil? 
-        pid.errors.each{ |err| puts err }
+      unless url == 'NULL'
+        pid = Pid.mint(:id => id,
+                       :url => url, 
+                       :username => userid.downcase, 
+                       :change_category => category.gsub("\n", ''), 
+                       :notes => 'Entered by seeding script', 
+                       :created_at => modified,
+                       :modified_at => modified,
+                       :deactivated => 0,
+                       :is_seed => true) 
       end
-      puts e.message
+    rescue Exception => e
+      puts "Unable to mint new pid #{id} - #{e.message}"
+      unless pid.nil? 
+        pid.errors.each{ |k,v| puts "#{k} - #{v}" }
+      end
     end
   end
   

@@ -25,12 +25,14 @@ class Pid
       :presence  => "A change category is required.",
       :format    => "Categories must be no more than 20 alpha characters, underscores accepted."
     }
+    
+  # To-Do - The DataMapper :url :format validation doesn't like http://[IP Address]:[Port]
   property :url, String, :length => 2000, :format => :url, :required => true,
     :messages => {
       :presence  => "A url is required.",
       :format    => "Must be valid URL of under 2000 characters."
     }
-  property :username, String, :length => 20, :format => /[a-z]{3,20}/, :required => true,
+  property :username, String, :length => 50, :format => /[A-Za-z\s]{3,50}/, :required => true,
     :messages => {
       :presence => "A username is required.",
       :format => "Username should be between 3 to 20 alpha characters."
@@ -71,6 +73,7 @@ class Pid
     #         our regex on the screens does not though, we need to either add it if its missing
     #         here or allow it on the screens (see the regex on pid_controller.rb)
     
+    
     Pid.transaction do |t|
       begin
         now = Time.now
@@ -93,7 +96,7 @@ class Pid
             revise_params = {}
             [:change_category, :url, :username, :notes, :deactivated].each { |key| revise_params[key] = params[key] }
             
-            pid.attributes = revise_params.merge(:modified_at => (is_seed) ? revise_params[:modified_at] : now)
+            pid.attributes = revise_params.merge(:modified_at => (is_seed) ? params[:modified_at] : now)
           end
         
         #Otherwise we're creating a new PID
