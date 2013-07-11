@@ -55,7 +55,7 @@ class PidManageApp < Test::Unit::TestCase
     
     # wilcard match with over 100 hits returns only 100 PIDs
     urls = *(1..110)
-    urls.each{ |url| Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.handle, :change_category => 'User_Entered')}
+    urls.each{ |url| Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.login, :change_category => 'User_Entered')}
     
     post '/link/search', {:url => 'testwikipedia.org/'}
     assert last_response.ok?
