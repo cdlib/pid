@@ -34,8 +34,11 @@ From the root project dir:
     rake test
   
 
+SOURCE:
+  The source code is managed by Git and is located at:
+    ssh://bibutil-dev-vm.cdlib.org/apps/bibutil/repos/shortcake.git
 
-Notes:
+NOTES:
   Make sure that all tests pass before you commit any changes to the git repo!
   
   To run the application with the seed data from the legacy purl service you will need
