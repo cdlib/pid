@@ -14,8 +14,8 @@ pid_maintainers = {}
 
 groups_file = File.open(ENV['HOME']+'/pid_legacy_db/groups.csv', 'r')
 users_file = File.open(ENV['HOME']+'/pid_legacy_db/users.csv', 'r')
-#versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions_sample.csv', 'r')
-versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions.csv', 'r')
+versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions_sample.csv', 'r')
+#versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions.csv', 'r')
   
 group_users_file = File.open(ENV['HOME']+'/pid_legacy_db/group_users.csv', 'r')
 pid_users_file = File.open(ENV['HOME']+'/pid_legacy_db/purl_users.csv', 'r')
@@ -131,7 +131,13 @@ puts ".... sowing PIDs"
 # Process the purl version records
 # ---------------------------------------------------------------
 while line = versions_file.gets
-  id, url, modified, userid, category = line.split(',')
+
+  begin
+    id, url, modified, userid, category = line.split(',')
+  rescue Exception => e
+    puts e.message
+    puts line
+  end
   
   pid = Pid.first(:id => id)
 
