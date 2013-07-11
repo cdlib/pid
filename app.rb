@@ -23,7 +23,7 @@ class PidApp < Sinatra::Application
   end
   
   configure :test do
-    ENV['DATABASE_URL'] ||= "sqlite3://:memory:"
+    ENV['DATABASE_URL'] ||= "sqlite::memory:"
   end
   
   helpers do
