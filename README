@@ -1,22 +1,15 @@
 Name:     PID Service prototype a.k.a. Shortcake
 Authors:  scollett, briley
-Date:     7/9/13
+Date:     7/11/13
 
+This is a prototype of a revised version of the PURL Server. It implements a core subset of the PURL spec, basically it's a tiny URL service with versioning. It is written in the ruby language and runs on the Sinatra platform (http://www.sinatrarb.com/). It uses SQLite as its primary database and Redis as the cached data store for PID redirects.
 
-This is a prototype of a revised version of the PURL Service. It is written in the ruby 
-language and runs on the Sinatra platform (http://www.sinatrarb.com/). It uses SQLite as 
-its primary database and Redis as the cached data store for PID redirects.
-
+Dependencies
 It is recommended that you install the following gems to get the application running on
-your system:
-    gem install sinatra
-    gem install thin
-    gem install redis
-    gem install fake-redis
-    gem install datamapper
-    
-    
-    
+your system with bundler: bundler install
+
+Redis and SQLite must be installed.
+
 From the root project dir:
   To start redis:
     rake redis:start
@@ -32,12 +25,6 @@ From the root project dir:
     
   To run the tests:
     rake test
-  
-
 
 Notes:
   Make sure that all tests pass before you commit any changes to the git repo!
-  
-  To run the application with the seed data from the legacy purl service you will need
-  to retrieve the source from:
-    ssh://bibutil-dev-vm.cdlib.org/apps/bibutil/repos/pid_legacy_db.git 
