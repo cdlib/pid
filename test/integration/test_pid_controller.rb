@@ -88,13 +88,13 @@ class PidManageApp < Test::Unit::TestCase
   def test_search_by_minter
     Pid.mint(:url => 'http://cdlib.org', :username => @user.login, :change_category => 'User_Entered')
     
-    post 'link/search', {:username => @user.handle}
+    post 'link/search', {:username => @user.login}
     assert last_response.ok?
     assert last_response.body.include?('to-do') #make sure it returned the PID we minted
   end
   
   def test_search_by_minter_no_match
-    post 'link/search', {:username => @user.handle}
+    post 'link/search', {:username => @user.login}
     assert last_response.ok?
     assert last_response.body.include?('"no_results"')
   end
@@ -167,7 +167,7 @@ class PidManageApp < Test::Unit::TestCase
 # Revise PID tests
 # ---------------------------------------------------------------
   def test_edit_pid
-    original = Pid.mint(:url => 'http://testing.cdlib.org/edit', :username => @user.handle, :change_category => 'User_Entered')
+    original = Pid.mint(:url => 'http://testing.cdlib.org/edit', :username => @user.login, :change_category => 'User_Entered')
     assert_equal 'http://testing.cdlib.org/edit', original.url
 
     put "/link", {:pid => original.id, :url => "http://testing.cdlib.org/news", :active => "on", :maintainers => nil}
@@ -180,7 +180,7 @@ class PidManageApp < Test::Unit::TestCase
   end
   
   def test_edit_pid_bad_data
-    original = Pid.mint(:url => 'http://testing.cdlib.org/edit/bad', :username => @user.handle, :change_category => 'User_Entered')
+    original = Pid.mint(:url => 'http://testing.cdlib.org/edit/bad', :username => @user.login, :change_category => 'User_Entered')
     assert_equal 'http://testing.cdlib.org/edit/bad', original.url
     
     # Bad url
