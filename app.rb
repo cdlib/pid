@@ -10,6 +10,7 @@ class PidApp < Sinatra::Application
   
   set :root, File.dirname(__FILE__)
   
+  # FIXME Extract database settings into a db.yml file
   configure :production do
     ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/db/prod.db"
   end
