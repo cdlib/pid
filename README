@@ -1,40 +1,65 @@
 Name:     PID Service prototype a.k.a. Shortcake
 Authors:  scollett, briley
-Date:     7/11/13
+Date:     7/12/13
 
 This is a prototype of a revised version of the PURL Server. It implements a core subset of the PURL spec, basically it's a tiny URL service with versioning. It is written in the ruby language and runs on the Sinatra platform (http://www.sinatrarb.com/). It uses SQLite as its primary database and Redis as the cached data store for PID redirects.
 
-Dependencies
-It is recommended that you install the following gems to get the application running on
-your system with bundler: bundler install
+DEPENDENCIES:
+  It is recommended that you install the following gems to get the application running on
+  your system with bundler: bundler install
 
-Redis and SQLite must be installed.
+  Redis and SQLite must be installed.
 
-From the root project dir:
+
+REDIS:
   To start redis:
     rake redis:start
     
   To stop redis:
     rake redis:stop
     
+RUNNING:
   To run the application (without legacy data):
     thin -R config.ru start
     
-  To run the application (with a subset of the legacy purl service's data):
+  To run the application (with a subset of your legacy system's data. See below for details):
     thin -R config.ru -e 'seeded' start
-    
+
+TESTING:    
   To run the tests:
     rake test
-  
+	
+  To read all TODO, FIXME, and OPTIMIZE comments:
+    rake notes 
+	
 
 SOURCE:
   The source code is managed by Git and is located at:
-    ssh://bibutil-dev-vm.cdlib.org/apps/bibutil/repos/shortcake.git
+    https://github.com/cdlib/shortcake
+
 
 NOTES:
   Make sure that all tests pass before you commit any changes to the git repo!
-  
-  To run the application with the seed data from the legacy purl service you will need
-  to retrieve the source from:
-    ssh://bibutil-dev-vm.cdlib.org/apps/bibutil/repos/pid_legacy_db.git 
+	
+	
+SEEDING THE DATABASE WITH LEGACY DATA:
+  WARNING: This process will wipe out all of the data in your tables!!! If you would like to retain the data already in the system, comment out
+           the flush! lines at the top of the /db/seed.rb file.
 
+  For seeding the database, the system is expecting your legacy csv data files to be found at ~/pid_legacy_db/ (this location can be modified at
+  the top of /db/seed.rb). The system is expecting 4 separate files in the following csv format:
+  
+      users.csv  <=  userid, full name, email, affiliation  (e.g. jdoe,John Doe,jdoe@ucla.edu,UCLA)
+	  
+	  groups.csv  <=  groupid, name, description  (e.g. UCLA, UC Los Angeles, UCLA Library Cataloging Team)
+	  
+	  group_users.csv  <=  groupid, userid, isAdmin  (e.g. UCLA,jdoe,0)  (isAdmin -> 1 = true, 0 = false)
+	  
+	  versions.csv  <=  pidid, url, created date, created by userid, method  
+	            (e.g. 123,http://www.google.com,2000-11-01 12:02:06,jdoe,User_Entered)  (urls MUST contain the protocol!! http, ftp, etc.)
+				(if a PID has multiple records, they should appear in chronological order within the csv file. The system will create the PID
+				record on the first line and then revise it for each line thereafter. This will create an accurate historical record of the PID)
+				
+  This import process will skip records that have issues loading and will notify you of the PID id and the nature of the issue. You can then 
+  either manually add these records through the GUI or rerun the seed process after correcting the problems. Make sure you comment out the 
+  flush! lines at the top of /db/seed.rb to prevent the seed process from deleting all of the records added during the initial seed!! 

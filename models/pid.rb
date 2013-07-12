@@ -108,11 +108,7 @@ class Pid
         #Save the version
         version_params = {:pid => pid}
         [:change_category, :url, :username, :notes, :deactivated].each { |key| version_params[key] = params[key] }
-        
-# DEBUG
-#puts "pid: #{pid.id}"
-#puts "params: #{version_params}"
-        
+
         ver = nil
         if is_seed
           ver = PidVersion.new(version_params.merge(:created_at => pid.modified_at))
@@ -120,8 +116,9 @@ class Pid
           ver = PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
         end
           
+        # If the version has errors that are not just Pid must not be blank (happens with new PID record) raise an exception
         if (ver.errors.count == 1 && ver.errors.first != "Pid must not be blank") || ver.errors.count > 1
-          raise Exception.new(:msg => "Unable to record history: #{ver.errors.each { |e| puts "#{e}\n" }}")
+          raise Exception.new(:msg => "#{ver.errors.each { |e| e.join(',') }.join("\n")}")
         else
           pid.pid_versions << ver
         end
@@ -138,6 +135,7 @@ class Pid
         
       rescue DataMapper::SaveFailureError => e
         #no rollback needed, nothing saved
+        t.rollback
         raise e
       rescue Exception => e
         t.rollback       

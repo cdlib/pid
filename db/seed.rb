@@ -1,54 +1,60 @@
-puts "Seeding the database"
+puts 'Seeding the database'
 
-# Setup the Seed group and user
+#TODO - Offload these to a seed config file, default to false so that the tables do not flush!
 Pid.flush!
 User.flush!
 Group.flush!
 
 users = {}
-
 group_users = {}
-group_maintainers = {}
+#group_maintainers = {}
+#pid_maintainers = {}
 
-pid_maintainers = {}
-
+#TODO - Offload these to a seed config file but use the existing as a default
 groups_file = File.open(ENV['HOME']+'/pid_legacy_db/groups.csv', 'r')
 users_file = File.open(ENV['HOME']+'/pid_legacy_db/users.csv', 'r')
+group_users_file = File.open(ENV['HOME']+'/pid_legacy_db/group_users.csv', 'r')
 versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions_sample.csv', 'r')
 #versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions.csv', 'r')
   
-group_users_file = File.open(ENV['HOME']+'/pid_legacy_db/group_users.csv', 'r')
-pid_users_file = File.open(ENV['HOME']+'/pid_legacy_db/purl_users.csv', 'r')
+#pid_users_file = File.open(ENV['HOME']+'/pid_legacy_db/purl_users.csv', 'r')
 
-puts ".... sowing groups"
+puts '.... sowing groups'
+puts "nil: #{nil}"
+
 # ---------------------------------------------------------------
 # Process the group records
 # ---------------------------------------------------------------
-while line = groups_file.gets
-  id, name, description = line.split(',')
+CSV.foreach(groups_file) do |row|
+  id, name, description = row.collect { |fld| (fld) ? ((fld.strip =~ /^[Nn][Uu][Ll]{2,}$/) ? nil : fld.strip) : nil }
   
-  group = Group.new(:id => id,
-                    :name => name,
-                    :description => (description == 'NULL') ? nil : description.gsub("\n", ''))
-  begin
-    group.save
-  rescue
-    group.errors.each { |err| puts err }
-    puts group.inspect
+puts "id: #{id}, desc: #{description}"
+  
+  if id && id.upcase != 'NULL'
+    group = Group.new(:id => id,
+                      :name => name,
+                      :description => description)
+    begin
+      group.save
+    rescue
+      group.errors.each { |err| puts err }
+      puts group.inspect
+    end
+  else
+    puts "Cannot add a group without an id! - name: #{name}, description: #{description}"
   end
   
   group_users[id] = []
-  group_maintainers[id] = []
+#  group_maintainers[id] = []
 end
 
-=begin
-Group.all.each do |group|
-  puts "#{group.id} - #{group.description}"
-end
-=end
+#DEBUG
+#Group.all.each do |group|
+#  puts "#{group.id} - #{group.description}"
+#end
 
 
-puts ".... sowing users"
+puts '.... sowing users'
 # ---------------------------------------------------------------
 # Process the user records
 # ---------------------------------------------------------------
