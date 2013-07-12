@@ -68,5 +68,4 @@ class PidManageApp < Test::Unit::TestCase
       :email => 'test@test.org', :group_id => 'UCLA' }
     assert_equal 200, last_response.status
   end
-  
 end

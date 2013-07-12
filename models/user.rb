@@ -1,7 +1,6 @@
 require 'digest/sha1'
 class User
   include DataMapper::Resource
-  
   belongs_to :group
   
   property :id, Serial, :key => true
@@ -28,13 +27,18 @@ class User
            :messages => {
            :format => "The password hint must be less than 50 characters long!"
       }
+  property :active, Boolean, :default => true
+  property :super, Boolean, :default => false
   property :hashed_password, String
   property :salt, String
-  # property :created_at, DateTime, :default => Time.now
+  property :created_at, DateTime
 
   attr_accessor :password
-  #validates_presence_of :login, :email, :password
 
+  def active?
+    self.active
+  end
+  
   def password=(pass)
     @password = pass
     self.salt = User.random_string(10) unless self.salt
@@ -57,6 +61,14 @@ class User
     str = ""
     1.upto(len) { |i| str << chars[rand(chars.size-1)] }
     return str
+  end
+
+  def self.active
+    User.all(:active => true)
+  end
+  
+  def self.deactivated
+    User.all(:active => false)
   end
   
   def self.flush!
