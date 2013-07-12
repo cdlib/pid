@@ -23,8 +23,7 @@ def process_record(obj, csv_row)
   params = {}
   
   obj.properties.each_with_index do |prop, idx| 
-    if prop.name != 'id'
-puts "#{prop.name}"      
+    if prop.name != 'id'      
       params[prop.name] = csv_row[idx]
     end
   end
@@ -78,8 +77,7 @@ CSV.foreach(users_file) do |row|
     user = User.new(:handle => userid.downcase,
                     :name => name,
                     :email => (email) ? email.downcase : email,
-                    :affiliation => affiliation)
-                   
+                    :affiliation => affiliation)                   
     begin
       user.save
     rescue
@@ -126,8 +124,8 @@ Group.all.each do |group|
   unless group == dflt_group
   
     begin
-      group_users[group.id].each do |handle|
-        user = User.first(:handle => handle)
+      group_users[group.id].each do |login|
+        user = User.first(:login => login)
         
         unless user.nil?
           group.users << user

@@ -99,7 +99,7 @@ class PidApp < Sinatra::Application
 # Edit PID(s)
 # ---------------------------------------------------------------
   put '/link' do
-  
+    # TODO: Authorize if owned by user's group or is super user
     @pid = Pid.get(params[:pid])
     @message = "Unable to save your changes."
     
@@ -136,6 +136,7 @@ class PidApp < Sinatra::Application
 # Mint PID(s)
 # ---------------------------------------------------------------
   post '/link' do
+    # TODO: Authorize if owned by user's group or is super user
     fatal = false
     @successes = []
     @failures = {}

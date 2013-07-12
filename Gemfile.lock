@@ -83,6 +83,7 @@ PLATFORMS
 DEPENDENCIES
   data_mapper
   dm-sqlite-adapter
+  dm-timestamps
   dm-transactions
   fakeredis
   rack

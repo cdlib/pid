@@ -4,6 +4,7 @@ gem 'rack'
 gem 'data_mapper'
 gem 'dm-sqlite-adapter'
 gem 'dm-transactions'
+gem 'dm-timestamps'
 gem 'redis'
 gem 'thin'
 

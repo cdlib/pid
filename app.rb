@@ -38,7 +38,17 @@ class PidApp < Sinatra::Application
     
     def hostname()
       "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/"
-    end 
+    end
+    
+    def logged_in?
+      return true if session[:user]
+      nil
+    end
+
+    def current_user
+      return session[:user]
+    end
+    
   end
 end
 

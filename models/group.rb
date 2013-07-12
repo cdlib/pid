@@ -1,6 +1,6 @@
 class Group
   include DataMapper::Resource
-  has n, :users, :through => Resource
+  has n, :users
   has n, :maintainers
   has n, :pids, :through => :maintainers
   
