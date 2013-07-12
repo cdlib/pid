@@ -1,0 +1,2 @@
+id,login,name,email,affiliation,password_hint,active,super,created_at,group_id
+1,jdoe,John Doe,jdoe@institution.edu,Admin Team,first pet,1,1,2012-01-01 15:15:15,ADMIN

@@ -47,19 +47,17 @@ SEEDING THE DATABASE WITH LEGACY DATA:
            the flush! lines at the top of the /db/seed.rb file.
 
   For seeding the database, the system is expecting your legacy csv data files to be found at ~/pid_legacy_db/ (this location can be modified at
-  the top of /db/seed.rb). The system is expecting 4 separate files in the following csv format:
+  the top of /db/seed.rb). The system is expecting 3 separate files, one for Groups, one for Users, and one for PIDs.
   
-      users.csv  <=  userid, handle, full name, email, affiliation  (e.g. jdoe,jdoe,John Doe,jdoe@ucla.edu,UCLA)
-	  
-	  groups.csv  <=  groupid, name, description  (e.g. UCLA, UC Los Angeles, UCLA Library Cataloging Team)
-	  
-	  group_users.csv  <=  groupid, userid, isAdmin  (e.g. UCLA,jdoe,0)  (isAdmin -> 1 = true, 0 = false)
-	  
-	  versions.csv  <=  pidid, url, created date, created by userid, method  
-	            (e.g. 123,http://www.google.com,2000-11-01 12:02:06,jdoe,User_Entered)  (urls MUST contain the protocol!! http, ftp, etc.)
-				(if a PID has multiple records, they should appear in chronological order within the csv file. The system will create the PID
-				record on the first line and then revise it for each line thereafter. This will create an accurate historical record of the PID)
-				
-  This import process will skip records that have issues loading and will notify you of the PID id and the nature of the issue. You can then 
+  You may include any combination of available attributes (see their respective .rb files) for each object in your csv files as long as you 
+  include all of the required attributes. For example if User.affiliation is not important to you, you may exclude it from the users.csv.
+  
+  The first row of the each csv file should contain the attribute names. For example:
+  			id,name,description
+  		  	ADMIN,Administrators,Institution's administrators
+			
+  A template for each of the 3 csv files can be found in /db/templates/
+  				
+  This import process will skip records that have issues loading and will notify you of the item's id and the nature of the issue. You can then 
   either manually add these records through the GUI or rerun the seed process after correcting the problems. Make sure you comment out the 
   flush! lines at the top of /db/seed.rb to prevent the seed process from deleting all of the records added during the initial seed!! 

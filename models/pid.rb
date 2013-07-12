@@ -32,7 +32,7 @@ class Pid
       :presence  => "A url is required.",
       :format    => "Must be valid URL of under 2000 characters."
     }
-  property :username, String, :length => 50, :format => /[A-Za-z\s]{3,50}/, :required => true,
+  property :username, String, :length => 50, :format => /[a-z\s]{3,50}/, :required => true,
     :messages => {
       :presence => "A username is required.",
       :format => "Username should be between 3 to 20 alpha characters."
@@ -117,6 +117,7 @@ class Pid
         end
           
         # If the version has errors that are not just Pid must not be blank (happens with new PID record) raise an exception
+        
         if (ver.errors.count == 1 && ver.errors.first != "Pid must not be blank") || ver.errors.count > 1
           raise Exception.new(:msg => "#{ver.errors.each { |e| e.join(',') }.join("\n")}")
         else
@@ -135,7 +136,7 @@ class Pid
         
       rescue DataMapper::SaveFailureError => e
         #no rollback needed, nothing saved
-        t.rollback
+        t.rollback        
         raise e
       rescue Exception => e
         t.rollback       
