@@ -49,7 +49,7 @@ SEEDING THE DATABASE WITH LEGACY DATA:
   For seeding the database, the system is expecting your legacy csv data files to be found at ~/pid_legacy_db/ (this location can be modified at
   the top of /db/seed.rb). The system is expecting 4 separate files in the following csv format:
   
-      users.csv  <=  userid, full name, email, affiliation  (e.g. jdoe,John Doe,jdoe@ucla.edu,UCLA)
+      users.csv  <=  userid, handle, full name, email, affiliation  (e.g. jdoe,jdoe,John Doe,jdoe@ucla.edu,UCLA)
 	  
 	  groups.csv  <=  groupid, name, description  (e.g. UCLA, UC Los Angeles, UCLA Library Cataloging Team)
 	  

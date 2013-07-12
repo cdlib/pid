@@ -19,18 +19,29 @@ versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions_sample.csv', 'r')
   
 #pid_users_file = File.open(ENV['HOME']+'/pid_legacy_db/purl_users.csv', 'r')
 
-puts '.... sowing groups'
-puts "nil: #{nil}"
+def process_record(obj, csv_row)
+  params = {}
+  
+  obj.properties.each_with_index do |prop, idx| 
+    if prop.name != 'id'
+puts "#{prop.name}"      
+      params[prop.name] = csv_row[idx]
+    end
+  end
+  
+  puts params
+end
 
+puts '.... sowing groups'
 # ---------------------------------------------------------------
 # Process the group records
 # ---------------------------------------------------------------
 CSV.foreach(groups_file) do |row|
   id, name, description = row.collect { |fld| (fld) ? ((fld.strip =~ /^[Nn][Uu][Ll]{2,}$/) ? nil : fld.strip) : nil }
   
-puts "id: #{id}, desc: #{description}"
+process_record(Group, row)
   
-  if id && id.upcase != 'NULL'
+  if id
     group = Group.new(:id => id,
                       :name => name,
                       :description => description)
@@ -48,7 +59,7 @@ puts "id: #{id}, desc: #{description}"
 #  group_maintainers[id] = []
 end
 
-#DEBUG
+#DEBUG - view loaded group records
 #Group.all.each do |group|
 #  puts "#{group.id} - #{group.description}"
 #end
@@ -58,19 +69,25 @@ puts '.... sowing users'
 # ---------------------------------------------------------------
 # Process the user records
 # ---------------------------------------------------------------
-while line = users_file.gets
-  userid, name, email, affiliation = line.split(',')
+CSV.foreach(users_file) do |row|
+  userid, name, email, affiliation = row.collect{ |fld| (fld) ? ((fld.strip =~ /^[Nn][Uu][Ll]{2,}$/) ? nil : fld.strip) : nil }
   
-  user = User.new(:handle => userid.downcase,
-                  :name => (name == 'NULL') ? nil : name,
-                  :email => (email == 'NULL') ? nil : email.downcase,
-                  :affiliation => (affiliation == 'NULL') ? nil : affiliation.gsub("\n", ''))
+  process_record(User, row)
+  
+  if userid
+    user = User.new(:handle => userid.downcase,
+                    :name => name,
+                    :email => (email) ? email.downcase : email,
+                    :affiliation => affiliation)
                    
-  begin
-    user.save
-  rescue
-    user.errors.each { |err| puts err }
-    puts "#{userid} - #{user.inspect}"
+    begin
+      user.save
+    rescue
+      user.errors.each { |err| puts err }
+      puts user.inspect
+    end
+  else
+    puts "Cannot add a user without and id! - name: #{name}, email: #{email}"
   end
 end
 
