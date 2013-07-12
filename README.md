@@ -4,6 +4,9 @@ Date:     7/12/13
 
 This is a prototype of a revised version of the PURL Server. It implements a core subset of the PURL spec, basically it's a tiny URL service with versioning. It is written in the ruby language and runs on the Sinatra platform (http://www.sinatrarb.com/). It uses SQLite as its primary database and Redis as the cached data store for PID redirects.
 
+BUILD STATUS:
+[![Build Status](https://secure.travis-ci.org/cdlib/shortcake.png)](http://travis-ci.org/cdlib/shortcake)
+
 DEPENDENCIES:
   It is recommended that you install the following gems to get the application running on
   your system with bundler: bundler install

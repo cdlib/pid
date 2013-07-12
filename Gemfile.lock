@@ -64,6 +64,7 @@ GEM
       rack
     rack-test (0.6.2)
       rack (>= 1.0)
+    rake (10.1.0)
     redis (3.0.4)
     sinatra (1.4.3)
       rack (~> 1.4)
@@ -88,6 +89,7 @@ DEPENDENCIES
   fakeredis
   rack
   rack-test
+  rake
   redis
   sinatra
   thin
