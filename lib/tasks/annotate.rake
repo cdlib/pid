@@ -59,6 +59,9 @@ end
 # start with the tag optionally followed by a colon. Everything up to the end
 # of the line (or closing ERB comment tag) is considered to be their text.
 class SourceAnnotationExtractor
+  # files + directories to ignore
+  EXCLUDE_DIRECTORIES = %w(vendor )
+  
   class Annotation < Struct.new(:line, :tag, :text)
 
     # Returns a representation of the annotation that looks like this:
@@ -95,7 +98,7 @@ class SourceAnnotationExtractor
   # with their annotations. Only files with annotations are included, and only
   # those with extension +.builder+, +.rb+, +.rxml+, +.rhtml+, and +.erb+
   # are taken into account.
-  def find(dirs=%w(controllers db lib models test views))
+  def find(dirs=['.'])
     dirs.inject({}) { |h, dir| h.update(find_in(dir)) }
   end
 
@@ -108,7 +111,8 @@ class SourceAnnotationExtractor
 
     Dir.glob("#{dir}/*") do |item|
       next if File.basename(item)[0] == ?.
-
+      next if EXCLUDE_DIRECTORIES.map { |dir| "./#{dir}"}.include?(item)
+      
       if File.directory?(item)
         results.update(find_in(item))
       elsif item =~ /\.(builder|(r(?:b|xml|js)))$/
