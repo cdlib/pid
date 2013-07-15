@@ -50,8 +50,8 @@ SEEDING THE DATABASE WITH LEGACY DATA:
   
   The PIDs file should include all historical information about a PID on separate lines. the lines should appear in chronological order: 
   For example:
-  		id,url,modified_at,username,change_category
-  		123,http://www.google.com/,2000-04-19 13:43:10,jdoe,BATCH
+  	id,url,modified_at,username,change_category
+  	123,http://www.google.com/,2000-04-19 13:43:10,jdoe,BATCH
 		123,http://www.google.com/search?q=ruby+format+date&oq=ruby+format+date,2000-10-18 14:33:25,jdoe,USER_ENTERED
 		123,http://www.google.com/search?q=ruby+config,2007-11-14 15:03:03,jdoe,USER_ENTERED
 		
