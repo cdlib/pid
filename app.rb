@@ -67,3 +67,9 @@ DataMapper.finalize.auto_upgrade!
 if ENV['RACK_ENV'].to_sym == :seeded 
   require_relative 'db/seed.rb'
 end
+
+# OPTIMIZE - Should this go here?
+#reload the Redis database from the data stored in the DB
+shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
+shorty.flushall!
+Pid.all.each { |pid| shorty.create(pid.id.to_s, pid.url) }
