@@ -2,5 +2,6 @@
 *.db
 *.rdb
 *.log
+*.lock
 .DS_Store
 vendor

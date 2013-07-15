@@ -1,15 +1,21 @@
+seed_config = YAML.load_file('db/seed.yml')
+
 puts 'Seeding the database'
 
-#TODO - Offload these to a seed config file, default to false so that the tables do not flush!
-Pid.flush!
-User.flush!
-Group.flush!
+debug = seed_config['debug_on']
 
-#TODO - Offload these to a seed config file but use the existing as a default
-groups_file = File.open(ENV['HOME']+'/pid_legacy_db/groups.csv', 'r')
-users_file = File.open(ENV['HOME']+'/pid_legacy_db/users.csv', 'r')
-group_users_file = File.open(ENV['HOME']+'/pid_legacy_db/group_users.csv', 'r')
-versions_file = File.open(ENV['HOME']+'/pid_legacy_db/versions.csv', 'r')
+# If the config specifies that we should flush the tables
+if seed_config['flush_tables']
+  Pid.flush!
+  User.flush!
+  Group.flush!
+end
+
+# Load the CSV Files
+csv_dir = seed_config['path'].to_s.gsub('~', ENV['HOME'])
+groups_file = File.open(csv_dir + seed_config['group_file'].to_s, 'r')
+users_file = File.open(csv_dir + seed_config['user_file'].to_s, 'r')
+versions_file = File.open(csv_dir + seed_config['pid_file'].to_s, 'r')
 
 # ---------------------------------------------------------------
 # Convert the CSV row into an instance of a DataMapper model
@@ -22,7 +28,7 @@ def spawn_object(obj, csv_row)
     
     # If the item is a date and its null or empty use today's date
     if ['created_at', 'modified_at', 'created', 'modified'].include?(prop) && csv_row[prop].nil?
-      params[prop] = Date.new
+      params[prop] = Time.now
       
     # If the item is a group id, load the group object
     elsif ['group', 'group_id'].include?(prop)
@@ -49,17 +55,19 @@ def spawn_object(obj, csv_row)
 end
 
 
-
 puts '.... sowing groups'
 # ---------------------------------------------------------------
 # Process the group records
 # ---------------------------------------------------------------
+i = 0; j = 0
 CSV.foreach(groups_file, :headers => true) do |row|
   group = spawn_object(Group, row)
   
   if group.valid?
     begin
       group.save
+      
+      i = i.next
     rescue Exception => e
       puts "........ unable to create group: #{group.id} - #{group.name}"
       puts "............ #{e.message}"
@@ -67,27 +75,33 @@ CSV.foreach(groups_file, :headers => true) do |row|
   else
     puts "........ unable to load user: #{group.id} - #{group.name}"
     group.errors.collect{ |e| puts "............ #{e.join(',')}" }.join(',')
-    #puts "............ #{group.inspect}"
+    puts "............ #{group.inspect}" if debug
   end
+
+  j = j.next
   
 end
+puts ".... #{i} out of #{j} groups added to the database."
+puts '........ see errors above for information about the groups that could not be added.' if i != j
 
 #DEBUG - view loaded group records
-#Group.all.each do |group|
-#  puts "#{group.id} - #{group.description}"
-#end
+Group.all.each { |group| puts "added - #{group.id} - #{group.description}" } if debug
 
 
+puts ''
 puts '.... sowing users'
 # ---------------------------------------------------------------
 # Process the user records
 # ---------------------------------------------------------------
+i = 0; j = 0
 CSV.foreach(users_file, :headers => true) do |row|
   user = spawn_object(User, row)
   
   if user.valid?
     begin
       user.save
+      
+      i = i.next
     rescue Exception => e
       puts "........ unable to create user: #{user.id} - #{user.name}"
       puts "............ #{e.message}"
@@ -95,21 +109,25 @@ CSV.foreach(users_file, :headers => true) do |row|
   else
     puts "........ unable to load group: #{user.id} - #{user.name}"
     user.errors.collect{ |e| puts "............ #{e.join(',')}" }.join(',')
-    #puts "............ #{user.inspect}"
+    puts "............ #{user.inspect}" if debug
   end
   
+  j = j.next
 end
+puts ".... #{i} out of #{j} users added to the database."
+puts '........ see errors above for information about the users that could not be added.' if i != j
+
 
 #DEBUG - view loaded user records
-#User.all.each do |user|
-#  puts "#{user.id} - #{user.name}"
-#end
+User.all.each { |user| puts "added - #{user.id} - #{user.name}" } if debug
 
 
-puts ".... sowing PIDs"
+puts ''
+puts '.... sowing PIDs'
 # ---------------------------------------------------------------
-# Process the purl version records
+# Process the pid version records
 # ---------------------------------------------------------------
+i = 0; j = 0; k = 0
 CSV.foreach(versions_file, :headers => true) do |row|
   incoming = spawn_object(Pid, row)
 
@@ -131,36 +149,48 @@ CSV.foreach(versions_file, :headers => true) do |row|
       
       begin
         Pid.mint(params)
+        
+        i = i.next
       rescue Exception => e
         puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
         puts "............ #{e.message}"
+        puts "............ #{incoming.inspect}" if debug
       end
   
     else
       puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
-      puts "............ the first record for a pid cannot have a null url! make sure your records are in chronological order!"
-      #puts "............ #{pid.inspect}"
+      puts '............ the first record for a pid cannot have a null url! make sure your records are in chronological order!'
+      puts "............ #{incoming.inspect}" if debug
     end
         
   else
     begin
       Pid.get(incoming.id).revise(params)
+      
+      j = j.next
     rescue Exception => e
       puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
       puts "............ #{e.message}"
+      puts "............ #{incoming.inspect}" if debug
     end
   end
 
+  k = k.next
 end
+puts ".... #{i} new PIDs added and #{j} historical PID records (out of #{k} total records) added to the database."
+puts '........ see errors above for information about the users that could not be added.' if (i + j) != k
 
 #DEBUG - view loaded user records
-#Pid.all.each do |pid|
-#  puts "#{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username}"
-#  pid.pid_versions.each do |ver|
-#    puts "      #{ver.url} : #{ver.created_at} - #{ver.username}"
-#  end
-#end
+if debug
+  Pid.all.each do |pid|
+    puts "added - #{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username}"
+    pid.pid_versions.each do |ver|
+      puts "      history - #{ver.url} : #{ver.created_at} - #{ver.username}"
+    end
+  end
+end
 
-puts "Finished seeding the database"
+puts 'Finished seeding the database'
+puts ''
 
 

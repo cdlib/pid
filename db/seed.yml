@@ -1,0 +1,12 @@
+# Indicates whether or not the tables in the DB should be emptied prior to the seed
+flush_tables: true
+# Turn on/off verbose debugging information
+debug_on: false
+
+# The path to the CSV files. You can use "~" to indicate the home dir.
+path: "~/pid_legacy_db/"
+
+# CSV file for Groups/Users/PIDs (PIDs should include the ALL historical versions of a PID in chronological order)
+group_file: "groups.csv"
+user_file: "users.csv"
+pid_file: "versions.csv"
