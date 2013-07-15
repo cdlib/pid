@@ -1,3 +1,4 @@
+# Represents a historical snapshot of a PID, a new PidVersion record is created everytime a change is made to a PID
 class PidVersion
   include DataMapper::Resource
   belongs_to :pid
@@ -11,6 +12,7 @@ class PidVersion
   property :notes, String, :length => 250
 end
 
+# Represents a Persistent Identifier (PID).
 class Pid
   include DataMapper::Resource
   has n, :pid_versions
@@ -22,20 +24,20 @@ class Pid
   property :deactivated, Boolean, :default  => false, :index => true
   property :change_category, String, :length => 20, :format => /[a-zA-Z\_]+/, :required => true,
     :messages => {
-      :presence  => "A change category is required.",
-      :format    => "Categories must be no more than 20 alpha characters, underscores accepted."
+      :presence  => 'A change category is required.',
+      :format    => 'Categories must be no more than 20 alpha characters, underscores accepted.'
     }
     
   # To-Do - The DataMapper :url :format validation doesn't like http://[IP Address]:[Port]
   property :url, String, :length => 2000, :format => :url, :required => true,
     :messages => {
-      :presence  => "A url is required.",
-      :format    => "Must be valid URL of under 2000 characters."
+      :presence  => 'A url is required.',
+      :format    => 'Must be valid URL of under 2000 characters.'
     }
   property :username, String, :length => 50, :format => /[a-z\s]{3,50}/, :required => true,
     :messages => {
-      :presence => "A username is required.",
-      :format => "Username should be between 3 to 20 alpha characters."
+      :presence => 'A username is required.',
+      :format => 'Username should be between 3 to 20 alpha characters.'
     }
   property :created_at, DateTime, :required => true, :index => true
   property :modified_at, DateTime, :required => true, :index => true
@@ -44,8 +46,12 @@ class Pid
   # restriction for saving, updating. ensure handling through create_or_update for shortcake syncing
   attr_accessor :mutable
   
-  @@shorty = Shortcake.new('pid', {:host => "localhost", :port => 6379})
-  
+  # establish a connection to the REDIS database
+  @@shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
+
+  # ---------------------------------------------------------------
+  # Make a revision/change to the PID
+  # ---------------------------------------------------------------
   def revise(params)  
     begin
       #If we're seeding its ok for the modified_at to come through as a param
@@ -64,12 +70,14 @@ class Pid
     end
   end
   
-  
+  # ------------------------------------------------------------------------------
+  # Save the PID, this method will determine whether we're inserting/updating
+  # ------------------------------------------------------------------------------
   def self.create_or_update(params)
     is_seed = (params[:is_seed].nil?) ? false : params[:is_seed]
     params.delete(:is_seed)
     
-    # To-Do - DataMapper :format => :url allows the url to exclude the protocol (e.g. http://)
+    # FIXME - DataMapper :format => :url allows the url to exclude the protocol (e.g. http://)
     #         our regex on the screens does not though, we need to either add it if its missing
     #         here or allow it on the screens (see the regex on pid_controller.rb)
     
@@ -145,6 +153,9 @@ class Pid
     end
   end
   
+  # --------------------------------------------------------------------------------------
+  # Methods that prevent the DataMapper object from performing its normal CRUD operations
+  # --------------------------------------------------------------------------------------
   def self.mint(params)
     Pid.create_or_update(params)
   end
@@ -168,7 +179,7 @@ class Pid
   
   before :save do |post|
   
-    #To-Do - Should they be able to save anyway? What if they want to reactivate?
+    #TODO - Should they be able to save anyway? What if they want to reactivate?
   
     if self.deactivated == true && self.attribute_dirty?(:url)
       throw :halt

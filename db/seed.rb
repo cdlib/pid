@@ -39,10 +39,10 @@ def spawn_object(obj, csv_row)
       params[prop] = User.get(csv_row[prop])
       
     # if the item is in the list, make sure that its in lower case
-    elsif ['username', 'email'].include?(prop)
+    elsif ['username', 'email', 'change_category'].include?(prop)
       params[prop] = csv_row[prop].downcase
       
-    # If the incoming value is 'null' (case insensitive) then just set it to nil
+    # If the incoming value is 'null' (case insensitive) then just set it to nil 
     elsif csv_row[prop] =~ /^[Nn][Uu][Ll]{2,}$/
       params[prop] = nil  
       
@@ -52,9 +52,11 @@ def spawn_object(obj, csv_row)
   end
 
   obj.new(params)
+  
 end
 
 
+puts ''
 puts '.... sowing groups'
 # ---------------------------------------------------------------
 # Process the group records
@@ -180,12 +182,15 @@ end
 puts ".... #{i} new PIDs added and #{j} historical PID records (out of #{k} total records) added to the database."
 puts '........ see errors above for information about the users that could not be added.' if (i + j) != k
 
+#DEBUG - view loaded change categories
+ChangeCategory.all.each { |cat| puts "added - change category: #{cat.id}" } if debug
+
 #DEBUG - view loaded user records
 if debug
   Pid.all.each do |pid|
-    puts "added - #{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username}"
+    puts "added - #{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username} - #{pid.change_category.inspect}"
     pid.pid_versions.each do |ver|
-      puts "      history - #{ver.url} : #{ver.created_at} - #{ver.username}"
+      puts "      history - #{ver.url} : #{ver.created_at} - #{ver.username} - #{ver.change_category.inspect}"
     end
   end
 end
