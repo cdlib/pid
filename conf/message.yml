@@ -1,0 +1,15 @@
+login: 'Welcome back #{?}!'
+logout: 'You have been logged out of the system.'
+failed_login: 'Invalid user id or password.'
+failed_login_close_to_lockout: 'Invalid password! You have #{?} attempts left before your account is automatically locked.'
+account_locked: 'Your account has been locked due to too many failed login attempts!'
+account_inactive: 'This account is no longer active.'
+
+no_login: 'The user id cannot be blank!'
+no_password: 'The password cannot be blank!'
+no_email: 'The email address cannot be blank!'
+
+invalid_login: 'That user id is not in the system!'
+invalid_email: 'That email is not in the system!'
+
+password_reset: 'Your password has been reset, please check your email for a confirmation.'

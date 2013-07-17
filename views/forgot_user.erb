@@ -1,0 +1,21 @@
+<section id="user_login">
+	<h3>Forgotten user id / password</h3>
+	
+	<div id="register" class="navy">
+		<a href="/user/new">Register</a>
+	</div>
+	
+	<form action="/user/forgot" method="post">
+		<label>Email:</label><input type="email" id="email" name="email" value="<%= @email %>" />
+		<input type="submit" id="reset" name="reset" value="Reset my password" />
+
+	</form>
+	
+	<div class="errors">
+		<%= @msg %>
+	</div>
+	
+	<div id="login_nav">
+		<a href="/user/login">Login</a>
+	</div>
+</section>

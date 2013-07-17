@@ -14,23 +14,28 @@
       <h2 style="display: inline; margin-left: 45px; vertical-align: 20px;">PID Service</h2>
     </header>
     
-    <nav>
-      <div class="nav_spacer">
-        <ul>
-          <li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
-          <li class="grey">|</li>
-          <li><a href="/link">Home</a></li>
-          <li class="grey">|</li>
-          <li><a href="/link/search">Search</a></li>
-          <li class="grey">|</li>
-          <li><a href="/link/new">Mint</a></li>
-          <li class="grey">|</li>
-          <li><a href="/link/report">Reports</a></li>
-          <li class="grey">|</li>
-          <li><a href="/link/help">Help</a></li>
-        </ul>
-      </div>
-    </nav>
+		<% if @hide_nav.nil? %>
+    	<nav>
+      	<div class="nav_spacer">
+        	<ul>
+          	<li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
+          	<li class="grey">|</li>
+          	<li><a href="/link">Home</a></li>
+          	<li class="grey">|</li>
+          	<li><a href="/link/search">Search</a></li>
+          	<li class="grey">|</li>
+          	<li><a href="/link/new">Mint</a></li>
+          	<li class="grey">|</li>
+          	<li><a href="/link/report">Reports</a></li>
+          	<li class="grey">|</li>
+          	<li><a href="/link/help">Help</a></li>
+          	<li class="grey">|</li>
+          	<li><a href="/user/logout" class="navy">Logout</a></li>
+        	</ul>
+      	</div>
+    	</nav>
+		<% end %>
+		
     <%= yield %>
     
   </body>

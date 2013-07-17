@@ -23,11 +23,12 @@ class User
            :messages => {
            :format	=> 'Affiliations must be less than 100 characters long!'
       }
-  property :password_hint, String, :length => 50, :format => /\.*/, :required => false,
-           :messages => {
-           :format => 'The password hint must be less than 50 characters long!'
-      }
   property :active, Boolean, :default => true
+  property :locked, Boolean, :default => false
+  property :failed_login_attempts, Integer, :default => 0
+  property :temporary_password, Boolean, :default => false
+  property :reset_code, String, :required => false
+  property :reset_timer, Date, :required => false
   property :super, Boolean, :default => false
   property :hashed_password, String
   property :salt, String
@@ -46,12 +47,14 @@ class User
   end
 
   def self.encrypt(pass, salt)
-    Digest::SHA1.hexdigest(pass + salt)
+    Digest::SHA1.hexdigest(pass.to_s + self.salt.to_s)
   end
 
   def self.authenticate(login, pass)
     u = User.first(:login => login)
     return nil if u.nil?
+    return nil if u.locked
+    return nil if !u.active
     return u if User.encrypt(pass, u.salt) == u.hashed_password
       nil
   end
@@ -61,6 +64,14 @@ class User
     str = ""
     1.upto(len) { |i| str << chars[rand(chars.size-1)] }
     return str
+  end
+  
+  # A password reset creates a random reset key and starts a timer. An email gets sent to the user that contains a url. That url contains
+  # the reset key in its query string. If the key matches and the reset page is opened within the timeframe defined in the security.yml file,
+  # the user is able to reset their password.
+  def reset_password()
+    self.reset_code = random_string(10)
+    self.reset_timer = Time.now           
   end
 
   def self.active

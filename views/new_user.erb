@@ -1,0 +1,21 @@
+<section id="user_login">
+	<h3>Registration</h3>
+	
+	<form action="/user/new" method="post">
+		<label>User Id:</label><input type="text" name="login" id="login" value="<%= @userid %>" />
+		<label>Full Name:</label><input type="text" name="name" id="name" value="<%= @name %>" />
+		<label>Email:</label><input type="email" name="email" id="email" value="<%= @email %>" />
+		<label>Affiliation:</label><input type="text" name="affiliation" id="affiliation" value="<%= @affiliation %>" />
+		<label>Password:</label><input type="password" name="password" id="password" />
+		<label>Confirm:</label><input type="password" name="confirm" id="confirm" />
+		<input type="submit" id="submit" name="submit" value="Submit" />
+	</form>
+	
+	<div class="errors">
+		<%= @msg %>
+	</div>
+	
+	<div id="login_nav">
+		<a href="/user/login">Login</a>
+	</div>
+</section>

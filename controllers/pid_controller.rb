@@ -177,6 +177,16 @@ class PidApp < Sinatra::Application
     end
   end
   
+
+# ---------------------------------------------------------------
+# Filter to trap unauthorized access attempts
+# ---------------------------------------------------------------  
+  before '/link/*' do
+    if !session[:user]
+      redirect to('/user/login')
+    end
+  end
+  
   
   
 # ---------------------------------------------------------------

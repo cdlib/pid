@@ -13,7 +13,7 @@ a {
 
 h1, h2, h3, h4 { color: #005695; }
 
-.red { color:         red; }
+.red { color:					red; }
 .navy { color:        #005695; }
 .center{ text-align:  center; }
 .grey { color:        #d9d9d9; }
@@ -25,6 +25,14 @@ header {
   font-size:          14pt;
   
   margin-left:        15px;
+}
+
+.errors { 
+	color:      				#F7D358; 
+	font-weight: 				bold; 
+	
+	text-align:					center;
+	width:							65%;
 }
 
 nav {
@@ -93,6 +101,67 @@ table th {
 }
 
 #pid_info { display:  inline-block; }
+
+
+#user_login {
+	position:						relative;
+	margin:							35px 0 0 55px;
+	
+	display:						inline-block;
+	
+	padding:						15px 15px 25px 15px;
+	
+	color:							#fff;
+	
+	-webkit-border-radius: 12px;
+	-moz-border-radius: 12px;
+	border-radius:      12px;
+	
+  background:         #fff;
+  background: 				-moz-linear-gradient(#fff, #005695);
+  background: 				-webkit-linear-gradient(#fff, #005695);
+  background: 				-o-linear-gradient(#fff, #005695);
+	
+	-moz-box-shadow:    1px 1px 3px #000;
+	-webkit-box-shadow: 1px 1px 3px #000;
+	box-shadow:         1px 1px 3px #000;
+}
+#user_login input { 
+	position:						relative;
+	float: 							right;
+	clear:	 						right; 
+	
+	margin-bottom:			10px;
+	width:							200px;
+}
+#user_login label { 
+	position:						relative;
+	float:							left;
+	clear:							both;
+	
+	
+}
+#user_login div {
+	clear:							both;
+	margin:							10px 0 15px 0;
+}
+
+#user_login #register { 
+	float: 							right; 
+	margin-bottom:			15px;
+}
+#user_login #register a { 
+	color:							#005695; 
+}
+#user_login #login_nav { 
+	float: 							right; 
+	
+	margin-top:					15px;
+}
+#user_login #login_nav a { 
+	color:							#F2F2F2; 
+}
+
 
 /* Modal dialog formatting */
 /* borrowed from: http://www.webdesignerdepot.com/2012/10/creating-a-modal-window-with-html5-and-css3/ */
