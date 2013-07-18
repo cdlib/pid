@@ -10,9 +10,11 @@ class PidRedirectApp < Test::Unit::TestCase
   def setup
     Pid.flush!
     @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User')
+    @user = User.new(:login => 'test_user', :name => 'Test User', :password => 'secret')
     @group.users << @user
     @group.save
+    
+    post '/user/login', { :login => 'test_user', :password => 'secret' }
   end
   
   def test_pid_redirect
@@ -36,7 +38,9 @@ class PidRedirectApp < Test::Unit::TestCase
   
   def test_pid_no_partial_redirect
     get '/PID/1/search?q=elmo'
-    assert_equal 404, last_response.status
+    
+    assert_equal "elmo", last_response.headers 
+    #assert_equal 404, last_response.status
   end
   
 end

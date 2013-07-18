@@ -50,11 +50,17 @@ class User
     Digest::SHA1.hexdigest(pass.to_s + self.salt.to_s)
   end
 
-  def self.authenticate(login, pass)
+  def self.authenticate(login, pass)    
     u = User.first(:login => login)
     return nil if u.nil?
     return nil if u.locked
     return nil if !u.active
+    
+#puts ""
+#puts "+++++++++++++++++++++++++++++++++++++"    
+#puts "in: #{login}, #{pass} - #{User.encrypt(pass, u.salt)} == #{u.hashed_password}"
+#puts "+++++++++++++++++++++++++++++++++++++"
+    
     return u if User.encrypt(pass, u.salt) == u.hashed_password
       nil
   end

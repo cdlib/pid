@@ -12,12 +12,17 @@ class PidApp < Sinatra::Application
     @msg = result[:message]
         
     if !session[:user].nil?
+
+puts ""
+puts "result: #{result[:message]}, in: #{params['login']}, #{params['password']}"
+      
       redirect '/link'
+      return nil
       
     else
       @userid = params['login']
-      @hide_nav = true
-      erb :login
+      @hide_nav = true      
+      #erb :login
     end
   end
 
@@ -75,21 +80,12 @@ class PidApp < Sinatra::Application
     erb :list_users
   end
   
-  get '/user/new' do
+  get '/user/register' do
     @hide_nav = true
     erb :new_user
   end
 
-  get '/user/:name' do
-    @user = User.first(:login => params[:name])
-    if @user
-      erb :show_user
-    else
-      404
-    end
-  end
-  
-  post '/user/new' do
+  post '/user/register' do
     #TODO - Only group managers can add users to their group. Only admins can create initial group managers
     @user = User.new(params)
     begin
@@ -102,13 +98,29 @@ class PidApp < Sinatra::Application
     end
   end
   
-  put '/user' do
-    #TODO - update user
+  get '/user/:name' do
+    @user = User.first(:login => params[:name])
+    
+    if @user
+      erb :show_user
+    else
+      
+      puts ""
+      puts "user: #{@user}, nil?: #{@user.nil?}"
+      puts ""
+      
+      404
+    end
   end
   
-  error 404 do
-    redirect '/user/login'
+  put '/user/:name' do
+    #TODO - update user (only if its the current user's account or an admin or a group manager)
   end
+  
+  delete '/user/:name' do
+    #TODO - deactivate the user account (only if the current user is admin or a group manager!)
+  end
+  
   
 
   before '/user/:name' do

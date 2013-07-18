@@ -31,7 +31,7 @@ class PidManageApp < Test::Unit::TestCase
   end
   
   def test_new_user
-    get '/user/new'
+    get '/user/register'
     assert last_response.ok?
   end
   
@@ -42,12 +42,13 @@ class PidManageApp < Test::Unit::TestCase
   
   def test_user_login
     get '/user/login'
-    assert last_response.ok?
+    assert_equal 302, last_response.status
+    assert_equal '/link', last_response.location
   end
   
   def test_login_user
     post '/user/login', { :login => 'test_user', :password => 'secret' }
-    assert_equal 'http://example.org/', last_response.location
+    assert_equal 'http://example.org/link', last_response.location
     assert_equal 302, last_response.status
   end
   
@@ -57,14 +58,14 @@ class PidManageApp < Test::Unit::TestCase
   end
   
   def test_create_new_user
-    post '/user/create', { :login => 'new_user', :name => 'New User', :password => 'another secret', 
+    post '/user/register', { :login => 'new_user', :name => 'New User', :password => 'another secret', 
       :email => 'test@test.org', :group_id => 'UCLA' }
     assert_equal 'http://example.org/user/new_user', last_response.location
     assert_equal 302, last_response.status
   end
   
   def test_create_user_missing_name
-    post '/user/create', { :login => 'new_user', :password => 'another secret', 
+    post '/user/register', { :login => 'new_user', :password => 'another secret', 
       :email => 'test@test.org', :group_id => 'UCLA' }
     assert_equal 200, last_response.status
   end
