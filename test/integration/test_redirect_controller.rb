@@ -38,9 +38,11 @@ class PidRedirectApp < Test::Unit::TestCase
   
   def test_pid_no_partial_redirect
     get '/PID/1/search?q=elmo'
-    
-    assert_equal "elmo", last_response.headers 
-    #assert_equal 404, last_response.status
+    assert_equal 404, last_response.status
+  end
+  
+  def test_pid_deactivated_not_found
+    assert_equal true, true
   end
   
 end

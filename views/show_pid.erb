@@ -10,7 +10,7 @@
           <button onclick="alert('This will copy the PID url to the user\'s clipboard');" style="margin-left: 20px;">Copy</button>
         </td></tr>
         <tr><td class="bold">URL:</td><td><%= link_to(@pid.url) %></td></tr>
-        <tr><td class="bold">Maintainers:</td><td><%= @pid.groups.map { |group| group.id }.join(',') %></td></tr>
+        <tr><td class="bold">Maintainers:</td><td></td></tr>
         <tr><td class="bold">Creation Date:</td><td><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
         <tr><td class="bold">Last Modified:</td><td><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
         <tr><td class="bold">Change Category:</td><td><%= @pid.change_category %></td></tr>

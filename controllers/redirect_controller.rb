@@ -8,14 +8,7 @@ class PidApp < Sinatra::Application
 
   get %r{/PID/([0-9]{1,12}/.+)} do
     shortcode, code, partial = request.fullpath.match(CODE_AND_PARTIAL).to_a 
-
     url = shorty.get(code)
-    
-#puts ""
-#puts "----------------------------------------------"       
-#puts "Partial == url null?: #{url.nil?}"
-#puts "----------------------------------------------"   
-
     url.nil? ? 404 : redirect(url + partial.to_s)
   end
 

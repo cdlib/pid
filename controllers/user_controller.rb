@@ -1,21 +1,31 @@
+#TODO - Move path to login and logout redirects to YAML file
+
 class PidApp < Sinatra::Application
   @@config = YAML.load_file('conf/security.yml')
   @@message = YAML.load_file('conf/message.yml')
 
+# ---------------------------------------------------------------
+# Display the login page
+# ---------------------------------------------------------------
   get '/user/login' do
-    @hide_nav = true
-    erb :login
+    
+    # If the user is already logged in just redirect to the root
+    if session[:user].nil?
+      @hide_nav = true
+      erb :login
+    else
+      redirect '/link'
+    end
   end
 
+# ---------------------------------------------------------------
+# Process the login
+# ---------------------------------------------------------------
   post '/user/login' do
     result = process_login(params['login'], params['password'])
     @msg = result[:message]
         
     if !session[:user].nil?
-
-puts ""
-puts "result: #{result[:message]}, in: #{params['login']}, #{params['password']}"
-      
       redirect '/link'
       return nil
       
@@ -26,12 +36,16 @@ puts "result: #{result[:message]}, in: #{params['login']}, #{params['password']}
     end
   end
 
+# ---------------------------------------------------------------
+# Process the logout
+# ---------------------------------------------------------------
   get '/user/logout' do
     session[:user] = nil
     @hide_nav = true
     @msg = @@message['logout']
     redirect '/user/login'
   end
+
 
   get '/user/reset' do
     #TODO - reset temporary passwords (passwords created by group managers or admins, or forgotten reset)
@@ -72,13 +86,23 @@ puts "result: #{result[:message]}, in: #{params['login']}, #{params['password']}
     erb :forgot_user
   end
 
+# --------------------------------------------------------------------------------------------------------------
+# Load the group's user list IF the current user is viewing their own record OR they are the group's maintainer
+# --------------------------------------------------------------------------------------------------------------
   get '/user/list' do
-    @user = User.all
+    #TODO - Allow admins of the system to get the full user list regardless of group
+
+    group = Group.get(session[:user].group.id)
     
-    #TODO - only admin's can see all users. Group managers can see their own users
-    
-    erb :list_users
+    # If the current user manages the group 
+    if !group.maintainers.first(:user => session[:user]).nil?
+      @users = group.users
+      erb :show_user
+    else
+      401
+    end
   end
+  
   
   get '/user/register' do
     @hide_nav = true
@@ -98,20 +122,27 @@ puts "result: #{result[:message]}, in: #{params['login']}, #{params['password']}
     end
   end
   
+# --------------------------------------------------------------------------------------------------------------
+# Load the user's profile IF the current user is viewing their own record OR they are the group's maintainer
+# --------------------------------------------------------------------------------------------------------------
   get '/user/:name' do
+    #TODO - Allow admins of the system to get any user profile regardless of group
     @user = User.first(:login => params[:name])
     
-    if @user
-      erb :show_user
+    if @user 
+      group = Group.get(@user.group.id)
+      
+      # If the current user is trying to retrieve their own record or the current user manages the group 
+      if @user == session[:user] || !group.maintainers.first(:user => session[:user]).nil?
+        erb :show_user
+      else
+        401
+      end
     else
-      
-      puts ""
-      puts "user: #{@user}, nil?: #{@user.nil?}"
-      puts ""
-      
       404
     end
   end
+  
   
   put '/user/:name' do
     #TODO - update user (only if its the current user's account or an admin or a group manager)
@@ -123,13 +154,12 @@ puts "result: #{result[:message]}, in: #{params['login']}, #{params['password']}
   
   
 
-  before '/user/:name' do
+  before /^(?!\/user\/(forgot|reset|register|login|logout))/ do
     #TODO - restrict access to '/user/:name' to the current user, or user's within a manager's group (admin can see all)
+    status = 302
+    redirect '/user/login' if session[:user].nil?
   end
   
-  before '/user/list' do
-    #TODO - restrict access to /user/list to the group's manager or admin
-  end
   
   
   def process_login(login, password)

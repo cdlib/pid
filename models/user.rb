@@ -2,6 +2,7 @@ require 'digest/sha1'
 class User
   include DataMapper::Resource
   belongs_to :group
+  #has 1, :maintainer, :required => false
   
   property :id, Serial, :key => true
   property :login, String, :length => 20, :format => /[a-z]{3,20}+/, :unique => true, :required => true,

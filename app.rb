@@ -72,4 +72,4 @@ end
 #reload the Redis database from the data stored in the DB
 shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
 shorty.flushall!
-Pid.all.each { |pid| shorty.create(pid.id.to_s, pid.url) }
+Pid.all.each { |pid| shorty.create(pid.id.to_s, pid.url) if !pid.deactivated }

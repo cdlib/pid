@@ -177,22 +177,6 @@ class PidApp < Sinatra::Application
     end
   end
   
-
-# ---------------------------------------------------------------
-# Filter to trap unauthorized access attempts
-# ---------------------------------------------------------------  
-  before %r{\/link(\/[a-z]+)?} do
-
-#puts ""    
-#puts "********************************************"    
-#puts "session - #{session[:user]}"
-    
-    
-    if !session[:user]
-      redirect to('/user/login')
-    end
-  end
-  
   
   
 # ---------------------------------------------------------------
