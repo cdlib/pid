@@ -29,7 +29,7 @@ class User
   property :failed_login_attempts, Integer, :default => 0
   property :temporary_password, Boolean, :default => false
   property :reset_code, String, :required => false
-  property :reset_timer, Date, :required => false
+  property :reset_timer, Integer, :required => false
   property :super, Boolean, :default => false
   property :hashed_password, String
   property :salt, String
@@ -75,10 +75,11 @@ class User
   
   # A password reset creates a random reset key and starts a timer. An email gets sent to the user that contains a url. That url contains
   # the reset key in its query string. If the key matches and the reset page is opened within the timeframe defined in the security.yml file,
-  # the user is able to reset their password.
+  # the user is able to reset their password without logging in.
   def reset_password()
-    self.reset_code = random_string(10)
-    self.reset_timer = Time.now           
+    self.reset_code = User.random_string(20)
+    self.reset_timer = Time.now.to_i
+    self.save
   end
 
   def self.active

@@ -1,0 +1,35 @@
+<section id="user_login">
+	<h3>User Profile</h3>
+	
+	<form action="/user/register" method="post">
+		<label>Is Active?</label><input type="checkbox" name="active" id="active" checked="<%= 'checked' if @user.active %>" />
+		<label>Group:</label>
+		<% if @groups %>
+			<select name="group" id="group">
+				<% @groups.each do |group| %>
+				<option value="<%= group.id %>" <%= 'selected="true"' if @user.group.id == group.id %>><%= group.name %></option>
+				<% end %>
+			</select>
+		<% else %>
+			<input type="text" readonly="true" value="<%= @group %>" />
+		<% end %>
+		<label>Can maintain group?</label><input type="checkbox" name="maintainer" id="maintainer" checked="<%= 'checked' if @maintainer %>" />
+		<label>User Id:</label><input type="text" name="login" id="login" value="<%= @user.login %>" />
+		<label>Full Name:</label><input type="text" name="name" id="name" value="<%= @user.name %>" />
+		<label>Email:</label><input type="email" name="email" id="email" value="<%= @user.email %>" />
+		<label>Affiliation:</label><input type="text" name="affiliation" id="affiliation" value="<%= @user.affiliation %>" />
+		<label>Password:</label><input type="password" name="password" id="password" />
+		<label>Confirm:</label><input type="password" name="confirm" id="confirm" />
+		<input type="submit" id="submit" name="submit" value="Submit" />
+	</form>
+	
+	<div class="errors">
+		<%= @msg %>
+		
+    <% if @user && @user.errors %>
+      <% @user.errors.full_messages.each do | message | %>
+        <%= message %></br>
+      <% end %>
+    <% end %>
+	</div>
+</section>

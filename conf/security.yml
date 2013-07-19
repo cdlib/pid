@@ -1,1 +1,2 @@
 max_login_attempts: 5
+reset_timeout: 15

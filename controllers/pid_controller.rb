@@ -168,6 +168,7 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
 # Load a default ERB on 404s
 # ---------------------------------------------------------------  
+=begin
   error 404 do
     
     if !request.query_string.empty?
@@ -176,7 +177,7 @@ class PidApp < Sinatra::Application
       erb :no_pid
     end
   end
-  
+=end
   
   
 # ---------------------------------------------------------------

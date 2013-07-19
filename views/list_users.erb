@@ -1,0 +1,13 @@
+<section id="user_list">
+	<h3>Users</h3>
+	
+	<div id="register" class="navy">
+		<a href="/user/register">Register</a>
+	</div>
+	
+	<ul>
+		<% @users.each do |user| %>
+		<li><a href="/user/<%= user.id %>"><%= user.login %></a> - <%= user.name %> - <%= user.email %></li>
+		<% end %>
+	</ul>
+</section>

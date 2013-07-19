@@ -24,15 +24,15 @@ class PidApp < Sinatra::Application
   post '/user/login' do
     result = process_login(params['login'], params['password'])
     @msg = result[:message]
-        
-    if !session[:user].nil?
-      redirect '/link'
-      return nil
-      
-    else
+       
+    if session[:user].nil?
       @userid = params['login']
       @hide_nav = true      
-      #erb :login
+      
+      erb :login
+      
+    else
+      redirect '/link'
     end
   end
 
@@ -50,9 +50,26 @@ class PidApp < Sinatra::Application
 # Display the reset password page
 # ---------------------------------------------------------------
   get '/user/reset' do
-    #TODO - reset temporary passwords (passwords created by group managers or admins, or forgotten reset)
-    @hide_nav = true
-    erb :reset_user
+    user = User.get(params[:n])
+      
+    if user && params[:c]
+      @hide_nav = true
+      
+      # If the reset code matches the one stored on the User record and the timeout hasn't expired
+      if user.reset_code == params[:c] && @@config['reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
+        erb :reset_user  
+        
+      # Otherwise redirect to the forgot page so they can try again
+      else
+        msg = "Your password reset request has expired. For security reasons you have only #{@@config['reset_timeout']} minutes between " +
+                  "the time you request a reset and you follow the link to the reset form in the confirmation email."
+
+        redirect '/user/forgot', {:msg => msg}
+      end
+      
+    else
+      401
+    end
   end
   
 # ---------------------------------------------------------------
@@ -73,7 +90,7 @@ class PidApp < Sinatra::Application
       if !params['email'].empty?
         user = User.first(:email => params['email'])
         if !user.nil?
-          user.reset_password
+          user.reset_password()
           
           #TODO - Email the user a confirmation email containing their user id and new password
           #email_reset_message(user.email, user.name, user.reset_key)
@@ -81,9 +98,11 @@ class PidApp < Sinatra::Application
           @msg = @@message['password_reset']
         else
           @msg = @@message['invalid_email']
+          404
         end
       else
         @msg = @@message['no_email']
+        500
       end
     end
 
@@ -95,50 +114,80 @@ class PidApp < Sinatra::Application
 # Load the group's user list IF the current user is viewing their own record OR they are the group's maintainer
 # --------------------------------------------------------------------------------------------------------------
   get '/user/list' do
-    #TODO - Allow admins of the system to get the full user list regardless of group
-
-    group = Group.get(session[:user].group.id)
-    
-    # If the current user manages the group 
-    if !group.maintainers.first(:user => session[:user]).nil?
-      @users = group.users
-      erb :show_user
+    # If the current user manages the group or an admin
+    if !session[:user].group.maintainers.first(:user => session[:user]).nil? || session[:user].super
+      @users = (session[:user].super) ? User.all : session[:user].group.users
+      
+      erb :list_users
+    else
+      redirect "/user/#{session[:user].id}"
+    end
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+# Load the registration page. If the current user is and admin or a maintainer of their group.
+# --------------------------------------------------------------------------------------------------------------  
+  get '/user/register' do
+    # If the user is a maintainer of their group or an admin
+    if !session[:user].group.maintainers.first(:user => session[:user]).nil? || session[:user].super
+      @groups = Group.all if session[:user].super
+      @group = session[:user].group.name if !session[:user].super
+        
+      erb :new_user
     else
       401
     end
   end
-  
-  
-  get '/user/register' do
-    @hide_nav = true
+
+# --------------------------------------------------------------------------------------------------------------
+# Process the registration page. If the current user is and admin or a maintainer of their group.
+# --------------------------------------------------------------------------------------------------------------  
+  post '/user/register' do
+    #If the user is a maintainer of their group or is an admin
+    if !session[:user].group.maintainers.first(:user => session[:user]).nil? || session[:user].super
+      
+      #If the 2 passwords match
+      if params[:password] == params[:confirm]
+        
+        begin
+          @user = User.new(:login => params[:login], :email => params[:email], :password => params[:password],
+                            :name => params[:name], :affiliation => params[:affiliation], :group => Group.get(params[:group])).save
+        
+          # If the user was designated as a maintainer of the group
+          if params[:maintainer]
+            Maintainer.new(:group => Group.get(params[:group]), :user => @user).save
+          end
+        
+        rescue DataMapper::SaveFailureError => e
+          500
+          @msg = 'Unable to register the new user!'
+        end
+                          
+      else
+        500
+        @msg = 'The two passwords did not match!'
+      end
+    else
+      401
+    end
+    
     erb :new_user
   end
-
-  post '/user/register' do
-    #TODO - Only group managers can add users to their group. Only admins can create initial group managers
-    @user = User.new(params)
-    begin
-      @user.save
-      redirect "/user/#{@user.login}"
-    rescue DataMapper::SaveFailureError => e
-      @hide_nav = true
-      @msg = "#{e.message}"
-      erb :new_user
-    end
-  end
   
 # --------------------------------------------------------------------------------------------------------------
-# Load the user's profile IF the current user is viewing their own record OR they are the group's maintainer
+# Load the user's profile IF the current user is viewing their own record OR they are the group's maintainer OR an admin
 # --------------------------------------------------------------------------------------------------------------
-  get '/user/:name' do
-    #TODO - Allow admins of the system to get any user profile regardless of group
-    @user = User.first(:login => params[:name])
+  get '/user/:id' do
+    @user = User.get(params[:id])
     
     if @user 
-      group = Group.get(@user.group.id)
-      
       # If the current user is trying to retrieve their own record or the current user manages the group 
-      if @user == session[:user] || !group.maintainers.first(:user => session[:user]).nil?
+      if @user == session[:user] || !session[:user].group.maintainers.first(:user => session[:user]).nil? || session[:user].super
+        
+        @groups = Group.all if session[:user].super
+        @group = @user.group.name if @user == session[:user]
+        @maintainer = true unless Maintainer.first(:group => @user.group, :user => @user).nil?
+        
         erb :show_user
       else
         401
@@ -148,20 +197,62 @@ class PidApp < Sinatra::Application
     end
   end
   
-  
-  put '/user/:name' do
-    #TODO - update user (only if its the current user's account or an admin or a group manager)
-  end
-  
-  delete '/user/:name' do
-    #TODO - deactivate the user account (only if the current user is admin or a group manager!)
-  end
-  
-  
+# --------------------------------------------------------------------------------------------------------------
+# Edit the user's profile IF the current user is viewing their own record OR they are the group's maintainer OR an admin
+# --------------------------------------------------------------------------------------------------------------
+  put '/user/:id' do
+    @user = User.get(params[:id])
+    current_user = session[:user]
+        
+    #If the user is changing their own record or they are a maintainer of their group or is an admin
+    if @user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
 
-  before /^(?!\/user\/(forgot|reset|register|login|logout))/ do
-    #TODO - restrict access to '/user/:name' to the current user, or user's within a manager's group (admin can see all)
-    status = 302
+      #If the 2 passwords match
+      if params[:password] == params[:confirm]
+
+        begin
+          @user.email = params[:email] unless params[:email].nil?
+          @user.password = params[:password] unless params[:password].nil?
+          @user.name = params[:name] unless params[:name].nil?
+          @user.affiliation = params[:affiliation] unless params[:affiliation].nil?
+          @user.active = params[:active] unless params[:active].nil?
+          @user.group = Group.get(params[:group]) unless params[:group].nil?
+            
+          @user.save
+            
+          # If the user was designated as a maintainer of the group
+          if params[:maintainer]
+            Maintainer.new(:group => Group.get(params[:group]), :user => @user).save
+          end
+        
+        rescue DataMapper::SaveFailureError => e
+          500
+          @msg = 'Unable to save your changes!'
+        end
+
+      else
+        @user = current_user.clone
+        500
+        @msg = 'The two passwords did not match!'
+      end
+
+    else
+      @user = current_user.clone
+      401
+    end
+    
+    @groups = Group.all if current_user.super
+    @group = @user.group.name if @user == current_user
+    @maintainer = true unless Maintainer.first(:group => @user.group, :user => @user).nil?
+    
+    erb :show_user
+  end
+  
+  
+# --------------------------------------------------------------------------------------------------------------
+# Redirect to the login if the user isn't authenticated for all but the login/logout/forgotten password/reset password pages
+# --------------------------------------------------------------------------------------------------------------
+  before /^(?!\/user\/(forgot|reset|login|logout))/ do
     redirect '/user/login' if session[:user].nil?
   end
   

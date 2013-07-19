@@ -46,7 +46,8 @@ SEEDING THE DATABASE WITH LEGACY DATA:
   Please check the /db/seed.yml configuration file before running a seed to ensure that all of the settings are correct.
 
   For seeding the database, the system is expecting your legacy csv data files to be found at ~/pid_legacy_db/ (this location can be modified 
-  within the /db/seed.yml). The system is expecting 3 separate files, one for Groups, one for Users, and one for PIDs.
+  within the /db/seed.yml). The system is expecting 4 separate files, one for Groups, one for Users, and one for PIDs, and one for the 
+	Maintainers/Managers of Groups.
   
   The PIDs file should include all historical information about a PID on separate lines. the lines should appear in chronological order: 
   For example:
@@ -67,7 +68,10 @@ SEEDING THE DATABASE WITH LEGACY DATA:
   			id,name,description
   		  	ADMIN,Administrators,Institution's administrators
 			
-  A template for each of the 3 csv files can be found in /db/templates/
+	When referencing groups or users within a csv file, use user_id/group_id as the csv headers when you want the actual id value and 
+	user/group as the csv headerwhen you want the entire model. The maintainers.csv is expecting the entire user and group objects.
+	
+  A template for each of the 4 csv files can be found in /db/templates/
   
   This import process will skip records that have issues loading and will notify you of the item's id and the nature of the issue. You can then 
   either manually add these records through the GUI or rerun the seed process after correcting the problems. Make sure you comment out the 
