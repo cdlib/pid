@@ -46,13 +46,18 @@ class PidApp < Sinatra::Application
     redirect '/user/login'
   end
 
-
+# ---------------------------------------------------------------
+# Display the reset password page
+# ---------------------------------------------------------------
   get '/user/reset' do
     #TODO - reset temporary passwords (passwords created by group managers or admins, or forgotten reset)
     @hide_nav = true
     erb :reset_user
   end
   
+# ---------------------------------------------------------------
+# Display the forgot my user id / password page
+# ---------------------------------------------------------------  
   get '/user/forgot' do
     @hide_nav = true
     erb :forgot_user

@@ -7,6 +7,7 @@ debug = seed_config['debug_on']
 # If the config specifies that we should flush the tables
 if seed_config['flush_tables']
   Pid.flush!
+  Maintainer.flush!
   User.flush!
   Group.flush!
 end
@@ -15,6 +16,7 @@ end
 csv_dir = seed_config['path'].to_s.gsub('~', ENV['HOME'])
 groups_file = File.open(csv_dir + seed_config['group_file'].to_s, 'r')
 users_file = File.open(csv_dir + seed_config['user_file'].to_s, 'r')
+maintainers_file = File.open(csv_dir + seed_config['maintainer_file'].to_s, 'r')
 versions_file = File.open(csv_dir + seed_config['pid_file'].to_s, 'r')
 
 # ---------------------------------------------------------------
@@ -32,11 +34,11 @@ def spawn_object(obj, csv_row)
       
     # If the item is a group id, load the group object
     elsif ['group', 'group_id'].include?(prop)
-      params[prop] = Group.get(csv_row[prop]).id unless Group.get(csv_row[prop]).nil?
+      params[prop] = (prop == 'group_id') ? Group.get(csv_row[prop]).id : Group.get(csv_row[prop]) unless Group.get(csv_row[prop]).nil?
         
     # If the item is a user id, load the user object 
     elsif ['user', 'user_id', 'userid'].include?(prop)
-      params[prop] = User.get(csv_row[prop])
+      params[prop] = (prop == 'user') ? User.get(csv_row[prop]) : User.get(csv_row[prop]).id unless User.get(csv_row[prop]).nil?
       
     # if the item is in the list, make sure that its in lower case
     elsif ['username', 'email', 'change_category'].include?(prop)
@@ -109,7 +111,7 @@ CSV.foreach(users_file, :headers => true) do |row|
       puts "............ #{e.message}"
     end
   else
-    puts "........ unable to load group: #{user.id} - #{user.name}"
+    puts "........ unable to load user: #{user.id} - #{user.name}"
     user.errors.collect{ |e| puts "............ #{e.join(',')}" }.join(',')
     puts "............ #{user.inspect}" if debug
   end
@@ -121,7 +123,39 @@ puts '........ see errors above for information about the users that could not b
 
 
 #DEBUG - view loaded user records
-User.all.each { |user| puts "added - #{user.id} - #{user.name}" } if debug
+User.all.each { |user| puts "........ added - #{user.id} - #{user.name}" } if debug
+
+
+puts ''
+puts '.... connecting maintainers to their groups'
+# ---------------------------------------------------------------
+# Process the maintainer records
+# ---------------------------------------------------------------
+i = 0; j = 0
+CSV.foreach(maintainers_file, :headers => true) do |row|
+  maintainer = spawn_object(Maintainer, row)
+  
+  if maintainer.valid?
+    begin
+      maintainer.save
+      
+      i = i.next
+    rescue Exception => e
+      puts "........ unable to create maintainer relation between: #{maintainer.group} - #{maintainer.user}"
+      puts "............ #{e.message}"
+    end
+  else
+    puts "........ unable to load group, user: #{row}"
+    maintainer.errors.collect{ |e| puts "............ #{e.join(',')}" }.join(',')
+    puts "............ #{maintainer.inspect}" if debug
+  end
+  
+  j = j.next
+end
+puts ".... #{i} out of #{j} maintainers added to the database."
+puts '........ see errors above for information about the maintainers that could not be added.' if i != j
+
+Maintainer.all.each { |maintainer| puts "........ made #{maintainer.user.login} a maintainer of #{maintainer.group.id}" } if debug
 
 
 puts ''

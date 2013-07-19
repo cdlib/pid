@@ -9,4 +9,5 @@ path: "~/pid_legacy_db/"
 # CSV file for Groups/Users/PIDs (PIDs should include the ALL historical versions of a PID in chronological order)
 group_file: "groups.csv"
 user_file: "users.csv"
+maintainer_file: "maintainers.csv"
 pid_file: "versions_sample.csv"

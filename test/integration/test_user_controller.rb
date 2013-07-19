@@ -107,18 +107,20 @@ class PidUserApp < Test::Unit::TestCase
   def test_get_user_logout
     post '/user/login', { :login => 'test_user', :password => 'secret' }
     get '/user/logout'
-    assert last_response.redirect? "Didn't redirect to the login page after logout!"
+    assert last_response.redirect?, "Didn't redirect to the login page after logout!"
     assert_equal 'http://example.org/user/login', last_response.location
   end
   
   # User forgotten password page (HTTP: 200)
   def test_get_user_forgot_password
-    assert_equal true, true
+    get '/user/forgot'
+    assert_equal 200, last_response.status
   end
   
   # User reset password page (HTTP: 200)
   def test_get_user_reset_password
-    assert_equal true, true
+    get '/user/reset'
+    assert_equal 200, last_response.status
   end
 
   # User register page - unauthenticated (HTTP: 200)
