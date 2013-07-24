@@ -63,16 +63,20 @@ class PidApp < Sinatra::Application
     @pid = Pid.get(params[:id])
     user = User.get(session[:user])
     
-    if user.group == @pid.group || user.super
-      if !request.query_string.empty? && @pid
-        erb :show_pid, :layout => false
-      elsif @pid
-        erb :show_pid
+    if @pid
+      if user.group == @pid.group || user.super
+        if !request.query_string.empty? && @pid
+          erb :show_pid, :layout => false
+        elsif @pid
+          erb :show_pid
+        else
+          404
+        end
       else
-        404
+        401
       end
     else
-      401
+      404
     end
   end
   
@@ -121,35 +125,40 @@ class PidApp < Sinatra::Application
     user = User.get(session[:user])
     @message = "Unable to save your changes."
     
-    if @pid.group == user.group || user.super
-      params[:active] = (params[:active] == "on") ? false : true
+    if @pid
+      if @pid.group == user.group || user.super
+        params[:active] = (params[:active] == "on") ? false : true
       
-      unless @pid.nil? 
-        # Don't save if nothing has changed!
-        if @pid.url != params[:url] || @pid.maintainers != params[:maintainers] || 
-                                                     @pid.deactivated != params[:active] 
-          resp = revise_pid(@pid, params)
+        unless @pid.nil? 
+          # Don't save if nothing has changed!
+          if @pid.url != params[:url] || @pid.maintainers != params[:maintainers] || 
+                                                       @pid.deactivated != params[:active] 
+            resp = revise_pid(@pid, params)
         
-          status resp[:code]
-          @message = resp[:message]
+            status resp[:code]
+            @message = resp[:message]
+          end
+      
+          #reload the pid before we pass it to the erb
+          @pid = Pid.get(params[:pid])
+      
+          if !request.query_string.empty? && @pid
+            erb :edit_pid, :layout => false
+          elsif @pid
+            erb :edit_pid
+          end
+        else
+          @message = "PID #{params[:pid]} does not exist!"
+          status 404
         end
       
-        #reload the pid before we pass it to the erb
-        @pid = Pid.get(params[:pid])
-      
-        if !request.query_string.empty? && @pid
-          erb :edit_pid, :layout => false
-        elsif @pid
-          erb :edit_pid
-        end
       else
-        @message = "PID #{params[:pid]} does not exist!"
-        status 404
+        401
+        @message = "You do not have permission to modify this PID!"
       end
-      
     else
-      401
-      @message = "You do not have permission to modify this PID!"
+      @message = "PID #{params[:pid]} does not exist!"
+      404
     end
   end
   

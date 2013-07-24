@@ -18,14 +18,14 @@ class PidRedirectApp < Test::Unit::TestCase
   end
   
   def test_pid_redirect
-    Pid.mint(:url => 'http://google.com', :username => @user.login, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://google.com', :username => @user.login, :change_category => 'User_Entered', :group => @group)
     get '/PID/1'
     assert_equal 'http://google.com', last_response.location
     assert_equal 302, last_response.status
   end
   
   def test_pid_partial_redirect
-    Pid.mint(:url => 'http://google.com', :username => @user.login, :change_category => 'User_Entered')
+    Pid.mint(:url => 'http://google.com', :username => @user.login, :change_category => 'User_Entered', :group => @group)
     get '/PID/1/search?q=elmo'
     assert_equal 'http://google.com/search?q=elmo', last_response.location
     assert_equal 302, last_response.status

@@ -235,6 +235,9 @@ class PidApp < Sinatra::Application
         401
       end
     
+      @super = user.super
+      @params = params
+    
       erb :new_user
     else
       redirect '/user/login'
