@@ -16,8 +16,7 @@ end
 class Pid
   include DataMapper::Resource
   has n, :pid_versions
-  #has n, :maintainers
-  #has n, :groups, :through => :maintainers
+  belongs_to :group
   
   property :id, Serial, :key => true
 
@@ -137,11 +136,20 @@ class Pid
         pid.mutable = true
         
         if pid.valid?
-          # If the pid is inactive, store a nil in in Redis
-          pid.save && @@shorty.create_or_update(pid.id.to_s, (pid.deactivated ? nil : params[:url])) && pid
+          pid.save
+          
+          # If the pid is inactive, remove it from Redis, otherwise add/update it
+          if pid.deactivated
+            @@shorty.delete(pid.id.to_s)
+          else
+            @@shorty.create_or_update(pid.id.to_s, params[:url])
+          end
+          
         else
-          raise Exception.new(:msg => pid.errors.each { |e| puts "#{e}\n" })
+          raise Exception.new(:msg => pid.errors.join("\n"))
         end
+        
+        pid
         
       rescue DataMapper::SaveFailureError => e
         #no rollback needed, nothing saved

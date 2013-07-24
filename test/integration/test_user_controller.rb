@@ -139,7 +139,7 @@ class PidUserApp < Test::Unit::TestCase
   
   # User reset password page (HTTP: 200)
   def test_get_user_reset_password
-    post '/user/forgot', {:reset => true, :email => @user.email}
+    post '/user/forgot', {:reset => true, :login => @user.login}
 
     @user = User.get(@user.id)
     
@@ -149,7 +149,7 @@ class PidUserApp < Test::Unit::TestCase
   
   # User reset password page with expired reset code (HTTP: 302 to /user/forgot)
   def test_get_user_reset_password_expired
-    post '/user/forgot', {:reset => true, :email => @user.email}
+    post '/user/forgot', {:reset => true, :login => @user.login}
     
     @user = User.get(@user.id)
     @user.reset_timer = Time.now + (240 * 60)
@@ -215,15 +215,15 @@ class PidUserApp < Test::Unit::TestCase
   
   # User forgotten password page with missing email (HTTP: 500)
   def test_post_user_forgot_password_bad_data
-    post '/user/forgot', {:reset => true, :email => 'so.and.so@example.org'}
+    post '/user/forgot', {:reset => true, :login => 'Noone'}
     #TODO - This should probably be a 500 or maybe check for error message in body
-    assert last_response.ok?, 'An invalid email address was successful!'
+    assert last_response.ok?, 'An invalid user id was successful!'
   end
   
   # User forgotten password page (HTTP: 200)
   def test_post_user_forgot_password
-    post '/user/forgot', {:reset => true, :email => @user.email}
-    assert last_response.ok?, 'Could not find user by their email address!'
+    post '/user/forgot', {:reset => true, :login => @user.login}
+    assert last_response.ok?, 'Could not find user by their user id!'
   end
   
   # Register new user - missing data (HTTP: 500)

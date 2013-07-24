@@ -66,6 +66,11 @@ label {
   vertical-align:     middle;
 }
 
+article a {
+	text-decoration:		underline;
+	color:							#005695;
+}
+
 #pid_info ul, #pid_history ul {list-style:  none;}
 
 #pid_info ul li, #pid_history ul li {margin-bottom:  3px;}
@@ -126,7 +131,7 @@ table th {
 	-webkit-box-shadow: 1px 1px 3px #000;
 	box-shadow:         1px 1px 3px #000;
 }
-#user_login input { 
+#user_login input, #user_login select { 
 	position:						relative;
 	float: 							right;
 	clear:	 						right; 

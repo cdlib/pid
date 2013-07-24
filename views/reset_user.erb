@@ -2,10 +2,11 @@
 	<h3>Change your password</h3>
 	
 	<form action="/user/reset" method="post">
-		<label>Current Password:</label><input type="password" name="old_pwd" id="old_pwd" />
-		<label>New Password:</label><input type="password" name="old_pwd" id="old_pwd" />
-		<label>Confirm:</label><input type="password" name="old_pwd" id="old_pwd" />
+		<label>New Password:</label><input type="password" name="password" id="password" />
+		<label>Confirm:</label><input type="password" name="confirm" id="confirm" />
 		<input type="submit" id="submit" name="submit" value="Save" />
+		<input type="hidden" id="n" name="n" value="<%= @n %>">
+		<input type="hidden" id="c" name="c" value="<%= @c %>">
 	</form>
 	
 	<div class="errors">

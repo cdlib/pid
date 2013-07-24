@@ -22,6 +22,9 @@ versions_file = File.open(csv_dir + seed_config['pid_file'].to_s, 'r')
 # ---------------------------------------------------------------
 # Convert the CSV row into an instance of a DataMapper model
 # ---------------------------------------------------------------
+
+#TODO Fix issue with null URLs getting through to pid.revise
+
 def spawn_object(obj, csv_row)
   params = {}
   
@@ -164,54 +167,80 @@ puts '.... sowing PIDs'
 # Process the pid version records
 # ---------------------------------------------------------------
 i = 0; j = 0; k = 0
-CSV.foreach(versions_file, :headers => true) do |row|
-  incoming = spawn_object(Pid, row)
+begin
+  last_pid = nil
+  
+  CSV.foreach(versions_file, :headers => true) do |row|
+    incoming = spawn_object(Pid, row)
 
-  params = incoming.attributes.clone.merge({:is_seed => true})
+    params = incoming.attributes.clone.merge({:is_seed => true})
   
-  # If the csv record's url was empty or null we need to deactivate the PID
-  if params[:url].nil?
-    params.delete(:url)
-    params[:deactivated] = true
-  end
+    #if incoming.url.nil?
+    if params[:url].nil?
+      #Lookup the original url so that it doesn't get wiped out.
+      chk = Pid.first(:id => incoming.id)
+    
+      if chk
+        params[:url] = chk.url
+      end
+      params[:deactivated] = true
+    end
   
-  # See if the PID exists
-  if Pid.get(incoming.id).nil?  
-    # If we're minting the PID we need to make sure it has a URL
-    if params[:url]
-      # Set the created date and the notes if they weren't passed in the csv record
-      params[:created_at] = params[:modified_at]
-      params[:notes] = 'Transferred from legacy system.' if params[:notes].nil?
+    # Load the user specified in the CSV
+    users = incoming.username.split(' ')
+    user = nil
+    
+    users.each do |usr|
+      user = User.first(:login => usr.downcase) if user.nil?
+    end
+    
+    # Retrieve the user's group so we can assign the PID to the group
+    if !user.group.nil?
+      params[:group] = user.group
+    end
+    
+    # See if the PID exists
+    if Pid.get(incoming.id).nil?  
+      # If we're minting the PID we need to make sure it has a URL
+      if params[:url]
+        # Set the created date and the notes if they weren't passed in the csv record
+        params[:created_at] = params[:modified_at]
+        params[:notes] = 'Transferred from legacy system.' if params[:notes].nil?
       
-      begin
-        Pid.mint(params)
+        begin
+          Pid.mint(params)
         
-        i = i.next
+          i = i.next
+        rescue Exception => e
+          puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
+          puts "............ #{e.message}"
+          puts "............ #{incoming.inspect}" if debug
+        end
+  
+      else
+        puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
+        puts '............ the first record for a pid cannot have a null url! make sure your records are in chronological order!'
+        puts "............ #{incoming.inspect}" if debug
+      end
+        
+    else
+      begin
+        Pid.get(incoming.id).revise(params)
+      
+        j = j.next
       rescue Exception => e
         puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
         puts "............ #{e.message}"
         puts "............ #{incoming.inspect}" if debug
       end
-  
-    else
-      puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
-      puts '............ the first record for a pid cannot have a null url! make sure your records are in chronological order!'
-      puts "............ #{incoming.inspect}" if debug
     end
-        
-  else
-    begin
-      Pid.get(incoming.id).revise(params)
-      
-      j = j.next
-    rescue Exception => e
-      puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
-      puts "............ #{e.message}"
-      puts "............ #{incoming.inspect}" if debug
-    end
-  end
 
-  k = k.next
+    last_pid = "#{incoming.id} - #{incoming.modified_at}"  #Used to help us indicate which record failed if CSV.foreach encounters an error
+    k = k.next
+  end
+rescue Exception => e
+  puts ".... Fatal error on CSV line after item #{last_pid}"
+  puts "........ #{e.message}"
 end
 puts ".... #{i} new PIDs added and #{j} historical PID records (out of #{k} total records) added to the database."
 puts '........ see errors above for information about the users that could not be added.' if (i + j) != k

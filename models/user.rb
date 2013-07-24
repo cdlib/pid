@@ -26,8 +26,8 @@ class User
       }
   property :active, Boolean, :default => true
   property :locked, Boolean, :default => false
+  property :locked_timer, Integer, :required => false
   property :failed_login_attempts, Integer, :default => 0
-  property :temporary_password, Boolean, :default => false
   property :reset_code, String, :required => false
   property :reset_timer, Integer, :required => false
   property :super, Boolean, :default => false
@@ -48,19 +48,33 @@ class User
   end
 
   def self.encrypt(pass, salt)
-    Digest::SHA1.hexdigest(pass.to_s + self.salt.to_s)
+    Digest::SHA1.hexdigest(pass.to_s + salt.to_s)
   end
 
   def self.authenticate(login, pass)    
     u = User.first(:login => login)
     return nil if u.nil?
-    return nil if u.locked
-    return nil if !u.active
     
-#puts ""
-#puts "+++++++++++++++++++++++++++++++++++++"    
-#puts "in: #{login}, #{pass} - #{User.encrypt(pass, u.salt)} == #{u.hashed_password}"
-#puts "+++++++++++++++++++++++++++++++++++++"
+    # If the user account has a locked timer set
+    if !u.locked_timer.nil?
+      
+      # If the locked timer hasn't expired (see /conf/security.yml for the number of minutes)
+      if u.locked_timer >= Time.now.to_i
+        return nil
+        
+        # Otherwise the locked timer has expired so lets clear the user's record and unlock it
+      else
+        u.locked_timer = nil
+        u.locked = false
+        u.failed_login_attempts = 0
+        u.save
+      end
+      
+    # Otherwise, if the user's account is locked then lockouts are indefinite and require admin intervention
+    else
+      return nil if u.locked
+    end
+    return nil if !u.active
     
     return u if User.encrypt(pass, u.salt) == u.hashed_password
       nil
@@ -79,7 +93,6 @@ class User
   def reset_password()
     self.reset_code = User.random_string(20)
     self.reset_timer = Time.now.to_i
-    self.save
   end
 
   def self.active

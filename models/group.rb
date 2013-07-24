@@ -2,7 +2,7 @@ class Group
   include DataMapper::Resource
   has n, :users
   has n, :maintainers
-#  has n, :pids, :through => :maintainers
+  has n, :pids
   
   property :id, String, :length => 10, :format => /[A-Z]+/, :unique => true, :key => true,
     :messages => {

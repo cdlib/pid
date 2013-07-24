@@ -16,7 +16,7 @@ class Shortcake
   end
   
   def update(shortcode, url)
-    raise CodeDoesNotExists if !@redis.exists("sc:#{@ns}:codes:#{shortcode}")
+    raise CodeDoesNotExist if !@redis.exists("sc:#{@ns}:codes:#{shortcode}")
     create_url(shortcode, url, true)
   end
   
@@ -26,6 +26,12 @@ class Shortcake
   
   def get(shortcode)
     @redis.get("sc:#{@ns}:codes:#{shortcode}")
+  end
+  
+  def delete(shortcode)
+    raise CodeDoesNotExist if !@redis.exists("sc:#{@ns}:codes:#{shortcode}")
+    deleted = @redis.del("sc:#{@ns}:codes:#{shortcode}")
+    return (deleted >= 1) ? true : false
   end
   
   def flushall!
@@ -56,4 +62,4 @@ class ValidNSRequired < StandardError; end
 class ValidURLRequired < StandardError; end
 class ValidCodeRequired < StandardError; end
 class CodeExists < StandardError; end
-class CodeDoesNotExists < StandardError; end
+class CodeDoesNotExist < StandardError; end

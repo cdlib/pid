@@ -2,7 +2,7 @@ login: 'Welcome back #{?}!'
 logout: 'You have been logged out of the system.'
 failed_login: 'Invalid user id or password.'
 failed_login_close_to_lockout: 'Invalid password! You have #{?} attempts left before your account is automatically locked.'
-account_locked: 'Your account has been locked due to too many failed login attempts!'
+account_locked: 'Your account has been locked due to too many failed login attempts!<br />Your account will automatically unlock after ${?} minutes.'
 account_inactive: 'This account is no longer active.'
 
 no_login: 'The user id cannot be blank!'
@@ -11,5 +11,23 @@ no_email: 'The email address cannot be blank!'
 
 invalid_login: 'That user id is not in the system!'
 invalid_email: 'That email is not in the system!'
+password_mismatch: 'The passwords you entered did not match!'
 
-password_reset: 'Your password has been reset, please check your email for a confirmation.'
+password_reset_success: 'Your password has been reset.'
+password_reset_unauthorized: 'You do not have permission to reset this password.'
+password_reset_expired: 
+  'Your password reset request has expired. For security reasons you have only #{?} minutes between 
+  the time you request a reset and you follow the link to the reset form in the confirmation email.'
+
+registration_success: 'The user has been registered.'
+registration_failure: 'Unable to register the new user!'
+
+update_user_success: 'Your changes have been saved.'
+update_user_failure: 'Unable to save your changes!'
+
+welcome_page: 
+  "This resolution service allows UC Libraries to create a persistent identifier (PID) for any URL they choose.
+  The <a href='http://www.cdlib.org/services/collections/scp/'>Shared Cataloging Program (SCP)</a> creates and 
+  maintains PIDs for CDL-licensed content, open access resources, California state government documents, and 
+  other URLs.<br /><br />This service uses a modified version of OCLC's PURL software. For more information on 
+	PURLs and the PURL software, see PURL <a href='http://purl.oclc.org/docs/index.html'>Frequently Asked Questions</a>."
