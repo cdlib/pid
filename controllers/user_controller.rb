@@ -164,7 +164,7 @@ class PidApp < Sinatra::Application
     user = User.get(session[:user])
     
     if !user.nil?
-      # If the current user manages the group or an admin
+      # If the current user manages the group or is an admin
       if !user.group.maintainers.first(:user => user).nil? || user.super
         @users = (user.super) ? User.all : user.group.users
       
@@ -202,44 +202,48 @@ class PidApp < Sinatra::Application
 # Process the registration page. If the current user is and admin or a maintainer of their group.
 # --------------------------------------------------------------------------------------------------------------  
   post '/user/register' do
-    user = User.get(session[:user])
+    @msg = @@message['registration_failure']
+    current_user = User.get(session[:user])
     
-    if !user.nil?
+    if !current_user.nil?
       #If the user is a maintainer of their group or is an admin
-      if !user.group.maintainers.first(:user => user).nil? || user.super
+      if !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
       
         #If the 2 passwords match
         if params[:password] == params[:confirm]
         
           begin
-            @user = User.new(:login => params[:login], :email => params[:email], :password => params[:password],
-                              :name => params[:name], :affiliation => params[:affiliation], :group => Group.get(params[:group])).save
+            new_user = User.new(:login => params[:login], :email => params[:email], :password => params[:password],
+                                :name => params[:name], :affiliation => params[:affiliation], :group => Group.get(params[:group]))
+            new_user.save
         
-            # If the user was designated as a maintainer of the group
-            if params[:maintainer]
-              Maintainer.new(:group => Group.get(params[:group]), :user => @user).save
+            group = Group.get(params[:group])
+            
+            # If the user was designated as a maintainer of the group and they are not already a maintainer
+            if params[:maintainer] && Maintainer.first(:group => group, :user => new_user).nil?
+              Maintainer.new(:group => Group.get(params[:group]), :user => new_user).save
             end
         
             @msg = @@message['registration_success']
         
           rescue DataMapper::SaveFailureError => e
             500
-            @msg = @@message['registration_failure'] 
           end
                           
-        else
+        else # passwords were specified but they do not match
           500
           @msg = @@message['password_mismatch']
         end
-      else
+      else  # The current user is not a group mainyainer or a super admin
         401
       end
     
-      @super = user.super
+      @super = current_user.super
       @params = params
     
       erb :new_user
-    else
+      
+    else  # The user is not logged in!
       redirect '/user/login'
     end
   end
@@ -248,17 +252,18 @@ class PidApp < Sinatra::Application
 # Load the user's profile IF the current user is viewing their own record OR they are the group's maintainer OR an admin
 # --------------------------------------------------------------------------------------------------------------
   get '/user/:id' do
-    @user = User.get(params[:id])
-    current = User.get(session[:user])
+    user = User.get(params[:id])
+    current_user = User.get(session[:user])
     
-    if !current.nil?
-      if @user 
+    if !current_user.nil?
+      if !user.nil? 
         # If the current user is trying to retrieve their own record or the current user manages the group 
-        if @user == current || !current.group.maintainers.first(:user => current).nil? || current.super
+        if user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
         
-          @groups = Group.all if current.super
-          @group = @user.group.name if @user == current
-          @maintainer = true unless Maintainer.first(:group => @user.group, :user => @user).nil?
+          @user = user
+          @groups = Group.all if current_user.super
+          
+          @maintainer = true unless Maintainer.first(:group => user.group, :user => user).nil?
         
           erb :show_user
         else
@@ -276,46 +281,52 @@ class PidApp < Sinatra::Application
 # Edit the user's profile IF the current user is viewing their own record OR they are the group's maintainer OR an admin
 # --------------------------------------------------------------------------------------------------------------
   put '/user/:id' do
-    @user = User.get(params[:id])
+    @msg = @@message['user_update_failure'] 
     current_user = User.get(session[:user])
+    
+    user = User.get(params[:id])
+    group = Group.get(params[:group])
+    maintainer = Maintainer.first(:group => group, :user => user)
         
     #If the user is changing their own record or they are a maintainer of their group or is an admin
-    if @user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
+    if user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
 
       begin        
-        @user.login = params[:login] if @user.login != params[:login] && !params[:login].nil?
-        @user.name = params[:name] if @user.name != params[:name] && !params[:name].nil?
-        @user.email = params[:email] if @user.email != params[:email] && !params[:email].nil?
-        @user.affiliation = params[:affiliation] if @user.affiliation != params[:affiliation] && !params[:affiliation].nil?
-
-        @user.password = params[:password] if params[:password] == params[:confirm] && !params[:password].nil?
-
-        @user.group = Group.get(params[:group]) if !params[:group].nil?
+        # Assign the input values to the user
+        if user.update(:login => (!params[:login].nil?) ? params[:login].downcase.strip : user.login,
+                      :name => (!params[:name].nil?) ? params[:name].strip : user.login,
+                      :email => (!params[:email].nil?) ? params[:email].downcase.strip : user.login,
+                      :affiliation => (!params[:affiliation].nil?) ? params[:affiliation].strip : user.login,
+                      :active => (params[:active] == 'on'),
+                      :locked => (params[:locked] == 'on'),
+                      :group => (!group.nil?) ? group : current_user.group)
         
-        @user.active = (params[:active] == 'on' ? true : (params[:active].nil? ? false : true))
-        @user.locked = (params[:locked] == 'on' ? true : (params[:locked].nil? ? false : true))
-        
-        @user.save
-        
-        # If the user was designated as a maintainer of the group
-        if params[:maintainer]
-          Maintainer.new(:group => Group.get(params[:group]), :user => @user).save
+          # If a password change was entered, update the user's password
+          user.update(:password => params[:password].strip) if !params[:password].nil? && params[:password] == params[:confirm]
+          
+          # Setup the Group Maintainer relationship
+          maintainer = config_group_management((params[:maintainer] == 'on'), group, user)
+                          
+          @mag = @@message['user_update_success']
         end
         
-        @mag = @@message['update_user_success']
-        
-      rescue DataMapper::SaveFailureError => e
-        500
-        @msg = @@message['update_user_failure'] 
+      rescue DataMapper::UpdateConflictError => uce
+        @msg += '<br /><br />' + user.errors.join('<br />')
+      rescue Exception => e
+        @msg += "<br /><br />#{e.message}"
       end
-    else
-      @user = current_user.clone
+
+    else  # The user is not a group maintainer or super admin and they're trying to access another user's account
+      @msg = @@message['user_unauthorized']
+      user = current_user.clone  # switch over to the current user to prevent the requested user's info from showing!
       401
     end
     
+    @user = user
+    @maintainer = !maintainer.nil?
+    
+    # Populate the groups list to display in select box if the current user is a super admin
     @groups = Group.all if current_user.super
-    @group = @user.group.name if @user == current_user
-    @maintainer = true unless Maintainer.first(:group => @user.group, :user => @user).nil?
     
     erb :show_user
   end
@@ -399,5 +410,37 @@ class PidApp < Sinatra::Application
     end
     
     {:user => user, :message => msg}
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+# Configure the group <--> user management relationship
+# --------------------------------------------------------------------------------------------------------------
+  def config_group_management(is_maintainer, group, user)
+    
+    if !group.nil? && !user.nil?
+      begin
+        maintainer = Maintainer.first(:group => group, :user => user)
+
+        # remove any maintainer records for other/old groups
+        Maintainer.all(:user => user).each do |maint|
+          maint.destroy if maint.group != group
+        end
+    
+        # If the user was designated as a maintainer of the group and they are not already a maintainer
+        if is_maintainer && maintainer.nil?
+          return Maintainer.create(:group => group, :user => user)
+          
+        # If the user was designated as NOT being a maintainer and they are already a maintainer
+        elsif !is_maintainer && !maintainer.nil?
+          maintainer.destroy
+          return nil
+        end
+        
+      rescue Exception => e
+        raise e
+      end
+    else
+      return nil
+    end
   end
 end

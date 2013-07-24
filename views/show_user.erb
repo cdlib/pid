@@ -1,4 +1,4 @@
-<section id="user_login">
+<section id="user_update">
 	<h3>User Profile</h3>
 	
 	<form>
@@ -13,7 +13,7 @@
 			<label>Is Active?</label><input type="checkbox" name="active" id="active" <% if @user.active %>checked="checked"<% end %> />
 			<label>Is Locked?</label><input type="checkbox" name="locked" id="locked" <% if @user.locked %>checked="checked"<% end %> />
 		<% else %>
-			<input type="text" id="group" name="group" readonly="true" value="<%= @group %>" />
+			<input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
 		<% end %>
 		<label>User Id:</label><input type="text" name="login" id="login" value="<%= @user.login %>" />
 		<label>Full Name:</label><input type="text" name="name" id="name" value="<%= @user.name %>" />
@@ -26,9 +26,9 @@
 	</form>
 	
 	<div class="errors">
-		<%= @msg %>
+		<%= "#{@msg}\n\n" if !@msg.nil? %>
 		
-    <% if @user && @user.errors %>
+    <% if @user.errors %>
       <% @user.errors.full_messages.each do | message | %>
         <%= message %></br>
       <% end %>
@@ -38,9 +38,6 @@
 
 <script type="text/javascript">
   
-  //To-Do: The modal does not scroll in the browser if its longer than the parent page!
-  
-  //$(document).ready(function() {
     $("#submit").click( function(event){
       event.preventDefault();
 			
@@ -51,11 +48,11 @@
         	type:     'put',
 					data: 		$("form").serialize(), 
         	success:  function(data) {
-						$(".user_login").html(data);
+						$(".user_update").html(data);
 						$(".errors").css('color', '#298A08');
 					},
         	error: function(data) {
-						$(".user_login").html(data);
+						$(".user_update").html(data);
         	},
         	complete: {}
       	});
@@ -65,5 +62,5 @@
 														($("#group").val() == '') ? 'You must select a user group!<br />' : '' );
 			}
     });
-		//});
+	
 </script>
