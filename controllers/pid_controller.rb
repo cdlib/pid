@@ -85,8 +85,6 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   ['/link/index', '/link', '/link/'].each do |path|
     get path do
-      @welcome = @@message['welcome_page']
-      
       erb :index
     end
   end
@@ -199,11 +197,11 @@ class PidApp < Sinatra::Application
 # Verify the URL by doing a GET - for future use
 # ---------------------------------------------------------------  
   before '/link' do
-    redirect '/user/login' if session[:user].nil?
+    redirect '/user/login', {:msg => @@message['session_expired']} if session[:user].nil?
   end
   
   before '/link/*' do
-    redirect '/user/login' if session[:user].nil?
+    redirect '/user/login', {:msg => @@message['session_expired']} if session[:user].nil?
   end
   
   

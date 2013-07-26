@@ -4,41 +4,44 @@
     
     <link rel="stylesheet" type="text/css" href="/css/pid.css" />
     <script type="text/javascript" src="/js/jquery-1.10.2.min.js"></script>
+		<script type="text/javascript" src="/js/pid.js"></script>
   </head>
   
   <body>
-    <header>
-      <img src="/cdl_logo.gif" width="198" height="71" border="0" 
+		<div id="main">
+    	<header>
+      	<img src="/cdl_logo.gif" width="198" height="71" border="0" 
               alt="California Digital Library" title="California Digital Library">
               
-      <h2 style="display: inline; margin-left: 45px; vertical-align: 20px;">PID Service</h2>
-    </header>
+      	<h2 style="display: inline; margin-left: 45px; vertical-align: 20px;">PID Service</h2>
+    	</header>
     
-		<% if @hide_nav.nil? %>
-    	<nav>
-      	<div class="nav_spacer">
-        	<ul>
-          	<li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
-          	<li class="grey">|</li>
-          	<li><a href="/link">Home</a></li>
-          	<li class="grey">|</li>
-          	<li><a href="/link/search">Search</a></li>
-          	<li class="grey">|</li>
-          	<li><a href="/link/new">Mint</a></li>
-          	<li class="grey">|</li>
-          	<li><a href="/user/list">User</a></li>
-          	<li class="grey">|</li>
-          	<li><a href="/link/report">Reports</a></li>
-          	<li class="grey">|</li>
-          	<li><a href="/link/help">Help</a></li>
-          	<li class="grey">|</li>
-          	<li><a href="/user/logout" class="navy">Logout</a></li>
-        	</ul>
-      	</div>
-    	</nav>
-		<% end %>
+			<% if @hide_nav.nil? %>
+    		<nav>
+      		<div class="nav_spacer">
+        		<ul>
+          		<li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
+          		<li class="grey">|</li>
+          		<li><a href="/link">Home</a></li>
+          		<li class="grey">|</li>
+          		<li><a href="/link/search">Search</a></li>
+          		<li class="grey">|</li>
+          		<li><a href="/link/new">Mint</a></li>
+          		<li class="grey">|</li>
+          		<li><a href="/user/list">User</a></li>
+          		<li class="grey">|</li>
+          		<li><a href="/link/report">Reports</a></li>
+          		<li class="grey">|</li>
+          		<li><a href="/link/help">Help</a></li>
+          		<li class="grey">|</li>
+          		<li><a href="/user/logout" class="navy">Logout</a></li>
+        		</ul>
+      		</div>
+    		</nav>
+			<% end %>
 		
-    <%= yield %>
-    
+    	<%= yield %>
+			
+		</div>
   </body>
 </html>

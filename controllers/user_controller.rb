@@ -68,13 +68,13 @@ class PidApp < Sinatra::Application
         
       # Otherwise redirect to the forgot page so they can try again
       else
-        msg = @@message['password_reset_expired'].gsub('#{?}', @@config['reset_timeout'].to_s)
+        msg = @@message['user_password_reset_expired'].gsub('#{?}', @@config['reset_timeout'].to_s)
 
         redirect '/user/forgot', {:msg => msg}
       end
       
     else
-      401
+      redirect '/user/forgot'
     end
   end
   
@@ -104,13 +104,14 @@ class PidApp < Sinatra::Application
         
       # Otherwise redirect to the forgot page so they can try again
       else
-        msg = @@message['password_reset_expired'].gsub('#{?}', @@config['reset_timeout'])
+        msg = @@message['user_password_reset_expired'].gsub('#{?}', @@config['reset_timeout'])
 
         redirect '/user/forgot', {:msg => msg}
       end
     else
-      @msg = @@message['password_reset_unauthorized']
+      @msg = @@message['user_password_reset_unauthorized']
       401
+      erb :unauthorized
     end
     
     erb :reset_user
@@ -142,10 +143,11 @@ class PidApp < Sinatra::Application
           #TODO - Email the user a confirmation email containing their user id and new password
           #email_reset_message(user.email, user.name, user.reset_key)
           
-          @msg = @@message['password_reset_success']
+          @msg = @@message['user_password_reset_success']
         else
           @msg = @@message['invalid_login']
           404
+          erb :not_found
         end
       else
         @msg = @@message['no_login']
@@ -166,8 +168,9 @@ class PidApp < Sinatra::Application
     if !user.nil?
       # If the current user manages the group or is an admin
       if !user.group.maintainers.first(:user => user).nil? || user.super
-        @users = (user.super) ? User.all : user.group.users
-      
+        @users = (user.super) ? User.all(:order => [:login.asc]) : User.all(:group => user.group, :order => [:login.asc])
+        @super = user.super
+        
         erb :list_users
       else
         redirect "/user/#{session[:user]}"
@@ -178,7 +181,7 @@ class PidApp < Sinatra::Application
   end
   
 # --------------------------------------------------------------------------------------------------------------
-# Load the registration page. If the current user is and admin or a maintainer of their group.
+# Load the registration page. If the current user is an admin or a maintainer of their group.
 # --------------------------------------------------------------------------------------------------------------  
   get '/user/register' do
     user = User.get(session[:user])
@@ -187,11 +190,13 @@ class PidApp < Sinatra::Application
       # If the user is a maintainer of their group or an admin
       if !user.group.maintainers.first(:user => user).nil? || user.super
         @groups = Group.all if user.super
-        @group = user.group.name if !user.super
+        @params = {:group => user.group.id}
+        @super = user.super
         
         erb :new_user
       else
         401
+        erb :unauthorized
       end
     else
       redirect '/user/login'
@@ -199,10 +204,10 @@ class PidApp < Sinatra::Application
   end
 
 # --------------------------------------------------------------------------------------------------------------
-# Process the registration page. If the current user is and admin or a maintainer of their group.
+# Process the registration page. If the current user is an admin or a maintainer of their group.
 # --------------------------------------------------------------------------------------------------------------  
   post '/user/register' do
-    @msg = @@message['registration_failure']
+    @msg = @@message['user_register_failure']
     current_user = User.get(session[:user])
     
     if !current_user.nil?
@@ -224,7 +229,8 @@ class PidApp < Sinatra::Application
               Maintainer.new(:group => Group.get(params[:group]), :user => new_user).save
             end
         
-            @msg = @@message['registration_success']
+            @msg = @@message['user_register_success']
+            params = {} # Clear the params so the user can do another registration
         
           rescue DataMapper::SaveFailureError => e
             500
@@ -236,9 +242,12 @@ class PidApp < Sinatra::Application
         end
       else  # The current user is not a group mainyainer or a super admin
         401
+        erb :unauthorized
       end
     
       @super = current_user.super
+      @groups = Group.all if current_user.super
+      @group = current_user.group.id
       @params = params
     
       erb :new_user
@@ -261,16 +270,18 @@ class PidApp < Sinatra::Application
         if user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
         
           @user = user
-          @groups = Group.all if current_user.super
+          @groups = (current_user.super) ? Group.all : (!current_user.group.maintainers.first(:user => current_user).nil?) ? [current_user.group] : nil
           
           @maintainer = true unless Maintainer.first(:group => user.group, :user => user).nil?
         
           erb :show_user
         else
           401
+          erb :unauthorized
         end
       else
         404
+        erb :not_found
       end
     else
       redirect '/user/login'
@@ -302,17 +313,19 @@ class PidApp < Sinatra::Application
                       :group => (!group.nil?) ? group : current_user.group)
         
           # If a password change was entered, update the user's password
-          user.update(:password => params[:password].strip) if !params[:password].nil? && params[:password] == params[:confirm]
+          user.update(:password => params[:password].strip) if !params[:password].empty? && params[:password] == params[:confirm]
           
           # Setup the Group Maintainer relationship
           maintainer = config_group_management((params[:maintainer] == 'on'), group, user)
                           
-          @mag = @@message['user_update_success']
+          @msg = @@message['user_update_success']   
         end
         
       rescue DataMapper::UpdateConflictError => uce
+        500
         @msg += '<br /><br />' + user.errors.join('<br />')
       rescue Exception => e
+        500
         @msg += "<br /><br />#{e.message}"
       end
 
@@ -320,14 +333,19 @@ class PidApp < Sinatra::Application
       @msg = @@message['user_unauthorized']
       user = current_user.clone  # switch over to the current user to prevent the requested user's info from showing!
       401
+      erb :unauthorized
     end
     
     @user = user
+    @groups = (current_user.super) ? Group.all : (!current_user.group.maintainers.first(:user => current_user).nil?) ? [current_user.group] : nil
+    @super = current_user.super
+    
     @maintainer = !maintainer.nil?
+    
     
     # Populate the groups list to display in select box if the current user is a super admin
     @groups = Group.all if current_user.super
-    
+
     erb :show_user
   end
   
@@ -336,7 +354,7 @@ class PidApp < Sinatra::Application
 # Redirect to the login if the user isn't authenticated for all but the login/logout/forgotten password/reset password pages
 # --------------------------------------------------------------------------------------------------------------
   before /^(?!\/user\/(forgot|reset|login|logout))/ do
-    redirect '/user/login' if session[:user].nil?
+    redirect '/user/login', {:msg => @@message['session_expired']} if session[:user].nil?
   end
   
   
@@ -359,6 +377,7 @@ class PidApp < Sinatra::Application
 
           # reset the failed login attempts counter
           user.failed_login_attempts = 0
+          user.last_login = Time.now
           user.save
       
           msg = @@message['login'].gsub('#{?}', user.name)
@@ -393,6 +412,7 @@ class PidApp < Sinatra::Application
                 user.save
               else #locked
                 msg = @@message['account_locked']
+                msg = msg.gsub('${?}', @@config['release_account_lock_after'].to_s) if !@@config['release_account_lock_after'].nil?
               end
             else #inactive
               msg = @@message['account_inactive']

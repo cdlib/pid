@@ -5,6 +5,7 @@ $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/sho
 require 'shortcake'
 
 config = YAML.load_file('conf/db.yml')
+@@form_text = YAML.load_file('conf/html.yml')
 
 class PidApp < Sinatra::Application
   enable :sessions # enable cookie-based sessions
@@ -35,6 +36,10 @@ class PidApp < Sinatra::Application
   helpers do
     include Rack::Utils
     alias_method :h, :escape_html
+    
+    def form_text(val)
+      @@form_text[val]
+    end
     
     def link_to(body, url=nil)
       url ||= body

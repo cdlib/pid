@@ -16,7 +16,7 @@ class User
         :presence  => 'A name is required.',
         :format    => 'Names must be under 100 characters without symbols.'
       }
-  property :email, String, :length => 100, :format => :email_address, :required => false,
+  property :email, String, :length => 100, :format => :email_address, :required => true,
            :messages => {
            :format => 'The value you entered does not a valid email address!'
       }
@@ -28,6 +28,7 @@ class User
   property :locked, Boolean, :default => false
   property :locked_timer, Integer, :required => false
   property :failed_login_attempts, Integer, :default => 0
+  property :last_login, Date, :required => false
   property :reset_code, String, :required => false
   property :reset_timer, Integer, :required => false
   property :super, Boolean, :default => false

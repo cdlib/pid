@@ -1,15 +1,15 @@
 <section id="user_login">
-	<h3>Change your password</h3>
+	<h3><%= form_text('header_reset_password') %></h3>
 	
 	<form action="/user/reset" method="post">
-		<label>New Password:</label><input type="password" name="password" id="password" />
-		<label>Confirm:</label><input type="password" name="confirm" id="confirm" />
-		<input type="submit" id="submit" name="submit" value="Save" />
+		<label><%= form_text('form_new_password') %></label><input type="password" name="password" id="password" />
+		<label><%= form_text('form_confirm_password') %></label><input type="password" name="confirm" id="confirm" />
+		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= form_text('button_reset_password') %>" />
 		<input type="hidden" id="n" name="n" value="<%= @n %>">
 		<input type="hidden" id="c" name="c" value="<%= @c %>">
 	</form>
-	
-	<div class="errors">
-		<%= @msg %>
-	</div>
+</section>
+
+<section class="errors">
+	<%= @msg %>
 </section>

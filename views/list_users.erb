@@ -1,13 +1,30 @@
 <section id="user_list">
-	<h3>Users</h3>
+	<h3><%= form_text('header_user_list') %></h3>
 	
-	<div id="register" class="navy">
-		<a href="/user/register">Register a New User</a>
-	</div>
+	<a href="/user/register" class="letterpress right"><%= form_text('link_to_register_user') %></a>
 	
-	<ul>
+	<table>
+		<tr>
+			<th><%= form_text('th_userid') %></th><th><%= form_text('th_name') %></th><th><%= form_text('th_email') %></th>
+			<% if @super %>
+				<th><%= form_text('th_group') %></th><th><%= form_text('th_maintainer') %></th>
+			<% end %>
+			<th><%= form_text('th_active') %></th><th><%= form_text('th_locked') %></th>
+			<th><%= form_text('th_affiliation') %></th>
+		</tr>
 		<% @users.each do |user| %>
-		<li><a href="/user/<%= user.id %>"><%= user.login %></a> - <%= user.name %> - <%= user.email %></li>
+			<tr>
+				<td><a href="/user/<%= user.id %>" class="letterpress"><%= user.login %></a></td>
+				<td><%= user.name %></td>
+				<td><a href="mailto:<%= user.email %>" class="underline"><%= user.email %></a></td>
+				<% if @super %>
+					<td><%= user.group.name %></td>
+					<td><%= (Maintainer.first(:group => user.group, :user => user).nil?) ? '' : form_text('td_true') %></td>
+				<% end %>
+				<td><%= (user.active) ? form_text('td_true') : '<span class="red">' + form_text('td_false') + '</span>' %></td>
+				<td><%= (user.locked) ? '<span class="red bold">' + form_text('td_true') + '</span>' : form_text('td_false') %></td>
+				<td><%= user.affiliation %></td>
+			</tr>
 		<% end %>
-	</ul>
+	</table>
 </section>

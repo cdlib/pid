@@ -16,7 +16,7 @@ invalid_email: 'That email is not in the system!'
 password_mismatch: 'The passwords you entered did not match!'
 
 # User controller messages
-user_password_reset_success: 'Your password has been reset.'
+user_password_reset_success: 'An email has been sent to your account. Please follow the instructions in the email to continue the password reset process.'
 user_password_reset_unauthorized: 'You do not have permission to reset this password.'
 user_password_reset_expired: 
   'Your password reset request has expired. For security reasons you have only #{?} minutes between 
@@ -30,11 +30,3 @@ user_update_failure: 'Unable to save your changes!'
 user_unauthorized: 'You do not have permission to view or change that user!'
 
 # PID controller messages
-
-# ERB specific messages
-welcome_page: 
-  "This resolution service allows UC Libraries to create a persistent identifier (PID) for any URL they choose.
-  The <a href='http://www.cdlib.org/services/collections/scp/'>Shared Cataloging Program (SCP)</a> creates and 
-  maintains PIDs for CDL-licensed content, open access resources, California state government documents, and 
-  other URLs.<br /><br />This service uses a modified version of OCLC's PURL software. For more information on 
-	PURLs and the PURL software, see PURL <a href='http://purl.oclc.org/docs/index.html'>Frequently Asked Questions</a>."

@@ -1,0 +1,62 @@
+application_name: 'PID Service'
+
+header_index: 'Home'
+header_login: 'Login'
+header_forgotten_password: 'Forgot my password'
+header_reset_password: 'Reset your password'
+header_user_list: 'Users'
+header_user_view: 'User profile'
+header_user_register: 'New user registration'
+header_not_found: 'The page you requested could not be found'
+header_unauthorized: 'You do not permission to do that'
+
+link_to_login: 'Login'
+link_to_forgotten_password: 'I forgot my password'
+link_to_register_user: 'Register a new user'
+link_to_user_list: 'Return to the user list'
+
+form_userid: 'User Id:'
+form_password: 'Password:'
+form_new_password: 'New Password:'
+form_confirm_password: 'Confirm:'
+form_group: 'Group:'
+form_group_maintainer: 'Can maintain group?'
+form_active: 'Is Active?'
+form_locked: 'Is Locked?'
+form_affiliation: 'Affiliation:'
+form_name: 'Full Name:'
+form_email: 'Email:'
+form_admin: 'Is system admin?'
+
+button_login: 'Login'
+button_forgotten_password: 'Reset my password'
+button_reset_password: 'Save'
+button_save_user: 'Save'
+button_register_user: 'Save'
+
+th_userid: 'User Id'
+th_name: 'Full Name'
+th_email: 'Email'
+th_group: 'Group'
+th_maintainer: 'Group Admin?'
+th_active: 'Active?'
+th_locked: 'Locked?'
+th_affiliation: 'Affiliation'
+
+td_true: 'Yes'
+td_false: 'No'
+
+# Make sure that you do not use tab characters in the text values below. It will cause the parser to crash
+
+index_text: 
+  "This resolution service allows UC Libraries to create a persistent identifier (PID) for any URL they choose.
+  The <a href='http://www.cdlib.org/services/collections/scp/'>Shared Cataloging Program (SCP)</a> creates and 
+  maintains PIDs for CDL-licensed content, open access resources, California state government documents, and 
+  other URLs.<br /><br />This service uses a modified version of OCLC's PURL software. For more information on 
+	PURLs and the PURL software, see PURL <a href='http://purl.oclc.org/docs/index.html'>Frequently Asked Questions</a>."
+
+not_found_text: 'The page you requested could not be found.'
+
+unauthorized_text:
+  "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 
+  this is a mistake."
