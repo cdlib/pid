@@ -11,7 +11,7 @@ class PidManageApp < Test::Unit::TestCase
     Pid.flush!
     @pwd = 'secret' 
     @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd)
+    @user = User.new(:login => 'test_user', :name => 'Test User', :email => 'test@example.org', :password => @pwd)
     @group.users << @user
     @group.save
     

@@ -111,7 +111,7 @@ class PidApp < Sinatra::Application
     else
       @msg = @@message['user_password_reset_unauthorized']
       401
-      erb :unauthorized
+      redirect to('/unauthorized')
     end
     
     erb :reset_user
@@ -147,7 +147,7 @@ class PidApp < Sinatra::Application
         else
           @msg = @@message['invalid_login']
           404
-          erb :not_found
+          redirect to('/not_found')
         end
       else
         @msg = @@message['no_login']
@@ -196,7 +196,7 @@ class PidApp < Sinatra::Application
         erb :new_user
       else
         401
-        erb :unauthorized
+        redirect to('/unauthorized')
       end
     else
       redirect '/user/login'
@@ -242,13 +242,13 @@ class PidApp < Sinatra::Application
         end
       else  # The current user is not a group mainyainer or a super admin
         401
-        erb :unauthorized
+        redirect to('/unauthorized')
       end
     
       @super = current_user.super
       @groups = Group.all if current_user.super
       @group = current_user.group.id
-      @params = params
+      @params = (params) ? params : {}
     
       erb :new_user
       
@@ -277,11 +277,11 @@ class PidApp < Sinatra::Application
           erb :show_user
         else
           401
-          erb :unauthorized
+          redirect to('/unauthorized')
         end
       else
         404
-        erb :not_found
+        redirect to('/not_found')
       end
     else
       redirect '/user/login'
@@ -333,7 +333,7 @@ class PidApp < Sinatra::Application
       @msg = @@message['user_unauthorized']
       user = current_user.clone  # switch over to the current user to prevent the requested user's info from showing!
       401
-      erb :unauthorized
+      redirect to('/unauthorized')
     end
     
     @user = user

@@ -10,7 +10,7 @@ class PidRedirectApp < Test::Unit::TestCase
   def setup
     Pid.flush!
     @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User', :password => 'secret')
+    @user = User.new(:login => 'test_user', :name => 'Test User', :password => 'secret', :email => 'test@example.org')
     @group.users << @user
     @group.save
     

@@ -20,7 +20,7 @@ class PidUserApp < Test::Unit::TestCase
     @adm = User.new(:login => 'test_admin', :name => 'Test Administrator', :password => @pwd, :email => 'admin@example.org', :super => true, 
                     :group => @adm_grp)
     @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd, :email => 'test@example.org')
-    @mgr = User.new(:login => 'test_mgr', :name => 'Test Manager', :password => @pwd)
+    @mgr = User.new(:login => 'test_mgr', :name => 'Test Manager', :password => @pwd, :email => 'mgr@example.org')
     
     @group.users << @user
     @group.users << @mgr
@@ -45,7 +45,8 @@ class PidUserApp < Test::Unit::TestCase
   def test_get_user_missing
     post '/user/login', { :login => @mgr.login, :password => @pwd }
     get '/user/999999'
-    assert last_response.not_found?, (last_response.status == 302) ? "Unable to login!" : "Found invalid user!"
+    assert_equal 'http://example.org/not_found', last_response.location, 
+            "Was able to find a non-existent user #{last_response.status} - #{last_response.location}"
   end
   
   # Logged in and user has permission to view their own record (HTTP: 200)
@@ -72,7 +73,8 @@ class PidUserApp < Test::Unit::TestCase
   def test_get_user_unauthorized
     post '/user/login', { :login => @user.login, :password => @pwd }
     get "/user/#{@mgr.id}"
-    assert_equal 401, last_response.status, (last_response.status == 302) ? "Unable to login!" : "Was allowed to access user record!"
+    assert_equal 'http://example.org/unauthorized', last_response.location, 
+            "Was allowed to access a user record without being authorized #{last_response.status} - #{last_response.location}"
   end
 
 # ---------------------------------------------------------------
@@ -163,7 +165,8 @@ class PidUserApp < Test::Unit::TestCase
   # User reset password page without query parameters (HTTP: 401)
   def test_get_user_reset_password_no_params
     get "/user/reset?n=1"
-    assert_equal 401, last_response.status, "Was able to load the password page without a reset code!"
+    assert_equal 'http://example.org/user/forgot', last_response.location, 
+            "We were not redirected to the forgotten password page #{last_response.status} - #{last_response.location}"
   end
 
 # ---------------------------------------------------------------
@@ -180,7 +183,8 @@ class PidUserApp < Test::Unit::TestCase
   def test_get_user_register_unauthorized
     post '/user/login', { :login => @user.login, :password => @pwd }
     get "/user/register"
-    assert_equal 401, last_response.status, 'We were able to access the registration page as a regular user!'
+    assert_equal 'http://example.org/unauthorized', last_response.location, 
+            "Was allowed to register a user record without being authorized #{last_response.status} - #{last_response.location}"
   end
   
   # User register page - authenticated and a group manager (HTTP: 200)
@@ -216,8 +220,8 @@ class PidUserApp < Test::Unit::TestCase
   # User forgotten password page with missing email (HTTP: 500)
   def test_post_user_forgot_password_bad_data
     post '/user/forgot', {:reset => true, :login => 'Noone'}
-    #TODO - This should probably be a 500 or maybe check for error message in body
-    assert last_response.ok?, 'An invalid user id was successful!'
+    assert_equal 'http://example.org/not_found', last_response.location, 
+            "Was allowed to request a password reset for a non-existent user #{last_response.status} - #{last_response.location}"
   end
   
   # User forgotten password page (HTTP: 200)
@@ -248,8 +252,8 @@ class PidUserApp < Test::Unit::TestCase
     post '/user/login', { :login => @user.login, :password => @pwd }
     post '/user/register', { :login => 'new_user', :name => 'New User', :password => 'another secret', 
                              :email => 'test@test.org', :group_id => @group.id }
-    #TODO - This should probably be a 401 or maybe check for error message in body
-    assert last_response.ok?, 'Was able to register a user without being an admin or group maintainer!'
+    assert_equal 'http://example.org/unauthorized', last_response.location, 
+            "Was allowed to register a user record without being authorized #{last_response.status} - #{last_response.location}"
   end
   
   # Register new user when authenticated as group admin (HTTP: 200)
@@ -291,8 +295,8 @@ class PidUserApp < Test::Unit::TestCase
     post '/user/login', { :login => @user.login, :password => @pwd }
     put "/user/#{@mgr.id}", { :name => 'Something Different', :email => @mgr.email }
     
-    #TODO - This should probably be a 401 or maybe check for error message in body
-    assert last_response.ok?, "We were able to update another user profile! #{last_response.status}"
+    assert_equal 'http://example.org/unauthorized', last_response.location, 
+            "Was allowed to update a user record without being authorized #{last_response.status} - #{last_response.location}"
   end
   
   # Edit other user's info when authenticated and as a group manager (HTTP: 200)
