@@ -79,6 +79,8 @@ class Pid
     # FIXME - DataMapper :format => :url allows the url to exclude the protocol (e.g. http://)
     #         our regex on the screens does not though, we need to either add it if its missing
     #         here or allow it on the screens (see the regex on pid_controller.rb)
+    #
+    #         It also does not allow FTP !
     
     
     Pid.transaction do |t|
@@ -124,15 +126,12 @@ class Pid
         end
           
         # If the version has errors that are not just Pid must not be blank (happens with new PID record) raise an exception
-        
         if (ver.errors.count == 1 && ver.errors.first != "Pid must not be blank") || ver.errors.count > 1
-          raise Exception.new(:msg => "#{ver.errors.each { |e| e.join(',') }.join("\n")}")
+          raise Exception.new("Failure saving version: #{ver.errors.full_messages.join("\n")}")
         else
           pid.pid_versions << ver
         end
-        
-        #pid.groups = groups if groups
-        
+
         pid.mutable = true
         
         if pid.valid?
@@ -146,7 +145,7 @@ class Pid
           end
           
         else
-          raise Exception.new(:msg => pid.errors.join("\n"))
+          raise Exception.new("Failure saving Pid: #{pid.errors.full_messages.join("\n")}")
         end
         
         pid

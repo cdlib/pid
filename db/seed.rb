@@ -194,6 +194,11 @@ begin
       user = User.first(:login => usr.downcase) if user.nil?
     end
     
+    # no user could be found so use the designated default user account
+    if user.nil?
+      user = User.first(:login => seed_config['default_user_login'])
+    end
+    
     # Retrieve the user's group so we can assign the PID to the group
     if !user.group.nil?
       params[:group] = user.group
@@ -218,8 +223,7 @@ begin
         end
   
       else
-        puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
-        puts '............ the first record for a pid cannot have a null url! make sure your records are in chronological order!'
+        puts "........ No URL specified for #{incoming.id} - #{incoming.modified_at}"
         puts "............ #{incoming.inspect}" if debug
       end
         
@@ -229,7 +233,7 @@ begin
       
         j = j.next
       rescue Exception => e
-        puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
+        puts "........ unable to update pid: #{incoming.id} - #{incoming.modified_at}"
         puts "............ #{e.message}"
         puts "............ #{incoming.inspect}" if debug
       end
