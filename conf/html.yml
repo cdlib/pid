@@ -1,5 +1,16 @@
 application_name: 'PID Service'
+logo_alt_text: 'California Digital Library'
 
+# Navigation bar links
+nav_home: 'Home'
+nav_pid_search: 'Find PIDs'
+nav_pid_create: 'Mint PIDs'
+nav_user: 'User'
+nav_reports: 'Reports'
+nav_help: 'Help'
+nav_logout: 'Logout'
+
+# Page/Section headers
 header_index: 'Home'
 header_login: 'Login'
 header_forgotten_password: 'Forgot my password'
@@ -9,12 +20,21 @@ header_user_view: 'User profile'
 header_user_register: 'New user registration'
 header_not_found: 'The page you requested could not be found'
 header_unauthorized: 'You do not permission to do that'
+header_search_criteria: 'Search criteria'
+header_search_results: 'Search results'
+header_pid_view: 'PID:'
+header_pid_inactive: 'Inactive!'
+header_pid_register: 'Mint a new PID'
+header_reports: 'Reporting'
+header_help: 'Help'
 
+# Page based links to other pages
 link_to_login: 'Login'
 link_to_forgotten_password: 'I forgot my password'
 link_to_register_user: 'Register a new user'
 link_to_user_list: 'Return to the user list'
 
+# Form elements
 form_userid: 'User Id:'
 form_password: 'Password:'
 form_new_password: 'New Password:'
@@ -27,13 +47,25 @@ form_affiliation: 'Affiliation:'
 form_name: 'Full Name:'
 form_email: 'Email:'
 form_admin: 'Is system admin?'
+form_url: 'URL:'
+form_pid: 'PID:'
+form_created_date: 'Created Date:'
+form_modified_date: 'Last Modified:'
+form_change_category: 'Change Category'
 
+# No matches to the search
+search_no_matches: 'No PIDs matched your search criteria!'
+
+# Buttons
 button_login: 'Login'
 button_forgotten_password: 'Reset my password'
 button_reset_password: 'Save'
 button_save_user: 'Save'
 button_register_user: 'Save'
+button_search: 'Search'
+button_update_pid: 'Save'
 
+# Table headings
 th_userid: 'User Id'
 th_name: 'Full Name'
 th_email: 'Email'
@@ -42,12 +74,15 @@ th_maintainer: 'Group Admin?'
 th_active: 'Active?'
 th_locked: 'Locked?'
 th_affiliation: 'Affiliation'
+th_pid: 'PID'
+th_url: 'URL'
+th_modified_date: 'Updated'
 
+# True/False values in tables
 td_true: 'Yes'
 td_false: 'No'
 
 # Make sure that you do not use tab characters in the text values below. It will cause the parser to crash
-
 index_text: 
   "This resolution service allows UC Libraries to create a persistent identifier (PID) for any URL they choose.
   The <a href='http://www.cdlib.org/services/collections/scp/'>Shared Cataloging Program (SCP)</a> creates and 
@@ -59,4 +94,22 @@ not_found_text: 'The page you requested could not be found.'
 
 unauthorized_text:
   "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 
-  this is a mistake."
+  this is a mistake."	
+
+search_text: 'This utility will only return 100 results at a time. If your search returned 100 PIDs, you should refine your criteria.'
+
+reports_text: 
+  "This is where the user will be able to run PID reports.
+  <ul>
+    <li>Inactive PIDs</li>
+    <li>PIDs with invalid URL targets</li>
+    <li>PID usage (if we log hits going forward)</li>
+  </ul>"
+
+help_text: 
+  "This is where the user will be able to go for an FAQ and other help/contact info.
+  <ul>
+    <li>FAQ</li>
+    <li>What is a PID?</li>
+    <li>Etc.</li>
+  </ul>"

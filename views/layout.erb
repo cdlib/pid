@@ -10,10 +10,10 @@
   <body>
 		<div id="main">
     	<header>
-      	<img src="/cdl_logo.gif" width="198" height="71" border="0" 
-              alt="California Digital Library" title="California Digital Library">
+      	<img src="/logo.gif" width="198" height="71" border="0" 
+              alt="<%= form_text('logo_alt_text') %>" title="<%= form_text('logo_alt_text') %>">
               
-      	<h2 style="display: inline; margin-left: 45px; vertical-align: 20px;">PID Service</h2>
+      	<h2 style="display: inline; margin-left: 45px; vertical-align: 20px;"><%= form_text('application_name') %></h2>
     	</header>
     
 			<% if @hide_nav.nil? %>
@@ -22,19 +22,19 @@
         		<ul>
           		<li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
           		<li class="grey">|</li>
-          		<li><a href="/link">Home</a></li>
+          		<li><a href="/link"><%= form_text('nav_home') %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/search">Search</a></li>
+          		<li><a href="/link/search"><%= form_text('nav_pid_search') %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/new">Mint</a></li>
+          		<li><a href="/link/new"><%= form_text('nav_pid_create') %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/user/list">User</a></li>
+          		<li><a href="/user/list"><%= form_text('nav_user') %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/report">Reports</a></li>
+          		<li><a href="/link/report"><%= form_text('nav_reports') %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/help">Help</a></li>
+          		<li><a href="/link/help"><%= form_text('nav_help') %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/user/logout" class="navy">Logout</a></li>
+          		<li><a href="/user/logout" class="navy"><%= form_text('nav_logout') %></a></li>
         		</ul>
       		</div>
     		</nav>

@@ -199,6 +199,10 @@ begin
       user = User.first(:login => seed_config['default_user_login'])
     end
     
+    if incoming.username.include?(' ')
+      params[:username] = user.login
+    end
+    
     # Retrieve the user's group so we can assign the PID to the group
     if !user.group.nil?
       params[:group] = user.group

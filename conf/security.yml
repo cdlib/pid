@@ -1,5 +1,5 @@
 # Session expiration in seconds
-session_expires: 900
+session_expires: 60 #900
 
 # The number of failed login attempts before the user's account is locked
 max_login_attempts: 5

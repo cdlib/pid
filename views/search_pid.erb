@@ -1,77 +1,47 @@
 <section id="search_criteria">
-  <h3>Search Criteria:</h3>
+  <h3><%= form_text('header_search_criteria') %></h3>
   
   <form action="/link/search" method="post">
-    <label>URL: <input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" /></label>
+    <label><%= form_text('form_url') %></label><input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
     
-    <input type="submit" name="Search" />
-    <article class="warning">This utility will only return 100 results at a time. If your search returned 100 PIDs, you should refine your criteria.</article>
+    <label>&nbsp;</label><input type="submit" name="<%= form_text('button_search') %>" />
   </form>
+	
+	<article><%= form_text('search_text') %></article>
   
 </section>
 
 <% if request.request_method == "POST" %>
   
   <section id="search_results">
-    <h3>Search Results:</h3>
+    <h3><%= form_text('header_search_results') %></h3>
     
     <% i = 1 %>
     <% unless @results.empty? %>
       <table>
-        <tr><th /><th>View</th><th>URL</th><th>user</th><th>created</th><th>last modified</th><th>active</th></tr>
+        <tr><th /><th><%= form_text('th_pid') %></th><th><%= form_text('th_url') %></th><th><%= form_text('th_userid') %></th>
+						<th><%= form_text('th_modified_date') %></th><th><%= form_text('th_active') %></th></tr>
         <% @results.each do |result| %>
           <tr>
-            <td style="width: 2%;"><%= i %>)</td>
-            <td style="width: 5%;">
-              <a href="#open_modal_<%= result.id %>" class="open_dialog">PID: <%= result.id %></a>
+            <td><%= i %>)</td>
+            <td>
+              <a href="/link/<%= result.id %>" class="letterpress"><%= result.id %></a>
             </td>
-            <td><a href="<%= result.url %>" target="_blank"><%= result.url %></a></td>
-            <td style="width: 5%;"><%= result.username %></td>
-            <td style="width: 6%;"><%= result.created_at.strftime("%m/%d/%Y") %></td>
-            <td style="width: 6%;"><%= result.modified_at.strftime("%m/%d/%Y") %></td>
-            <td style="width: 5%;" class="center"><%= (result.deactivated) ? "No" : "Yes" %></td>
+            <td><a href="<%= result.url %>" target="_blank" class="underline" title="<%= result.url %>">
+																<%= (result.url.size > 80) ? result.url.slice(0, 79) + ' ...' : result.url %></a></td>
+            <td><%= result.username %></td>
+            <td><%= result.modified_at.strftime("%m/%d/%Y") %></td>
+            <td class="center"><%= (result.deactivated) ? "No" : "Yes" %></td>
           </tr>
           
           <% i = i.next %>
         <% end %>
       </table>
-    
-      <% @results.each do |result| %>
-        <div id="open_modal_<%= result.id %>" class="modal_dialog">
-          <div>
-            <div id="content_<%= result.id %>"></div>
-                    
-            <a href="#close" title="Close" class="close">X</a>
-          </div>
-        </div>
-      <% end %>
       
     <% else %>
-      <article id="no_results">No PIDs matched your search criteria!</article>
+      <article id="no_results"><%= form_text('search_no_matches') %></article>
     <% end %>
   </section>
-
-<script type="text/javascript">
-  $(document).ready(function() {
-    $(".open_dialog").click( function(event){
-      var href = $(this).attr("href");
-      var pid = href.match(/[\d]+/)
-      
-      $.ajax({
-        url:      '/link/' + pid + '?ajax=1',
-        type:     'get',
-        success:  function(data) {
-          $("#content_" + pid).html(data);
-        },
-        error: function(data) {
-          $("#content_" + pid).html(data);
-        },
-        complete: {}
-      });
-
-    });
-  });
-</script>
 
 <% end %>
 
