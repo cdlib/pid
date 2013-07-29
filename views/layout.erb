@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>PID <%= @pid.id if @pid %></title>
+    <title><%= HTML_CONFIG['organization_name'] %> - <%= HTML_CONFIG['application_name'] %></title>
     
     <link rel="stylesheet" type="text/css" href="/css/pid.css" />
     <script type="text/javascript" src="/js/jquery-1.10.2.min.js"></script>
@@ -11,9 +11,9 @@
 		<div id="main">
     	<header>
       	<img src="/logo.gif" width="198" height="71" border="0" 
-              alt="<%= form_text('logo_alt_text') %>" title="<%= form_text('logo_alt_text') %>">
+              alt="<%= HTML_CONFIG['organization_name'] %>" title="<%= HTML_CONFIG['organization_name'] %>">
               
-      	<h2 style="display: inline; margin-left: 45px; vertical-align: 20px;"><%= form_text('application_name') %></h2>
+      	<h2 style="display: inline; margin-left: 45px; vertical-align: 20px;"><%= HTML_CONFIG['application_name'] %></h2>
     	</header>
     
 			<% if @hide_nav.nil? %>
@@ -22,19 +22,19 @@
         		<ul>
           		<li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
           		<li class="grey">|</li>
-          		<li><a href="/link"><%= form_text('nav_home') %></a></li>
+          		<li><a href="/link"><%= HTML_CONFIG['nav_home'] %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/search"><%= form_text('nav_pid_search') %></a></li>
+          		<li><a href="/link/search"><%= HTML_CONFIG['nav_pid_search'] %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/new"><%= form_text('nav_pid_create') %></a></li>
+          		<li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/user/list"><%= form_text('nav_user') %></a></li>
+          		<li><a href="/user/list"><%= HTML_CONFIG['nav_user'] %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/report"><%= form_text('nav_reports') %></a></li>
+          		<li><a href="/link/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/link/help"><%= form_text('nav_help') %></a></li>
+          		<li><a href="/link/help"><%= HTML_CONFIG['nav_help'] %></a></li>
           		<li class="grey">|</li>
-          		<li><a href="/user/logout" class="navy"><%= form_text('nav_logout') %></a></li>
+          		<li><a href="/user/logout" class="navy"><%= HTML_CONFIG['nav_logout'] %></a></li>
         		</ul>
       		</div>
     		</nav>

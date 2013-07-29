@@ -1,5 +1,5 @@
+organization_name: 'California Digital Library'
 application_name: 'PID Service'
-logo_alt_text: 'California Digital Library'
 
 # Navigation bar links
 nav_home: 'Home'
@@ -23,8 +23,10 @@ header_unauthorized: 'You do not permission to do that'
 header_search_criteria: 'Search criteria'
 header_search_results: 'Search results'
 header_pid_view: 'PID:'
+header_pid_history: 'History'
 header_pid_inactive: 'Inactive!'
 header_pid_register: 'Mint a new PID'
+header_pid_register_success: 'Successfully created the following PID(s)'
 header_reports: 'Reporting'
 header_help: 'Help'
 
@@ -50,11 +52,24 @@ form_admin: 'Is system admin?'
 form_url: 'URL:'
 form_pid: 'PID:'
 form_created_date: 'Created Date:'
+form_created_by: 'Created by:'
 form_modified_date: 'Last Modified:'
-form_change_category: 'Change Category'
+form_modified_by: 'Last Modified by:'
+form_change_category: 'Change Category:'
+form_old_url: 'Old URL:'
+form_urls: 'URL(s):'
 
 # No matches to the search
 search_no_matches: 'No PIDs matched your search criteria!'
+
+# Create pid textarea tooltip
+create_pids_tooltip: 'One URL per line. Each URL should include the protocol (e.g. http://)'
+
+# Create multiple pids, some failed error message
+create_pids_some_errors:
+  "The URLs above could not be validated!<br />
+  Please ensure that you have included the protocol (e.g. http://), and that each URL appears on its own line before 
+  resubmitting the form."
 
 # Buttons
 button_login: 'Login'
@@ -113,3 +128,6 @@ help_text:
     <li>What is a PID?</li>
     <li>Etc.</li>
   </ul>"
+
+dead_pid_text:
+  "The PID you are looking for is no longer active. Please contact so and so if you think that this is an error."

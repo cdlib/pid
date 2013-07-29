@@ -1,12 +1,12 @@
 <section id="user_update">
-	<h3><%= form_text('header_user_view') %></h3>
+	<h3><%= HTML_CONFIG['header_user_view'] %></h3>
 	
 	<% if @groups %>
-		<a href="/user/list" class="letterpress right"><%= form_text('link_to_user_list') %></a>
+		<a href="/user/list" class="letterpress right"><%= HTML_CONFIG['link_to_user_list'] %></a>
 	<% end %>
 		
 	<form>
-		<label for="group"><%= form_text('form_group') %></label>
+		<label for="group"><%= HTML_CONFIG['form_group'] %></label>
 		<% if @groups %>
 			
 			<% if @groups.size > 1 %>
@@ -19,9 +19,12 @@
 				<input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
 			<% end %>
 			
-			<label for="maintainer"><%= form_text('form_group_maintainer') %></label><input type="checkbox" name="maintainer" id="maintainer" <% if @maintainer %>checked="checked"<% end %> />
-			<label for="active"><%= form_text('form_active') %></label><input type="checkbox" name="active" id="active" <% if @user.active %>checked="checked"<% end %> />
-			<label for="locked"><%= form_text('form_locked') %></label><input type="checkbox" name="locked" id="locked" <% if @user.locked %>checked="checked"<% end %> />
+			<label for="maintainer"><%= HTML_CONFIG['form_group_maintainer'] %></label>
+			<input type="checkbox" name="maintainer" id="maintainer" <% if @maintainer %>checked="checked"<% end %> />
+			<label for="active"><%= HTML_CONFIG['form_active'] %></label>
+			<input type="checkbox" name="active" id="active" <% if @user.active %>checked="checked"<% end %> />
+			<label for="locked"><%= HTML_CONFIG['form_locked'] %></label>
+			<input type="checkbox" name="locked" id="locked" <% if @user.locked %>checked="checked"<% end %> />
 		
 		<% else %>
 			<input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
@@ -30,14 +33,15 @@
 			<input type="hidden" id="locked" name="locked" value="<%= (@user.locked) ? 'on' : 'off' %>" />
 		<% end %>
 		
-		<label for="login"><%= form_text('form_userid') %></label><input type="text" name="login" id="login" value="<%= @user.login %>" />
-		<label for="name"><%= form_text('form_name') %></label><input type="text" name="name" id="name" value="<%= @user.name %>" />
-		<label for="email"><%= form_text('form_email') %></label><input type="email" name="email" id="email" value="<%= @user.email %>" />
-		<label for="affiliation"><%= form_text('form_affiliation') %></label><input type="text" name="affiliation" id="affiliation" value="<%= @user.affiliation %>" />
+		<label for="login"><%= HTML_CONFIG['form_userid'] %></label><input type="text" name="login" id="login" value="<%= @user.login %>" />
+		<label for="name"><%= HTML_CONFIG['form_name'] %></label><input type="text" name="name" id="name" value="<%= @user.name %>" />
+		<label for="email"><%= HTML_CONFIG['form_email'] %></label><input type="email" name="email" id="email" value="<%= @user.email %>" />
+		<label for="affiliation"><%= HTML_CONFIG['form_affiliation'] %></label>
+		<input type="text" name="affiliation" id="affiliation" value="<%= @user.affiliation %>" />
 		
-		<label for="password"><%= form_text('form_new_password') %></label><input type="password" name="password" id="password" />
-		<label for="confirm"><%= form_text('form_confirm_password') %></label><input type="password" name="confirm" id="confirm" />
-		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= form_text('button_save_user') %>" />
+		<label for="password"><%= HTML_CONFIG['form_new_password'] %></label><input type="password" name="password" id="password" />
+		<label for="confirm"><%= HTML_CONFIG['form_confirm_password'] %></label><input type="password" name="confirm" id="confirm" />
+		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_save_user'] %>" />
 	</form>
 	
 </section>

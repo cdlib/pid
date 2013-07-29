@@ -1,11 +1,11 @@
 <section id="user_login">
-	<h3><%= form_text('header_login') %></h3>
+	<h3><%= HTML_CONFIG['header_login'] %></h3>
 	
 	<form action="/user/login" method="post">
-		<label><%= form_text('form_userid') %></label><input type="text" name="login" id="login" value="<%= @userid %>" />
-		<label><%= form_text('form_password') %></label><input type="password" name="password" id="password" />
-		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= form_text('button_login') %>" />
-		<label>&nbsp;</label><a class="letterpress" href="/user/forgot"><%= form_text('link_to_forgotten_password') %></a>
+		<label><%= HTML_CONFIG['form_userid'] %></label><input type="text" name="login" id="login" value="<%= @userid %>" />
+		<label><%= HTML_CONFIG['form_password'] %></label><input type="password" name="password" id="password" />
+		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_login'] %>" />
+		<label>&nbsp;</label><a class="letterpress" href="/user/forgot"><%= HTML_CONFIG['link_to_forgotten_password'] %></a>
 	</form>
 	
 </section>

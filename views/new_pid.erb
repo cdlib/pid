@@ -1,53 +1,42 @@
 <section id="pid_new">
-  <h3>Create new PID(s)</h3>
+  <h3><%= HTML_CONFIG['header_pid_register'] %></h3>
   
   <% urls = "" %>
-  <%unless @failures.empty? %>
+  <% if !@failures.empty? %>
     <% @failures.each do |url, msg| %>
       <% urls += url + "\n" %>
     <% end %>
   <% end %>
 
   <form action="/link" method="post">
-    <div><label style="vertical-align: 70px;">Url(s):</label></div>
-    <textarea name="new_urls" id="new_urls" required
-                title="One URL per line. Each URL should include its protocol (e.g. http://)"><%= urls %></textarea>
-    <div><input type="submit" name="Create" style="vertical-align: 70px;"></div>
+    <label style="vertical-align: 70px;"><%= HTML_CONFIG['form_urls'] %></label>
+    <textarea name="new_urls" id="new_urls" required title="<%= HTML_CONFIG['create_pids_tooltip'] %>" style="height: 100px; width: 80%;"><%= urls %></textarea>
+    <label>&nbsp;</label><input type="submit" id="create" name="create" style="vertical-align: 70px;">
   </form>
-  
-  <div class="red">
+</section>
+
+<section class="errors">
     <% if @pid && @pid.errors %>
       <% @pid.errors.full_messages.each do | message | %>
         <%= message %></br>
       <% end %>
     <% end %>
     
-    <% unless @failures.empty? %>
-      The URLs above could not be validated!<br />
-      Please ensure that you have included the protocol (e.g. http://), and that each URL appears on its own line before 
-      resubmitting the form.
+    <% if !@failures.empty? %>
+		<%= HTML_CONFIG['create_pids_some_errors'] %>
     <% end %>
-  </div>
-  
-  <% unless @successes.empty? %>
-    <h3>Successfully created the following PIDs:</h3>
+</section>
+
+<section id="pid_new_results">
+  <% if !@successes.empty? %>
+    <h3><%= HTML_CONFIG['header_pid_register_success'] %></h3>
     
     <table>
-        <tr><th>View</th><th>URL</th></tr>
+        <tr><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th></tr>
         <% @successes.each do |success| %>
           <tr>
-            <td style="width: 5%">
-              <a href="#open_modal_<%= success.id %>" class="open_dialog">PID: <%= success.id %></a>
-
-              <div id="open_modal_<%= success.id %>" class="modal_dialog">
-                <div>
-                  <div id="content_<%= success.id %>"></div>
-                    
-                  <a href="#close" title="Close" class="close">X</a>
-                </div>
-              </div>
-            </td>
-            <td><a href="<%= success.url %>"><%= success.url %></a></td>
+            <td><a href="/link/<%= success.id %>" class="letterpress"><%= success.id %></a></td>
+            <td><a href="<%= success.url %>" class="underline" target="_blank"><%= success.url %></a></td>
           </tr>
       <% end %>
     </table>
@@ -56,24 +45,3 @@
 
 </section>
 
-<script type="text/javascript">
-  $(document).ready(function() {
-    $(".open_dialog").click( function(event){
-      var href = $(this).attr("href");
-      var pid = href.match(/[\d]+/)
-      
-      $.ajax({
-        url:      '/link/' + pid + '?ajax=1',
-        type:     'get',
-        success:  function(data) {
-          $("#content_" + pid).html(data);
-        },
-        error: function(data) {
-          $("#content_" + pid).html(data);
-        },
-        complete: {}
-      });
-
-    });
-  });
-</script>

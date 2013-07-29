@@ -49,7 +49,8 @@ class Shortcake
   private 
   def create_url(shortcode, url, override=false)
     raise ValidCodeRequired if !shortcode.kind_of?(String) || !shortcode.match(VALID_CODE)
-    raise ValidURLRequired if (url =~ URI::regexp).nil?
+    #raise ValidURLRequired if (url =~ URI::regexp).nil?
+    raise ValidURLRequired if (url =~ PidApp::URI_REGEX).nil?
     raise CodeExists if !override && @redis.exists("sc:#{@ns}:codes:#{shortcode}")
     @redis.multi do |multi|
       @redis.set("sc:#{@ns}:codes:#{shortcode}", url)

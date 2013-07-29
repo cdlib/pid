@@ -1,10 +1,6 @@
 require "net/http"
 
 class PidApp < Sinatra::Application
-  @@message = YAML.load_file('conf/message.yml')
-  
-  @@url_pattern = /https?:\/\/([A-Za-z0-9\-_:\.]+){2,6}(\/([A-Za-z0-9`~!@#\$%\^&\*\(\)\-_=\+\[{\]}\\\|;:'",\.\?]?)+){0,}(\.[A-Za-z0-9]+)?/
-  
 # ---------------------------------------------------------------
 # Display the new PID form
 # ---------------------------------------------------------------  
@@ -37,41 +33,19 @@ class PidApp < Sinatra::Application
   end
 
 # ---------------------------------------------------------------
-# Display the edit page
-# ---------------------------------------------------------------    
-  get '/link/edit/:id' do
-    @pid = Pid.get(params[:id])
-    user = User.get(session[:user])
-    
-    if user.group == @pid.group || user.super
-      if !request.query_string.empty? && @pid
-        erb :edit_pid, :layout => false
-      elsif @pid
-        erb :edit_pid
-      else
-        404
-      end
-    else
-      401
-    end
-  end
-  
-# ---------------------------------------------------------------
 # Display the specified purl
 # ---------------------------------------------------------------  
   get '/link/:id' do
     @pid = Pid.get(params[:id])
-    user = User.get(session[:user])
+    user = current_user
     
     if @pid
       if user.group == @pid.group || user.super
-        if !request.query_string.empty? && @pid
-          erb :show_pid, :layout => false
-        elsif @pid
-          erb :show_pid
-        else
-          404
-        end
+        @groups = Group.all if user.super
+        @group = user.group
+
+        erb :show_pid
+        
       else
         401
       end
@@ -95,7 +69,7 @@ class PidApp < Sinatra::Application
 # Process the PIDs search form
 # ---------------------------------------------------------------  
   post '/link/search' do
-    user = User.get(session[:user])
+    user = current_user
     @results = []
     
     if !params[:url].empty?
@@ -117,46 +91,47 @@ class PidApp < Sinatra::Application
   end
 
 # ---------------------------------------------------------------
-# Edit PID(s)
+# Edit PID
 # ---------------------------------------------------------------
-  put '/link' do
-    @pid = Pid.get(params[:pid])
-    user = User.get(session[:user])
-    @message = "Unable to save your changes."
+  put '/link/:id' do
+    @pid = Pid.get(params[:id])
+    user = current_user
     
     if @pid
       if @pid.group == user.group || user.super
-        params[:active] = (params[:active] == "on") ? false : true
-      
-        unless @pid.nil? 
-          # Don't save if nothing has changed!
-          if @pid.url != params[:url] || @pid.maintainers != params[:maintainers] || 
-                                                       @pid.deactivated != params[:active] 
-            resp = revise_pid(@pid, params)
+        # Don't save if nothing has changed!
+        if @pid.url != params[:url] || @pid.group.id != params[:group] || (@pid.deactivated != ((params[:active] == "on") ? false : true))
+            
+          begin
+            @pid.revise({:url => (params[:active] == "on") ? params[:url] : "#{hostname()}link/dead", 
+                         :deactivated => (params[:active] == "on") ? false : true,
+                         :group =>  params[:group],
+                         :username => user.login,
+                         :modified_at => Time.now})
         
-            status resp[:code]
-            @message = resp[:message]
+            @msg = MESSAGE_CONFIG['pid_update_success']
+        
+          rescue Exception => e
+            @msg = MESSAGE_CONFIG['pid_update_failure'] 
+            @msg += e.message
           end
-      
-          #reload the pid before we pass it to the erb
-          @pid = Pid.get(params[:pid])
-      
-          if !request.query_string.empty? && @pid
-            erb :edit_pid, :layout => false
-          elsif @pid
-            erb :edit_pid
-          end
-        else
-          @message = "PID #{params[:pid]} does not exist!"
-          status 404
+        
         end
       
+        @groups = Group.all if user.super
+        @group = user.group
+          
+        #reload the pid before we pass it to the erb
+        @pid = Pid.get(params[:id])
+        erb :show_pid
+
+        # User is not authorized to modify this PID!
       else
         401
-        @message = "You do not have permission to modify this PID!"
+        @msg = MESSAGE_CONFIG['pid_unauthorized']
       end
     else
-      @message = "PID #{params[:pid]} does not exist!"
+      @msg = MESSAGE_CONFIG['pid_not_found']
       404
     end
   end
@@ -171,16 +146,35 @@ class PidApp < Sinatra::Application
     
     params[:new_urls].lines do |line|
       
-      resp = mint_pid(line, request.referrer, User.get(session[:user]))
+      change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
+      notes = "Incoming request from #{request.ip} to mint #{url}" if request.referrer != "#{hostname}link/new"
       
-      if resp[:code] == 200
-        @successes << resp[:message]
+      url = line.strip.gsub("\r\n", '').gsub("\n", '')
+      
+      unless url.empty?
+        if url =~ URI_REGEX
+      
+          begin
+            pid = Pid.mint(:url => url, 
+                           :username => current_user.login,
+                           :group => current_user.group,
+                           :change_category => change_category,
+                           :notes => notes)
+            @successes << pid
+          
+          rescue Exception => e
+            fatal = true
+            @failures[line.strip] = "Unable to create PID for #{url}. #{e.message}"
+          end
         
-      elsif resp[:code] == 500
-        fatal = true
+        else
+          @failures[line.strip] = "Invalid URL format for #{url}"
+        end
+      
       else
-        @failures[line.strip] = resp[:message]
+        @failures[line.strip] = "URL was empty #{url}"
       end
+      
     end
     
     if fatal                      # If any 500s were returned we should flag it with a 500
@@ -198,11 +192,11 @@ class PidApp < Sinatra::Application
 # Verify the URL by doing a GET - for future use
 # ---------------------------------------------------------------  
   before '/link' do
-    redirect '/user/login', {:msg => @@message['session_expired']} if session[:user].nil?
+    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
   end
   
   before '/link/*' do
-    redirect '/user/login', {:msg => @@message['session_expired']} if session[:user].nil?
+    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
   end
   
   
@@ -258,25 +252,5 @@ class PidApp < Sinatra::Application
     end
       
   end
-    
-# ---------------------------------------------------------------
-# Performs the revision and interprets the results for the route
-# ---------------------------------------------------------------  
-  def revise_pid(pid, params)
-    unless pid.nil?
-      begin
-        pid.revise({:url => params[:url],
-                    :deactivated => params[:active],
-                    :maintainers =>  params[:maintainers]})
-        
-        {:code => 200, :message => "Your changes have been saved."}
-        
-      rescue Exception => e
-        {:code => 500, :message => "Unable to save your changes.\n#{e.message}"}
-      end
-    else
-      {:code => 404, :message => "No PID specified"}
-    end
-  end
-  
+
 end

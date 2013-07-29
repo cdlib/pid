@@ -5,6 +5,7 @@ failed_login: 'Invalid user id or password.'
 failed_login_close_to_lockout: 'Invalid password! You have #{?} attempts left before your account is automatically locked.'
 account_locked: 'Your account has been locked due to too many failed login attempts!<br />Your account will automatically unlock after ${?} minutes.'
 account_inactive: 'This account is no longer active.'
+session_expired: 'Your session has expired. Please log back in to continue working.'
 
 # General form validation messages
 no_login: 'The user id cannot be blank!'
@@ -30,3 +31,7 @@ user_update_failure: 'Unable to save your changes!'
 user_unauthorized: 'You do not have permission to view or change that user!'
 
 # PID controller messages
+pid_update_success: 'Your changes have been saved.'
+pid_update_failure: 'Unable to save your changes.'
+pid_unauthorized: 'You do not have permission to modify this PID!'
+pid_not_found: 'That PID could not be found!'

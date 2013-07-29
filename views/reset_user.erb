@@ -1,10 +1,10 @@
 <section id="user_login">
-	<h3><%= form_text('header_reset_password') %></h3>
+	<h3><%= HTML_CONFIG['header_reset_password'] %></h3>
 	
 	<form action="/user/reset" method="post">
-		<label><%= form_text('form_new_password') %></label><input type="password" name="password" id="password" />
-		<label><%= form_text('form_confirm_password') %></label><input type="password" name="confirm" id="confirm" />
-		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= form_text('button_reset_password') %>" />
+		<label><%= HTML_CONFIG['form_new_password'] %></label><input type="password" name="password" id="password" />
+		<label><%= HTML_CONFIG['form_confirm_password'] %></label><input type="password" name="confirm" id="confirm" />
+		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_reset_password'] %>" />
 		<input type="hidden" id="n" name="n" value="<%= @n %>">
 		<input type="hidden" id="c" name="c" value="<%= @c %>">
 	</form>

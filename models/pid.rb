@@ -1,15 +1,21 @@
+
 # Represents a historical snapshot of a PID, a new PidVersion record is created everytime a change is made to a PID
 class PidVersion
   include DataMapper::Resource
   belongs_to :pid
     
   property :id, Serial, :key => true
-  property :deactivated, Boolean, :required  => true
+  property :deactivated, Boolean #, :required  => true
   property :change_category, String, :length => 20, :format => /[a-zA-Z\_]+/, :required => true
-  property :url, String, :length => 2000, :format => :url, :required => true
+  property :url, String, :length => 2000, :required => true,
+    :message => {
+      :format => 'You cannot save a historical version of a PID that has an invalid URL!'
+    }
   property :username, String, :length => 20, :format => /[a-z]{3,20}/, :required => true
   property :created_at, DateTime, :required => true
   property :notes, String, :length => 250
+  
+  validates_format_of :url, :with => PidApp::URI_REGEX
 end
 
 # Represents a Persistent Identifier (PID).
@@ -28,11 +34,11 @@ class Pid
     }
     
   # To-Do - The DataMapper :url :format validation doesn't like http://[IP Address]:[Port]
-  property :url, String, :length => 2000, :format => :url, :required => true,
+  property :url, String, :length => 2000, :required => true,   # use URI_REGEX instead of :url
     :messages => {
       :presence  => 'A url is required.',
       :format    => 'Must be valid URL of under 2000 characters.'
-    }
+    }  
   property :username, String, :length => 50, :format => /[a-z\s]{3,50}/, :required => true,
     :messages => {
       :presence => 'A username is required.',
@@ -41,6 +47,8 @@ class Pid
   property :created_at, DateTime, :required => true, :index => true
   property :modified_at, DateTime, :required => true, :index => true
   property :notes, String, :length => 250
+  
+  validates_format_of :url, :with => PidApp::URI_REGEX  
   
   # restriction for saving, updating. ensure handling through create_or_update for shortcake syncing
   attr_accessor :mutable
@@ -75,14 +83,7 @@ class Pid
   def self.create_or_update(params)
     is_seed = (params[:is_seed].nil?) ? false : params[:is_seed]
     params.delete(:is_seed)
-    
-    # FIXME - DataMapper :format => :url allows the url to exclude the protocol (e.g. http://)
-    #         our regex on the screens does not though, we need to either add it if its missing
-    #         here or allow it on the screens (see the regex on pid_controller.rb)
-    #
-    #         It also does not allow FTP !
-    
-    
+
     Pid.transaction do |t|
       begin
         now = Time.now
@@ -122,9 +123,9 @@ class Pid
         if is_seed
           ver = PidVersion.new(version_params.merge(:created_at => pid.modified_at))
         else
-          ver = PidVersion.new(version_params.merge(:created_at => now, :deactivated => pid.deactivated))
+          ver = PidVersion.new(version_params.merge(:created_at => now)) #, :deactivated => pid.deactivated))       
         end
-          
+        
         # If the version has errors that are not just Pid must not be blank (happens with new PID record) raise an exception
         if (ver.errors.count == 1 && ver.errors.first != "Pid must not be blank") || ver.errors.count > 1
           raise Exception.new("Failure saving version: #{ver.errors.full_messages.join("\n")}")
@@ -135,29 +136,29 @@ class Pid
         pid.mutable = true
         
         if pid.valid?
-          pid.save
-          
-          # If the pid is inactive, remove it from Redis, otherwise add/update it
-          if pid.deactivated
-            @@shorty.delete(pid.id.to_s)
-          else
-            @@shorty.create_or_update(pid.id.to_s, params[:url])
+          begin
+            pid.save 
+            
+          rescue DataMapper::SaveFailureError => e
+            #t.rollback
+            raise Exception.new("Unable to save PID: #{e.class}: #{e.message}")
           end
-          
+            
+          @@shorty.create_or_update(pid.id.to_s, pid.url.to_s)
+            
         else
           raise Exception.new("Failure saving Pid: #{pid.errors.full_messages.join("\n")}")
         end
+      
+        pid.mutable = false
         
         pid
         
-      rescue DataMapper::SaveFailureError => e
-        #no rollback needed, nothing saved
-        t.rollback        
-        raise e
       rescue Exception => e
         t.rollback       
         raise e
       end
+      
     end
   end
   
@@ -186,12 +187,6 @@ class Pid
   end
   
   before :save do |post|
-  
-    #TODO - Should they be able to save anyway? What if they want to reactivate?
-  
-    if self.deactivated == true && self.attribute_dirty?(:url)
-      throw :halt
-    end
     # restriction for saving, updating. ensure handling through create_or_update for shortcake syncing
     unless self.mutable
       throw :halt

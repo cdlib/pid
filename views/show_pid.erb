@@ -1,104 +1,90 @@
 <section id="pid_info">
-  <h3><%= form_text('header_pid_show') %> <%= @pid.id %></h3>
-  <h4 class="red"><% if(@pid.deactivated) %><%= form_text('header_pid_inactive') %><% end %></h4>
+  <h3><%= HTML_CONFIG['header_pid_view'] %> <%= @pid.id %><% if(@pid.deactivated) %><span class="red"> - <%= HTML_CONFIG['header_pid_inactive'] %></span><% end %></h3>
   
-	<form action="/link/<%= @pid.id %>" method="get">
-		<label><%= form_text('form_pid') %></label><a href="#"><%= link_to(to("/PID/#{@pid.id}")) %></a>
-		<label><%= form_text('form_url') %></label><input type="text" id="url" name="url" style="width: 450px;" value="<%= @pid.url %>" />
+	<form action="/link/<%= @pid.id %>" method="get" id="pid_update" name="pid_update">
+		<label><%= HTML_CONFIG['form_pid'] %></label><span class="form_informational"><%= link_to(to("/PID/#{@pid.id}")) %></span>
+		<label for="url"><%= HTML_CONFIG['form_url'] %></label><input type="text" id="url" name="url" style="width: 450px;" value="<%= @pid.url %>" />
+		
 		<% if @groups %>
-			<label><%= form_text('form_group') %></label>
+			<label for="group"><%= HTML_CONFIG['form_group'] %></label>
 			<select name="group" id="group">
 				<% @groups.each do |group| %>
-				<option value="<%= group.id %>" <% if params[:group] == group.id %>selected="selected"<% end %>><%= group.name %></option>
+					<option value="<%= group.id %>" <% if @pid.group == group %>selected="selected"<% end %>><%= group.name %></option>
 				<% end %>
 			</select>
+		<% else %>
+			<input type="hidden" id="group" name="group" value="<%= @group %>" />
 		<% end %>
-		<label><%= form_text('form_created_date') %></label><span class="form_informational"><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
-		<label><%= form_text('form_modified_date') %></label><span class="form_informational"><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
-		<label><%= form_text('form_change_category') %></label><span class="form_informational"><%= @pid.change_category %></span>
-		<label><%= form_text('form_active') %></label><input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %>" />
-		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= form_text('button_update_pid') %>" />
+		
+		<label><%= HTML_CONFIG['form_created_date'] %></label>
+		<span class="form_informational"><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
+		<label><%= HTML_CONFIG['form_modified_date'] %></label>
+		<span class="form_informational"><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
+		<label><%= HTML_CONFIG['form_modified_by'] %></label><span class="form_informational"><%= @pid.username %></span>
+		<label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= @pid.change_category %></span>
+		<label for="active"><%= HTML_CONFIG['form_active'] %></label>
+		<input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %>" />
+		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_update_pid'] %>" />
 	</form>
+</section>
+
+<section class="errors">
+	<%= "#{@msg}<br /><br />" %>
 	
-  <ul>
-    <li>
-      <table>
-        <tr><td class="bold">PID:</td><td>
-          <%= link_to(to("/PID/#{@pid.id}")) %>
-          <button onclick="alert('This will copy the PID url to the user\'s clipboard');" style="margin-left: 20px;">Copy</button>
-        </td></tr>
-        <tr><td class="bold">URL:</td><td><%= link_to(@pid.url) %></td></tr>
-        <tr><td class="bold">Maintainers:</td><td></td></tr>
-        <tr><td class="bold">Creation Date:</td><td><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
-        <tr><td class="bold">Last Modified:</td><td><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
-        <tr><td class="bold">Change Category:</td><td><%= @pid.change_category %></td></tr>
-        <tr><td class="bold">Active:</td><td><%= (@pid.deactivated) ? "No" : "Yes" %></td></tr>
-        <tr><td colspan="2">&nbsp;</td></tr>
-        <tr><td></td><td>
-          <form id="edit_pid_form" action="/link/edit/<%= @pid.id %>" method="get">
-            <button id="edit_pid">Edit</button>
-            <input type="hidden" id="pid" value="<%= @pid.id %>" />
-          </form>
-        </td></tr>
-      </table>
-    </li>
-  </ul>
-  
-  <hr />
+  <% if @pid.errors %>
+    <% @pid.errors.full_messages.each do | message | %>
+      <%= message %></br>
+    <% end %>
+  <% end %>
 </section>
 
 <section id="pid_history">
-  <h3>History</h3>
+  <h3><%= HTML_CONFIG['header_pid_history'] %></h3>
   
-  <ul>
-    <% @pid.pid_versions.sort{ |x,y| y.created_at <=> x.created_at }.each do | version | %>
+  <% @pid.pid_versions.sort{ |x,y| y.created_at <=> x.created_at }.each do | version | %>
       
-      <% unless @pid.url == version.url && @pid.modified_at == version.created_at %>
-        <li class="pid_version">
-          <table>
-            <tr><td class="bold">Old URL:</td><td><%= version.url %></td></tr>
-            <tr><td class="bold">Created by:</td><td><%= version.username %></td></tr>
-            <tr><td class="bold">Created on:</td><td><%= version.created_at.strftime("%a %b %e %k:%M:%S %Y") %></td></tr>
-            <tr><td class="bold">Change category:</td><td><%= version.change_category %></td></tr>
-            <tr><td class="bold">Active:</td><td><%= (version.deactivated) ? "No" : "Yes" %></td></tr>
-          </table>
-        </li>
-      <% end %>
-      
+    <% unless @pid.url == version.url && @pid.modified_at == version.created_at %>
+			<form>
+				<label><%= HTML_CONFIG['form_old_url'] %></label><span class="form_informational"><%= version.url %></span>
+        <label><%= HTML_CONFIG['form_created_by'] %></label><span class="form_informational"><%= version.username %></span>
+        <label><%= HTML_CONFIG['form_created_date'] %></label>
+				<span class="form_informational"><%= version.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
+        <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= version.change_category %></span>
+        <label><%= HTML_CONFIG['form_active'] %></label><span class="form_informational"><%= (version.deactivated) ? "No" : "Yes" %></span>
+			</form>
+			
+			<hr />
     <% end %>
-  </ul>
-  
+    
+  <% end %>
 </section>
 
 <script type="text/javascript">
-  
-  //To-Do: The modal does not scroll in the browser if its longer than the parent page!
-  
-  $(document).ready(function() {
-    $("#edit_pid").click( function(event){
-      
-      var pid = $("#pid").val();
-      
-      // if the content_[pid] element exists then the edit is in a modal dialog so perform
-      // an ajax request back to the server to load the edit form
-      if($("#content_" + pid).length !== 0){
-        event.preventDefault();
-        $.ajax({
-          url:      '/link/edit/' + pid + '?ajax=1',
-          type:     'get',
-          success:  function(data) {
-            $("#content_" + pid).html(data);
-          },
-          error: function(data) {
-            $("#content_" + pid).html(data);
-          },
-          complete: {}
-        });
-      
-      }else{
-        // We're not in a modal dialog situation so just go to the edit form
-        $("#edit_pid_form").submit();
-      }
-    });
-  });
+	$("#submit").click( function(event){
+  	event.preventDefault();
+	
+		var validation = validate(["url", "group"], [], ["url"], [ [] ]);
+	
+		// If there were no validation errors submit the changes to the application
+		if( validation == '' ){
+	
+  		$.ajax({
+    		url:      '/link/<%= @pid.id %>',
+    		type:     'put',
+				data: 		$("#pid_update").serialize(), 
+    		success:  function(data) {
+					$("body").html(data);
+					$(".errors").css('color', '#298A08');
+				},
+    		error: function(data) {
+					$("body").html(data);
+    		},
+    		complete: {}
+  		});
+		
+		// Otherwise display the errors to the user.
+		}else{
+			$(".errors").html(validation);
+		}
+	});
 </script>

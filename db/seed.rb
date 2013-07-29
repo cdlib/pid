@@ -1,6 +1,6 @@
 seed_config = YAML.load_file('db/seed.yml')
 
-puts 'Seeding the database'
+$stdout.puts 'Seeding the database'
 
 debug = seed_config['debug_on']
 
@@ -61,8 +61,8 @@ def spawn_object(obj, csv_row)
 end
 
 
-puts ''
-puts '.... sowing groups'
+$stdout.puts ''
+$stdout.puts '.... sowing groups'
 # ---------------------------------------------------------------
 # Process the group records
 # ---------------------------------------------------------------
@@ -76,27 +76,27 @@ CSV.foreach(groups_file, :headers => true) do |row|
       
       i = i.next
     rescue Exception => e
-      puts "........ unable to create group: #{group.id} - #{group.name}"
-      puts "............ #{e.message}"
+      $stdout.puts "........ unable to create group: #{group.id} - #{group.name}"
+      $stdout.puts "............ #{e.message}"
     end
   else
-    puts "........ unable to load user: #{group.id} - #{group.name}"
-    group.errors.collect{ |e| puts "............ #{e.join(',')}" }.join(',')
-    puts "............ #{group.inspect}" if debug
+    $stdout.puts "........ unable to load user: #{group.id} - #{group.name}"
+    group.errors.collect{ |e| $stdout.puts "............ #{e.join(',')}" }.join(',')
+    $stdout.puts "............ #{group.inspect}" if debug
   end
 
   j = j.next
   
 end
-puts ".... #{i} out of #{j} groups added to the database."
-puts '........ see errors above for information about the groups that could not be added.' if i != j
+$stdout.puts ".... #{i} out of #{j} groups added to the database."
+$stdout.puts '........ see errors above for information about the groups that could not be added.' if i != j
 
 #DEBUG - view loaded group records
-Group.all.each { |group| puts "added - #{group.id} - #{group.description}" } if debug
+Group.all.each { |group| $stdout.puts "added - #{group.id} - #{group.description}" } if debug
 
 
-puts ''
-puts '.... sowing users'
+$stdout.puts ''
+$stdout.puts '.... sowing users'
 # ---------------------------------------------------------------
 # Process the user records
 # ---------------------------------------------------------------
@@ -110,27 +110,27 @@ CSV.foreach(users_file, :headers => true) do |row|
       
       i = i.next
     rescue Exception => e
-      puts "........ unable to create user: #{user.id} - #{user.name}"
-      puts "............ #{e.message}"
+      $stdout.puts "........ unable to create user: #{user.id} - #{user.name}"
+      $stdout.puts "............ #{e.message}"
     end
   else
-    puts "........ unable to load user: #{user.id} - #{user.name}"
-    user.errors.collect{ |e| puts "............ #{e.join(',')}" }.join(',')
-    puts "............ #{user.inspect}" if debug
+    $stdout.puts "........ unable to load user: #{user.id} - #{user.name}"
+    user.errors.collect{ |e| $stdout.puts "............ #{e.join(',')}" }.join(',')
+    $stdout.puts "............ #{user.inspect}" if debug
   end
   
   j = j.next
 end
-puts ".... #{i} out of #{j} users added to the database."
-puts '........ see errors above for information about the users that could not be added.' if i != j
+$stdout.puts ".... #{i} out of #{j} users added to the database."
+$stdout.puts '........ see errors above for information about the users that could not be added.' if i != j
 
 
 #DEBUG - view loaded user records
-User.all.each { |user| puts "........ added - #{user.id} - #{user.name}" } if debug
+User.all.each { |user| $stdout.puts "........ added - #{user.id} - #{user.name}" } if debug
 
 
-puts ''
-puts '.... connecting maintainers to their groups'
+$stdout.puts ''
+$stdout.puts '.... connecting maintainers to their groups'
 # ---------------------------------------------------------------
 # Process the maintainer records
 # ---------------------------------------------------------------
@@ -144,25 +144,25 @@ CSV.foreach(maintainers_file, :headers => true) do |row|
       
       i = i.next
     rescue Exception => e
-      puts "........ unable to create maintainer relation between: #{maintainer.group} - #{maintainer.user}"
-      puts "............ #{e.message}"
+      $stdout.puts "........ unable to create maintainer relation between: #{maintainer.group} - #{maintainer.user}"
+      $stdout.puts "............ #{e.message}"
     end
   else
-    puts "........ unable to load group, user: #{row}"
-    maintainer.errors.collect{ |e| puts "............ #{e.join(',')}" }.join(',')
-    puts "............ #{maintainer.inspect}" if debug
+    $stdout.puts "........ unable to load group, user: #{row}"
+    maintainer.errors.collect{ |e| $stdout.puts "............ #{e.join(',')}" }.join(',')
+    $stdout.puts "............ #{maintainer.inspect}" if debug
   end
   
   j = j.next
 end
-puts ".... #{i} out of #{j} maintainers added to the database."
-puts '........ see errors above for information about the maintainers that could not be added.' if i != j
+$stdout.puts ".... #{i} out of #{j} maintainers added to the database."
+$stdout.puts '........ see errors above for information about the maintainers that could not be added.' if i != j
 
-Maintainer.all.each { |maintainer| puts "........ made #{maintainer.user.login} a maintainer of #{maintainer.group.id}" } if debug
+Maintainer.all.each { |maintainer| $stdout.puts "........ made #{maintainer.user.login} a maintainer of #{maintainer.group.id}" } if debug
 
 
-puts ''
-puts '.... sowing PIDs'
+$stdout.puts ''
+$stdout.puts '.... sowing PIDs'
 # ---------------------------------------------------------------
 # Process the pid version records
 # ---------------------------------------------------------------
@@ -208,6 +208,9 @@ begin
       params[:group] = user.group
     end
     
+    #Swap out null urls with the dead pid default page
+    params[:url] = "#{hostname()}link/dead" unless params[:url]
+    
     # See if the PID exists
     if Pid.get(incoming.id).nil?  
       # If we're minting the PID we need to make sure it has a URL
@@ -221,14 +224,14 @@ begin
         
           i = i.next
         rescue Exception => e
-          puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
-          puts "............ #{e.message}"
-          puts "............ #{incoming.inspect}" if debug
+          $stdout.puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
+          $stdout.puts "............ #{e.message}"
+          $stdout.puts "............ #{incoming.inspect}" if debug
         end
   
       else
-        puts "........ No URL specified for #{incoming.id} - #{incoming.modified_at}"
-        puts "............ #{incoming.inspect}" if debug
+        $stdout.puts "........ No URL specified for #{incoming.id} - #{incoming.modified_at}"
+        $stdout.puts "............ #{incoming.inspect}" if debug
       end
         
     else
@@ -237,9 +240,9 @@ begin
       
         j = j.next
       rescue Exception => e
-        puts "........ unable to update pid: #{incoming.id} - #{incoming.modified_at}"
-        puts "............ #{e.message}"
-        puts "............ #{incoming.inspect}" if debug
+        $stdout.puts "........ unable to update pid: #{incoming.id} - #{incoming.modified_at}"
+        $stdout.puts "............ #{e.message}"
+        $stdout.puts "............ #{incoming.inspect}" if debug
       end
     end
 
@@ -247,26 +250,26 @@ begin
     k = k.next
   end
 rescue Exception => e
-  puts ".... Fatal error on CSV line after item #{last_pid}"
-  puts "........ #{e.message}"
+  $stdout.puts ".... Fatal error on CSV line after item #{last_pid}"
+  $stdout.puts "........ #{e.message}"
 end
-puts ".... #{i} new PIDs added and #{j} historical PID records (out of #{k} total records) added to the database."
-puts '........ see errors above for information about the users that could not be added.' if (i + j) != k
+$stdout.puts ".... #{i} new PIDs added and #{j} historical PID records (out of #{k} total records) added to the database."
+$stdout.puts '........ see errors above for information about the users that could not be added.' if (i + j) != k
 
 #DEBUG - view loaded change categories
-ChangeCategory.all.each { |cat| puts "added - change category: #{cat.id}" } if debug
+ChangeCategory.all.each { |cat| $stdout.puts "added - change category: #{cat.id}" } if debug
 
 #DEBUG - view loaded user records
 if debug
   Pid.all.each do |pid|
-    puts "added - #{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username} - #{pid.change_category.inspect}"
+    $stdout.puts "added - #{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username} - #{pid.change_category.inspect}"
     pid.pid_versions.each do |ver|
-      puts "      history - #{ver.url} : #{ver.created_at} - #{ver.username} - #{ver.change_category.inspect}"
+      $stdout.puts "      history - #{ver.url} : #{ver.created_at} - #{ver.username} - #{ver.change_category.inspect}"
     end
   end
 end
 
-puts 'Finished seeding the database'
-puts ''
+$stdout.puts 'Finished seeding the database'
+$stdout.puts ''
 
 

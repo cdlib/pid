@@ -191,7 +191,7 @@ class PidManageApp < Test::Unit::TestCase
     original = Pid.mint(:url => 'http://testing.cdlib.org/edit', :username => @user.login, :change_category => 'User_Entered', :group => @group)
     assert_equal 'http://testing.cdlib.org/edit', original.url, 'Unable to mint PID!'
 
-    put "/link", {:pid => original.id, :url => "http://testing.cdlib.org/news", :active => "on", :maintainers => nil}
+    put "/link/#{original.id}", {:url => "http://testing.cdlib.org/news", :active => "on", :group => @group.id}
     assert last_response.ok?, "Unable to update the PID, status: #{last_response.status}"
     
     #reload the pid to make sure the save worked
@@ -200,20 +200,27 @@ class PidManageApp < Test::Unit::TestCase
     assert_not_equal original.url, changed.url, 'The PIDs url matches the original url!'
   end
   
+  def test_deactivate_pid
+    original = Pid.mint(:url => 'http://testing.cdlib.org/active/pid', :username => @user.login, :change_category => 'User_Entered', :group => @group)
+    assert_equal 'http://testing.cdlib.org/active/pid', original.url, 'Unable to mint PID!'
+    
+    put "/link/#{original.id}", {:url => "Google Search", :active => "", :group => @group.id}
+    assert last_response.ok?, "Was unable to deactivate the PID! status: #{last_response.status}"
+  end
+  
   def test_put_pid_failure
     original = Pid.mint(:url => 'http://testing.cdlib.org/edit/bad', :username => @user.login, :change_category => 'User_Entered', :group => @group)
     assert_equal 'http://testing.cdlib.org/edit/bad', original.url, 'Unable to mint PID!'
     
     # Bad url
-    put "/link", {:pid => original.id, :url => "Google Search", :active => "on"}
-    assert_equal 500, last_response.status, "Was able to save the PID! status: #{last_response.status}"
+    put "/link/#{original.id}", {:url => "Google Search", :active => "on", :group => @group.id}
     
     changed = Pid.first(:id == original.id)
     assert_equal  "http://testing.cdlib.org/edit/bad", changed.url, 'The PIDs url does not match the original url!'
   end
   
   def test_put_pid_not_found
-    put "/link", {:pid => 9999999, :url => "http://testing.cdlib.org/edit/404", :active => "on"}
+    put "/link/999999", {:url => "http://testing.cdlib.org/edit/404", :active => "on", :group => @group.id}
     assert last_response.not_found?, 'We were able to find a non-existent PID!'
   end
   

@@ -1,5 +1,5 @@
 var REGEX_EMAIL = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-var REGEX_URL = /^[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?$/;
+var REGEX_URL = /^[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/;
 
 /* ------------------------------------------------------------------------------------------------------------------------
  * Generic form input field validation
@@ -32,7 +32,7 @@ function validate(required_flds, email_flds, url_flds, must_match_flds){
 		$.each(url_flds, function(idx, val) {
 			if( $("#" + val).val().trim() != '' ){
 				if( !REGEX_URL.test( $("#" + val).val().trim() ) ) {
-					ret += $("label[for='" + val + "']").html().replace(':', '') + " is not a valid URL (make sure you include the http:// or https://)!<br />";
+					ret += $("label[for='" + val + "']").html().replace(':', '') + " is not valid (make sure you include the http:// or https://)!<br />";
 				}
 			}
 		});

@@ -1,5 +1,5 @@
 # Session expiration in seconds
-session_expires: 60 #900
+session_expires: 900
 
 # The number of failed login attempts before the user's account is locked
 max_login_attempts: 5
@@ -35,7 +35,5 @@ password_reset_email_body:
 	For your security, this reset request will expire in #{timeframe} minutes.'
 
 # The pages that the user should be sent to after the specified action completes successfully. E.g. go to the /link/index page after login
-target_after_login: '/link/index'
-target_after_logout: '/link/login'
-target_after_password_reset: '/link/login'
-target_after_forgotten_password: '/link/forgot'
+target_after_login: '/link'
+target_after_logout: '/user/login'
