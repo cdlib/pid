@@ -73,7 +73,6 @@ class PidApp < Sinatra::Application
     end
   end
   
-  
   helpers do
     include Rack::Utils
     alias_method :h, :escape_html

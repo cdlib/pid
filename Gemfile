@@ -13,4 +13,6 @@ gem 'thin'
 group :test do
   gem 'rack-test', :require => 'rack/test'
   gem 'fakeredis'
+  gem 'capybara'
+  gem 'poltergeist'
 end

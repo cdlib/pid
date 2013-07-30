@@ -50,26 +50,31 @@ class PidApp < Sinatra::Application
 # Display the reset password page
 # ---------------------------------------------------------------
   get '/user/reset' do
-    user = User.get(params[:n])
+    
+    if !current_user
+      user = User.get(params[:n])
       
-    if user && params[:c]
-      @hide_nav = true
+      if user && params[:c]
+        @hide_nav = true
       
-      # If the reset code matches the one stored on the User record and the timeout hasn't expired
-      if user.reset_code == params[:c] && SECURITY_CONFIG['reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
-        @n = params[:n]
-        @c = params[:c]
-        erb :reset_user  
+        # If the reset code matches the one stored on the User record and the timeout hasn't expired
+        if user.reset_code == params[:c] && SECURITY_CONFIG['reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
+          @n = params[:n]
+          @c = params[:c]
+          erb :reset_user  
         
-      # Otherwise redirect to the forgot page so they can try again
-      else
-        msg = MESSAGE_CONFIG['user_password_reset_expired'].gsub('#{?}', SECURITY_CONFIG['reset_timeout'].to_s)
+        # Otherwise redirect to the forgot page so they can try again
+        else
+          msg = MESSAGE_CONFIG['user_password_reset_expired'].gsub('#{?}', SECURITY_CONFIG['reset_timeout'].to_s)
 
-        redirect '/user/forgot', {:msg => msg}
-      end
+          redirect '/user/forgot', {:msg => msg}
+        end
       
+      else
+        redirect '/user/forgot'
+      end
     else
-      redirect '/user/forgot'
+      redirect SECURITY_CONFIG['target_after_login']
     end
   end
   
@@ -79,7 +84,7 @@ class PidApp < Sinatra::Application
   post '/user/reset' do
     user = User.get(params[:n])
     
-    if user && params[:c]
+    if user && params[:c] && !current_user
       @hide_nav = true
       
       # If the reset code matches the one stored on the User record and the timeout hasn't expired
@@ -116,10 +121,14 @@ class PidApp < Sinatra::Application
 # Display the forgot my user id / password page
 # ---------------------------------------------------------------  
   get '/user/forgot' do
-    @hide_nav = true
-    @msg = params[:msg]
     
-    erb :forgot_user
+    if !current_user
+      @msg = params[:msg]
+    
+      erb :forgot_user
+    else
+      redirect SECURITY_CONFIG['target_after_login']
+    end
   end
   
 # ---------------------------------------------------------------
@@ -127,7 +136,7 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
   post '/user/forgot' do
     # If the user clicked the reset button reset the password and send the email
-    if !params['reset'].nil?
+    if !params['reset'].nil? && !current_user
       
       if !params['login'].empty?
         user = User.first(:login => params['login'])
@@ -338,6 +347,14 @@ class PidApp < Sinatra::Application
     @maintainer = !maintainer.nil?
 
     erb :show_user
+  end
+  
+  
+# --------------------------------------------------------------------------------------------------------------
+# AJAX helper methods
+# --------------------------------------------------------------------------------------------------------------
+  get '/user/login_exists/:id' do
+    status = User.first(:login => params[:id]).nil? ? 404 : 200
   end
   
   

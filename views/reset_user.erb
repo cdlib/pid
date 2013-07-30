@@ -13,3 +13,16 @@
 <section class="errors">
 	<%= @msg %>
 </section>
+
+<script type="text/javascript">
+	$("#submit").click( function(event){
+		ret = validate(['password', 'confirm'], [], [], [['password', 'confirm']]);
+		
+		if(ret != ''){
+			event.preventDefault();
+			$(".errors").html(ret);
+		}else{
+			$(".errors").html('');
+		}
+	});
+</script>
