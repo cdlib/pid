@@ -103,7 +103,7 @@ index_text:
   The <a href='http://www.cdlib.org/services/collections/scp/'>Shared Cataloging Program (SCP)</a> creates and 
   maintains PIDs for CDL-licensed content, open access resources, California state government documents, and 
   other URLs.<br /><br />This service uses a modified version of OCLC's PURL software. For more information on 
-	PURLs and the PURL software, see PURL <a href='http://purl.oclc.org/docs/index.html'>Frequently Asked Questions</a>."
+  PURLs and the PURL software, see PURL <a href='http://purl.oclc.org/docs/index.html'>Frequently Asked Questions</a>."
 
 not_found_text: 'The page you requested could not be found.'
 

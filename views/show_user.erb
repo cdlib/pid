@@ -1,54 +1,57 @@
 <section id="user_update">
-	<h3><%= HTML_CONFIG['header_user_view'] %></h3>
-	
-	<% if @groups %>
-		<a href="/user/list" class="letterpress right"><%= HTML_CONFIG['link_to_user_list'] %></a>
-	<% end %>
-		
-	<form>
-		<label for="group"><%= HTML_CONFIG['form_group'] %></label>
-		<% if @groups %>
-			
-			<% if @groups.size > 1 %>
-				<select name="group" id="group">
-					<% @groups.each do |group| %>
-						<option value="<%= group.id %>" <%= 'selected="true"' if @user.group.id == group.id %>><%= group.name %></option>
-					<% end %>
-				</select>
-			<% else %>
-				<input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
-			<% end %>
-			
-			<label for="maintainer"><%= HTML_CONFIG['form_group_maintainer'] %></label>
-			<input type="checkbox" name="maintainer" id="maintainer" <% if @maintainer %>checked="checked"<% end %> />
-			<label for="active"><%= HTML_CONFIG['form_active'] %></label>
-			<input type="checkbox" name="active" id="active" <% if @user.active %>checked="checked"<% end %> />
-			<label for="locked"><%= HTML_CONFIG['form_locked'] %></label>
-			<input type="checkbox" name="locked" id="locked" <% if @user.locked %>checked="checked"<% end %> />
-		
-		<% else %>
-			<input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
-			<input type="hidden" id="maintainer" name="maintainer" value="<%= (@maintainer) ? 'on' : 'off' %>" />
-			<input type="hidden" id="active" name="active" value="<%= (@user.active) ? 'on' : 'off' %>" />
-			<input type="hidden" id="locked" name="locked" value="<%= (@user.locked) ? 'on' : 'off' %>" />
-		<% end %>
-		
-		<label for="login"><%= HTML_CONFIG['form_userid'] %></label><input type="text" name="login" id="login" value="<%= @user.login %>" />
-		<label for="name"><%= HTML_CONFIG['form_name'] %></label><input type="text" name="name" id="name" value="<%= @user.name %>" />
-		<label for="email"><%= HTML_CONFIG['form_email'] %></label><input type="email" name="email" id="email" value="<%= @user.email %>" />
-		<label for="affiliation"><%= HTML_CONFIG['form_affiliation'] %></label>
-		<input type="text" name="affiliation" id="affiliation" value="<%= @user.affiliation %>" />
-		
-		<label for="password"><%= HTML_CONFIG['form_new_password'] %></label><input type="password" name="password" id="password" />
-		<label for="confirm"><%= HTML_CONFIG['form_confirm_password'] %></label><input type="password" name="confirm" id="confirm" />
-		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_save_user'] %>" />
-	</form>
-	
+  <h3><%= HTML_CONFIG['header_user_view'] %></h3>
+
+  <% if @groups %>
+    <a href="/user/list" class="letterpress right"><%= HTML_CONFIG['link_to_user_list'] %></a>
+  <% end %>
+
+  <form>
+    <label for="group"><%= HTML_CONFIG['form_group'] %></label>
+    <% if @groups %>
+
+      <% if @groups.size > 1 %>
+        <select name="group" id="group">
+          <% @groups.each do |group| %>
+            <option value="<%= group.id %>" <%= 'selected="true"' if @user.group.id == group.id %>><%= group.name %></option>
+          <% end %>
+        </select>
+      <% else %>
+        <input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
+      <% end %>
+
+      <label for="maintainer"><%= HTML_CONFIG['form_group_maintainer'] %></label>
+      <input type="checkbox" name="maintainer" id="maintainer" <% if @maintainer %>checked="checked"<% end %> />
+      <label for="active"><%= HTML_CONFIG['form_active'] %></label>
+      <input type="checkbox" name="active" id="active" <% if @user.active %>checked="checked"<% end %> />
+      <label for="locked"><%= HTML_CONFIG['form_locked'] %></label>
+      <input type="checkbox" name="locked" id="locked" <% if @user.locked %>checked="checked"<% end %> />
+
+    <% else %>
+      <input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
+      <input type="hidden" id="maintainer" name="maintainer" value="<%= (@maintainer) ? 'on' : 'off' %>" />
+      <input type="hidden" id="active" name="active" value="<%= (@user.active) ? 'on' : 'off' %>" />
+      <input type="hidden" id="locked" name="locked" value="<%= (@user.locked) ? 'on' : 'off' %>" />
+    <% end %>
+
+    <label for="login"><%= HTML_CONFIG['form_userid'] %></label>
+    <input type="text" name="login" id="login" value="<%= @user.login %>" /><div id="login_chk">&nbsp;</div>
+    <label for="name"><%= HTML_CONFIG['form_name'] %></label>
+    <input type="text" name="name" id="name" value="<%= @user.name %>" />
+    <label for="email"><%= HTML_CONFIG['form_email'] %></label>
+    <input type="email" name="email" id="email" value="<%= @user.email %>" />
+    <label for="affiliation"><%= HTML_CONFIG['form_affiliation'] %></label>
+    <input type="text" name="affiliation" id="affiliation" value="<%= @user.affiliation %>" />
+
+    <label for="password"><%= HTML_CONFIG['form_new_password'] %></label><input type="password" name="password" id="password" />
+    <label for="confirm"><%= HTML_CONFIG['form_confirm_password'] %></label><input type="password" name="confirm" id="confirm" />
+    <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_save_user'] %>" />
+  </form>
+
 </section>
 
 <section class="errors">
-	<%= "#{@msg}<br /><br />" %>
-	
+  <%= "#{@msg}<br /><br />" %>
+
   <% if @user.errors %>
     <% @user.errors.full_messages.each do | message | %>
       <%= message %></br>
@@ -59,32 +62,54 @@
 
 <script type="text/javascript">
   
-    $("#submit").click( function(event){
-      event.preventDefault();
-			
-			var validation = validate(["login", "name", "email", "group"], ["email"], [], [ ["password", "confirm"] ]);
-			
-			// If there were no validation errors submit the changes to the application
-			if( validation == '' ){
-			
-      	$.ajax({
-        	url:      '/user/<%= @user.id %>',
-        	type:     'put',
-					data: 		$("form").serialize(), 
-        	success:  function(data) {
-						$("body").html(data);
-						$(".errors").css('color', '#298A08');
-					},
-        	error: function(data) {
-						$("body").html(data);
-        	},
-        	complete: {}
-      	});
-				
-			// Otherwise display the errors to the user.
-			}else{
-				$(".errors").html(validation);
-			}
-    });
-		
+  $("#login").change( function(event){
+    var userid = $("#login").val();
+
+    $("#login_chk").removeClass();
+
+    // If the userid isn't the same as the original
+    if(userid != '<%= @user.login %>'){
+      $.ajax({
+        url:      '/user/login_exists/' + userid,
+        type:     'get',
+        success:  function(data) {
+          $("#login_chk").attr('title', '<%= MESSAGE_CONFIG["login_already_exists"] %>');
+          $("#login_chk").addClass("not_ok");
+        },
+        error: function(data) {
+          $("#login_chk").attr('title', '');
+          $("#login_chk").addClass("ok");
+        }
+      });
+    }
+  });
+
+  $("#submit").click( function(event){
+    event.preventDefault();
+
+    var validation = validate(["login", "name", "email", "group"], ["email"], [], [ ["password", "confirm"] ]);
+
+    // If there were no validation errors submit the changes to the application
+    if( validation == '' ){
+
+      $.ajax({
+        url:      '/user/<%= @user.id %>',
+        type:     'put',
+        data:     $("form").serialize(), 
+        success:  function(data) {
+          $("body").html(data);
+          $(".errors").css('color', '#298A08');
+        },
+        error: function(data) {
+          $("body").html(data);
+        },
+        complete: {}
+      });
+
+    // Otherwise display the errors to the user.
+    }else{
+      $(".errors").html(validation);
+    }
+  });
+
 </script>

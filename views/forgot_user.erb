@@ -1,49 +1,49 @@
 <section id="user_forgot">
-	<h3><%= HTML_CONFIG['header_forgotten_password'] %></h3>
-	
-	<form action="/user/forgot" method="post">
-		<label><%= HTML_CONFIG['form_userid'] %></label>
-		<input type="text" id="login" name="login" value="<%= @login %>" /><div id="login_chk">&nbsp;</div>
-		
-		<label>&nbsp;</label><input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_forgotten_password'] %>" />
-		<label>&nbsp;</label><a class="letterpress" href="/user/login"><%= HTML_CONFIG['link_to_login'] %></a>
-	</form>
+  <h3><%= HTML_CONFIG['header_forgotten_password'] %></h3>
+  
+  <form action="/user/forgot" method="post">
+    <label><%= HTML_CONFIG['form_userid'] %></label>
+    <input type="text" id="login" name="login" value="<%= @login %>" /><div id="login_chk">&nbsp;</div>
+
+    <label>&nbsp;</label><input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_forgotten_password'] %>" />
+    <label>&nbsp;</label><a class="letterpress" href="/user/login"><%= HTML_CONFIG['link_to_login'] %></a>
+  </form>
 </section>
 
 <section class="errors">
-	<%= @msg %>
+  <%= @msg %>
 </section>
 
 <script type="text/javascript">
 
-	$("#login").change( function(event){
-		var userid = $("#login").val();
-		
-		$("#login_chk").removeClass();
-		
-		$.ajax({
-  		url:      '/user/login_exists/' + userid,
-  		type:     'get',
-  		success:  function(data) {
-				$("#login_chk").attr('title', '');
-				$("#login_chk").addClass("ok");
-			},
-			error: function(data) {
-				$("#login_chk").attr('title', '<%= MESSAGE_CONFIG['invalid_login'] %>');
-				$("#login_chk").addClass("not_ok");
-			}
-		});
-	});
+  $("#login").change( function(event){
+    var userid = $("#login").val();
 
-	$("#reset").click( function(event){
-		ret = validate(['login'], [], [], []);
-		
-		if(ret != ''){
-			event.preventDefault();
-			$(".errors").html(ret);
-		}else{
-			$(".errors").html('');
-		}
-	});
+    $("#login_chk").removeClass();
+
+    $.ajax({
+      url:      '/user/login_exists/' + userid,
+      type:     'get',
+      success:  function(data) {
+        $("#login_chk").attr('title', '');
+        $("#login_chk").addClass("ok");
+      },
+      error: function(data) {
+        $("#login_chk").attr('title', '<%= MESSAGE_CONFIG['invalid_login'] %>');
+        $("#login_chk").addClass("not_ok");
+      }
+    });
+  });
+
+  $("#reset").click( function(event){
+    ret = validate(['login'], [], [], []);
+
+    if(ret != ''){
+      event.preventDefault();
+      $(".errors").html(ret);
+    }else{
+      $(".errors").html('');
+    }
+  });
 
 </script>

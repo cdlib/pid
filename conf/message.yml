@@ -15,6 +15,7 @@ no_email: 'The email address cannot be blank!'
 invalid_login: 'That user id is not in the system!'
 invalid_email: 'That email is not in the system!'
 password_mismatch: 'The passwords you entered did not match!'
+login_already_exists: 'That user id is already in use!'
 
 # User controller messages
 user_password_reset_success: 'An email has been sent to your account. Please follow the instructions in the email to continue the password reset process.'

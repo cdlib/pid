@@ -6,10 +6,10 @@ body {
 }
 
 h1, h2, h3, h4 { 
-	color: 							#005695; 
-	margin: 						45px 0 15px -15px;
-	
-	text-shadow: 3px 5px 10px #A4A4A4;
+  color:               #005695; 
+  margin:             45px 0 15px -15px;
+  
+  text-shadow: 3px 5px 10px #A4A4A4;
 }
 
 a { 
@@ -18,24 +18,24 @@ a {
 }
 
 a.letterpress {
-	color:							#504f4f;
-	text-shadow: 				0px 2px 1px #bbbaba;
+  color:              #504f4f;
+  text-shadow:         0px 2px 1px #bbbaba;
 }
 a.letterpress:hover {
-	color: 							#666;
-	text-shadow: 				0px 2px 1px #333;
+  color:               #666;
+  text-shadow:         0px 2px 1px #333;
 }
 
 hr {
-	clear:							both;
-	color:							#005695;
+  clear:              both;
+  color:              #005695;
 }
 
-.right { float:				right; }
-.left { float:				left; }
+.right { float:        right; }
+.left { float:        left; }
 .center { text-align: center; }
-.inline { display:		inline; }
-.red { color:					#B40404; }
+.inline { display:    inline; }
+.red { color:          #B40404; }
 .navy { color:        #005695; }
 .grey { color:        #d9d9d9; }
 
@@ -45,34 +45,34 @@ hr {
   font-weight:        bold;
 }
 
-.ok { background: 		url('../ok_15.png') no-repeat center; }
+.ok { background:     url('../ok_15.png') no-repeat center; }
 .not_ok { background: url('../notok_15.png') no-repeat center; }
 
 #main {
-	position:						relative;
-	margin:							35px 0 0 55px;
-	
-	display:						inline-block;
-	
-	padding:						15px 15px 25px 15px;
-	
-	/* TODO - make this responsive! */
-	width:							950px;
-	
-	-webkit-border-radius: 12px;
-	-moz-border-radius: 12px;
-	border-radius:      12px;
-	
+  position:            relative;
+  margin:              35px 0 0 55px;
+  
+  display:            inline-block;
+  
+  padding:            15px 15px 25px 15px;
+  
+  /* TODO - make this responsive! */
+  width:              950px;
+  
+  -webkit-border-radius: 12px;
+  -moz-border-radius: 12px;
+  border-radius:      12px;
+  
   background:         #fff;
-  background: 				-moz-linear-gradient(#fff, #E6E6E6);
-  background: 				-webkit-linear-gradient(#fff, #E6E6E6);
-  background: 				-o-linear-gradient(#fff, #E6E6E6);
+  background:         -moz-linear-gradient(#fff, #E6E6E6);
+  background:         -webkit-linear-gradient(#fff, #E6E6E6);
+  background:         -o-linear-gradient(#fff, #E6E6E6);
 
-	-moz-box-shadow:    1px 1px 3px #000;
-	-webkit-box-shadow: 1px 1px 3px #000;
-	box-shadow:         1px 1px 3px #000;
+  -moz-box-shadow:    1px 1px 3px #000;
+  -webkit-box-shadow: 1px 1px 3px #000;
+  box-shadow:         1px 1px 3px #000;
 }
-	
+  
 header {
   font-size:          14pt;
   
@@ -80,18 +80,18 @@ header {
 }
 
 section, article {
-	position:						relative;
-	clear:							both;
-	margin:             5px 30px 10px 30px;
+  position:            relative;
+  clear:              both;
+  margin:             5px 30px 10px 30px;
 }
 
 .errors { 
-	color:      				#B40404; 
-	font-weight: 				bold; 
-	
-	text-align:					center;
+  color:              #B40404; 
+  font-weight:         bold; 
+  
+  text-align:          center;
 
-	width:							70%;
+  width:              70%;
 }
 
 nav {
@@ -113,83 +113,89 @@ nav ul li{
 }
 
 form {
-	clear:							both;
-	margin-top:					15px;
+  clear:              both;
+  margin-top:          15px;
+}
+form div {
+  position:            relative;
+  float:               left; 
+  margin-left:         15px;
+  width:               15px;
 }
 form input, form select, form a, form textarea, form span.form_informational { 
-	position:						relative;
-	float: 							left; 
-	
-	margin-bottom:			10px;
-	width:							200px;
+  position:            relative;
+  float:               left; 
+  
+  margin-bottom:      10px;
+  width:              200px;
 }
 form label { 
-	position:						relative;
-	float:							left;
-	clear:							left;
-	
-	width:							20%;
+  position:            relative;
+  float:              left;
+  clear:              left;
+  
+  width:              20%;
 }
 form a {
-	text-align:					right;
-	
-	margin-top:					15px;
+  text-align:          right;
+  
+  margin-top:          15px;
 }
 form input[type=submit] {
-	font-size: 14px;
-	color: #ffffff;
-	padding: 8px 20px;
-	background: -moz-linear-gradient(
-		top,
-		#0b3761 0%,
-		#0b3761);
-	background: -webkit-gradient(
-		linear, left top, left bottom, 
-		from(#0b3761),
-		to(#0b3761));
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
-	border-radius: 10px;
-	border: 1px solid #000000;
-	-moz-box-shadow:
-		0px 1px 3px rgba(000,000,000,0.5),
-		inset 0px 0px 5px rgba(255,255,255,0.6);
-	-webkit-box-shadow:
-		0px 1px 3px rgba(000,000,000,0.5),
-		inset 0px 0px 5px rgba(255,255,255,0.6);
-	box-shadow:
-		0px 1px 3px rgba(000,000,000,0.5),
-		inset 0px 0px 5px rgba(255,255,255,0.6);
-	text-shadow:
-		0px -1px 3px rgba(121,155,224,0.8),
-		0px 1px 0px rgba(175,193,230,0.3);	
+  font-size: 14px;
+  color: #ffffff;
+  padding: 8px 20px;
+  background: -moz-linear-gradient(
+    top,
+    #0b3761 0%,
+    #0b3761);
+  background: -webkit-gradient(
+    linear, left top, left bottom, 
+    from(#0b3761),
+    to(#0b3761));
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  border: 1px solid #000000;
+  -moz-box-shadow:
+    0px 1px 3px rgba(000,000,000,0.5),
+    inset 0px 0px 5px rgba(255,255,255,0.6);
+  -webkit-box-shadow:
+    0px 1px 3px rgba(000,000,000,0.5),
+    inset 0px 0px 5px rgba(255,255,255,0.6);
+  box-shadow:
+    0px 1px 3px rgba(000,000,000,0.5),
+    inset 0px 0px 5px rgba(255,255,255,0.6);
+  text-shadow:
+    0px -1px 3px rgba(121,155,224,0.8),
+    0px 1px 0px rgba(175,193,230,0.3);  
 }
 
 ul {
-	color:							#005695;
+  color:              #005695;
 }
 
 table { 
-	clear:							both;
-	border-spacing: 		0;
-	width:							auto;
-	
-	padding-top:				20px;
-	
-	font-size:					11pt;
+  clear:              both;
+  border-spacing:     0;
+  width:              auto;
+  
+  padding-top:        20px;
+  
+  font-size:          11pt;
 }
 table th {
-	padding:						3px 5px 6px 5px;
+  padding:            3px 5px 6px 5px;
 
-	color:							#fff;
-	font-weight:				normal;
-	
-	background:					#005695;
-	background: 				-moz-linear-gradient(top, #0b3761 0%, #0b3761);
-	background: 				-webkit-gradient(linear, left top, left bottom, from(#0b3761), to(#0b3761));
+  color:              #fff;
+  font-weight:        normal;
+  
+  background:          #005695;
+  background:         -moz-linear-gradient(top, #0b3761 0%, #0b3761);
+  background:         -webkit-gradient(linear, left top, left bottom, from(#0b3761), to(#0b3761));
 }
 table td {
-	padding:						3px 5px 6px 5px;
-	
-	border-bottom:			1pt solid #D8D8D8;
+  padding:            3px 5px 6px 5px;
+  
+  border-bottom:      1pt solid #D8D8D8;
 }

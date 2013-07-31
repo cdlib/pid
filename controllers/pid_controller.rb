@@ -59,7 +59,6 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   ['/link/index', '/link', '/link/'].each do |path|
     get path do
-      @msg = session.inspect
       erb :index
     end
   end

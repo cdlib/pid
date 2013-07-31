@@ -1,30 +1,30 @@
 <section id="user_list">
-	<h3><%= HTML_CONFIG['header_user_list'] %></h3>
-	
-	<a href="/user/register" class="letterpress right"><%= HTML_CONFIG['link_to_register_user'] %></a>
-	
-	<table>
-		<tr>
-			<th><%= HTML_CONFIG['th_userid'] %></th><th><%= HTML_CONFIG['th_name'] %></th><th><%= HTML_CONFIG['th_email'] %></th>
-			<% if @super %>
-				<th><%= HTML_CONFIG['th_group'] %></th><th><%= HTML_CONFIG['th_maintainer'] %></th>
-			<% end %>
-			<th><%= HTML_CONFIG['th_active'] %></th><th><%= HTML_CONFIG['th_locked'] %></th>
-			<th><%= HTML_CONFIG['th_affiliation'] %></th>
-		</tr>
-		<% @users.each do |user| %>
-			<tr>
-				<td><a href="/user/<%= user.id %>" class="letterpress"><%= user.login %></a></td>
-				<td><%= user.name %></td>
-				<td><a href="mailto:<%= user.email %>" class="underline"><%= user.email %></a></td>
-				<% if @super %>
-					<td><%= user.group.name %></td>
-					<td><%= (Maintainer.first(:group => user.group, :user => user).nil?) ? '' : HTML_CONFIG['td_true'] %></td>
-				<% end %>
-				<td><%= (user.active) ? HTML_CONFIG['td_true'] : '<span class="red">' + HTML_CONFIG['td_false'] + '</span>' %></td>
-				<td><%= (user.locked) ? '<span class="red bold">' + HTML_CONFIG['td_true'] + '</span>' : HTML_CONFIG['td_false'] %></td>
-				<td><%= user.affiliation %></td>
-			</tr>
-		<% end %>
-	</table>
+  <h3><%= HTML_CONFIG['header_user_list'] %></h3>
+  
+  <a href="/user/register" class="letterpress right"><%= HTML_CONFIG['link_to_register_user'] %></a>
+  
+  <table>
+    <tr>
+      <th><%= HTML_CONFIG['th_userid'] %></th><th><%= HTML_CONFIG['th_name'] %></th><th><%= HTML_CONFIG['th_email'] %></th>
+      <% if @super %>
+        <th><%= HTML_CONFIG['th_group'] %></th><th><%= HTML_CONFIG['th_maintainer'] %></th>
+      <% end %>
+      <th><%= HTML_CONFIG['th_active'] %></th><th><%= HTML_CONFIG['th_locked'] %></th>
+      <th><%= HTML_CONFIG['th_affiliation'] %></th>
+    </tr>
+    <% @users.each do |user| %>
+      <tr>
+        <td><a href="/user/<%= user.id %>" class="letterpress"><%= user.login %></a></td>
+        <td><%= user.name %></td>
+        <td><a href="mailto:<%= user.email %>" class="underline"><%= user.email %></a></td>
+        <% if @super %>
+          <td><%= user.group.name %></td>
+          <td><%= (Maintainer.first(:group => user.group, :user => user).nil?) ? '' : HTML_CONFIG['td_true'] %></td>
+        <% end %>
+        <td><%= (user.active) ? HTML_CONFIG['td_true'] : '<span class="red">' + HTML_CONFIG['td_false'] + '</span>' %></td>
+        <td><%= (user.locked) ? '<span class="red bold">' + HTML_CONFIG['td_true'] + '</span>' : HTML_CONFIG['td_false'] %></td>
+        <td><%= user.affiliation %></td>
+      </tr>
+    <% end %>
+  </table>
 </section>
