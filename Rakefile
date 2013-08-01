@@ -13,7 +13,7 @@ Rake::TestTask.new(:test_client) do |t|
 end
 
 # Run all tests (e.g. app, client)
-task :test_all do [:test_app, :test_client].each { |t| Rake::Task[t].execute }; end
-task :default => :test_app
+task :test do [:test_app, :test_client].each { |t| Rake::Task[t].execute }; end
+task :default => :test
 
 Dir.glob('lib/tasks/*.rake').each { |r| import r }
