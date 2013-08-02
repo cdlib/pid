@@ -3,30 +3,30 @@ require_relative '../test_helper'
 class UserClientTestApp < Test::Unit::TestCase
   include Rack::Test::Methods
   include Capybara::DSL
-
+  
+  Capybara.app = PidApp.new
   MESSAGE_CONFIG = YAML.load_file('conf/message.yml')
   HTML_CONFIG = YAML.load_file('conf/html.yml')
   
   def app
     PidApp
   end
-
+  
   def setup
     Pid.flush!
     User.flush!
     Group.flush!
     Maintainer.flush!
-    
     @pwd = 'secret'
-    
     @group = Group.new(:id => 'UCLA', :name => 'test_group')
     @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd, 
                       :email => 'test@example.org', :super => true)
-    
     @group.users << @user
     @group.save
-    
-    Capybara.app = PidApp.new
+  end
+  
+  def teardown
+    Capybara.reset_sessions!
   end
   
 # --------------------------------------------------------------------------------------------------------
