@@ -94,6 +94,10 @@ section, article {
   width:              70%;
 }
 
+.icon {
+  width:               15px;
+}
+
 nav {
   height:             26px;
   
@@ -119,8 +123,7 @@ form {
 form div {
   position:            relative;
   float:               left; 
-  margin-left:         15px;
-  width:               15px;
+  margin:              0 15px 0 15px;
 }
 form input, form select, form a, form textarea, form span.form_informational { 
   position:            relative;

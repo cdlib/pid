@@ -15,6 +15,16 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   get '/link/search' do
     @results = []
+    @users = (current_user.super) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
+    
+    if !Pid.first(:group => current_user.group).nil? || (current_user.super && !Pid.first().nil?)
+      @pid_min = (current_user.super) ? Pid.first(:order => [:id.asc]).id : Pid.first(:group => current_user.group, :order => [:id.asc]).id
+      @pid_max = (current_user.super) ? Pid.first(:order => [:id.desc]).id : Pid.first(:group => current_user.group, :order => [:id.desc]).id
+    else
+      @pid_min = 0
+      @pid_max = 0
+    end
+    
     erb :search_pid
   end
   
@@ -71,20 +81,46 @@ class PidApp < Sinatra::Application
     user = current_user
     @results = []
     
-    if !params[:url].empty?
-      args = {:limit => 100}
-      
-      args[:url.like] = '%' + params[:url] + '%'
-      
-      # Filter the results to the user's group unless the user is an admin
-      args[:group] = user.group unless user.super
-      
-      @results = Pid.all(args)
-      
-      status 404 if @results.empty?
+    # Load the user list by the current user's group or everyone is they're a super admin
+    @users = (user.super) ? User.all(:order => [:login.asc]) : User.all(:group => user.group, :order => [:login.asc])
+    
+    # Set the min and max PIDs for the range inputs (based on user's group unless they are a super admin)
+    if !Pid.first(:group => user.group).nil? || (user.super && !Pid.first().nil?)
+      @pid_min = (user.super) ? Pid.first(:order => [:id.asc]).id : Pid.first(:group => user.group, :order => [:id.asc]).id
+      @pid_max = (user.super) ? Pid.first(:order => [:id.desc]).id : Pid.first(:group => user.group, :order => [:id.desc]).id
     else
-      status 404
+      @pid_min = 0
+      @pid_max = 0
     end
+    
+    # If either of the PID range values are empty set them to the limits
+    params[:low] = @pid_min if params[:low].empty?
+    params[:high] = @pid_max if params[:high].empty?
+      
+    # If the PID high range is less than the low range, swap them 
+    params[:low], params[:high] = params[:high], params[:low] if params[:high] < params[:low]
+      
+    # Limit the search results based on the value in the config
+    args = {:limit => HTML_CONFIG['search_results_limit'].to_i}
+      
+    # Set the search criteria based on the user's input
+    args[:url.like] = '%' + params[:url] + '%' unless params[:url].empty?
+    args[:username] = User.get(params[:userid]).login unless params[:userid].empty?
+    args[:id.gte] = params[:low]
+    args[:id.lte] = params[:high]
+    args[:deactivated] = (params[:active] == '0') ? true : false
+      
+    if !params[:modified_low].empty?
+      args[:modified_at.gte] = params[:modified_low] 
+      args[:modified_at.lte] = params[:modified_high] ||= Time.now
+    end
+      
+    # Filter the results to the user's group unless the user is an admin
+    args[:group] = user.group unless user.super
+      
+    @results = Pid.all(args)
+      
+    status 404 if @results.empty?
     
     erb :search_pid
   end

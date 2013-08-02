@@ -167,6 +167,9 @@ $stdout.puts '.... sowing PIDs'
 # Process the pid version records
 # ---------------------------------------------------------------
 i = 0; j = 0; k = 0
+#FIXME - Don't hard-code this!
+dead_pid_url = "http://localhost:3000/link/dead"
+
 begin
   last_pid = nil
   
@@ -209,7 +212,7 @@ begin
     end
     
     #Swap out null urls with the dead pid default page
-    params[:url] = "#{hostname()}link/dead" unless params[:url]
+    params[:url] = dead_pid_url unless params[:url]
     
     # See if the PID exists
     if Pid.get(incoming.id).nil?  
@@ -254,7 +257,7 @@ rescue Exception => e
   $stdout.puts "........ #{e.message}"
 end
 $stdout.puts ".... #{i} new PIDs added and #{j} historical PID records (out of #{k} total records) added to the database."
-$stdout.puts '........ see errors above for information about the users that could not be added.' if (i + j) != k
+$stdout.puts "........ see #{k - (i + j)} errors above for information about the users that could not be added." if (i + j) != k
 
 #DEBUG - view loaded change categories
 ChangeCategory.all.each { |cat| $stdout.puts "added - change category: #{cat.id}" } if debug

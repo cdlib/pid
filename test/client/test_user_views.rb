@@ -64,6 +64,8 @@ class UserClientTestApp < Test::Unit::TestCase
   def test_logout_load
     login(@user.login, @pwd)
 
+    assert page.driver.cookies.include?('user'), 'Was unable to login!'
+
     visit '/user/logout'
   
     assert page.has_selector?('#login'), 'No userid input found!'

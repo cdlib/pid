@@ -1,6 +1,9 @@
 organization_name: 'California Digital Library'
 application_name: 'PID Service'
 
+# Limit the number of results that are returned during a PID search
+search_results_limit: 100
+
 # Navigation bar links
 nav_home: 'Home'
 nav_pid_search: 'Find PIDs'
@@ -51,9 +54,11 @@ form_email: 'Email:'
 form_admin: 'Is system admin?'
 form_url: 'URL:'
 form_pid: 'PID:'
+form_pid_range: 'PID Range:'
 form_created_date: 'Created Date:'
 form_created_by: 'Created by:'
 form_modified_date: 'Last Modified:'
+form_modified_date_range: 'Last Modified Range:'
 form_modified_by: 'Last Modified by:'
 form_change_category: 'Change Category:'
 form_old_url: 'Old URL:'

@@ -4,10 +4,35 @@
   <form action="/link/search" method="post">
     <label><%= HTML_CONFIG['form_url'] %></label><input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
     
+		<label><%= HTML_CONFIG['form_userid'] %></label>
+    <select id="userid" name="userid">
+    <option value=""></option>
+      <% @users.each do |user| %>
+        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name %> (<%= user.login %>)</option>
+      <% end %>
+    </select>
+    
+		<label><%= HTML_CONFIG['form_pid_range'] %></label>
+    <input type="number" id="low" name="low" value="<%= params[:low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+		<div> - </div> 
+    <input type="number" id="high" name="high" value="<%= params[:high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <div>(between <%= @pid_min %> and <%= @pid_max %>)</div>
+		
+		<label><%= HTML_CONFIG['form_modified_date_range'] %></label>
+		<input type="date" id="modified_low" name="modified_low" value="<%= params[:modified_low] %>" />
+		<div> - </div> 
+		<input type="date" id="modified_high" name="modified_high" value="<%= params[:modified_high] %>" />
+		
+		<label><%= HTML_CONFIG['form_active'] %></label>
+		<select id="active" name="active">
+			<option value="1" <%= 'selected="true"' if params[:active] != '0' %>>Yes</option>
+			<option value="0" <%= 'selected="true"' if params[:active] == '0' %>>No</option>
+		</select>
+
     <label>&nbsp;</label><input type="submit" name="<%= HTML_CONFIG['button_search'] %>" />
   </form>
-	
-	<article><%= HTML_CONFIG['search_text'] %></article>
+
+  <article><%= HTML_CONFIG['search_text'] %></article>
   
 </section>
 
@@ -20,7 +45,7 @@
     <% unless @results.empty? %>
       <table>
         <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-						<th><%= HTML_CONFIG['th_modified_date'] %></th><th><%= HTML_CONFIG['th_active'] %></th></tr>
+          <th><%= HTML_CONFIG['th_modified_date'] %></th><th><%= HTML_CONFIG['th_active'] %></th></tr>
         <% @results.each do |result| %>
           <tr>
             <td><%= i %>)</td>
@@ -28,7 +53,7 @@
               <a href="/link/<%= result.id %>" class="letterpress"><%= result.id %></a>
             </td>
             <td><a href="<%= result.url %>" target="_blank" class="underline" title="<%= result.url %>">
-																<%= (result.url.size > 80) ? result.url.slice(0, 79) + ' ...' : result.url %></a></td>
+                    <%= (result.url.size > 80) ? result.url.slice(0, 79) + ' ...' : result.url %></a></td>
             <td><%= result.username %></td>
             <td><%= result.modified_at.strftime("%m/%d/%Y") %></td>
             <td class="center"><%= (result.deactivated) ? '<span class="red bold">' + HTML_CONFIG['td_false'] + '</span>' : HTML_CONFIG['td_true'] %></td>

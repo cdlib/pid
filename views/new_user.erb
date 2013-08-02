@@ -23,7 +23,7 @@
     <label for="maintainer"><%= HTML_CONFIG['form_group_maintainer'] %></label>
     <input type="checkbox" name="maintainer" id="maintainer" <% if @params[:maintainer] %>checked="checked"<% end %> />
     <label for="login"><%= HTML_CONFIG['form_userid'] %></label>
-    <input type="text" name="login" id="login" value="<%= @params[:userid] %>" /><div id="login_chk">&nbsp;</div>
+    <input type="text" name="login" id="login" value="<%= @params[:userid] %>" /><div id="login_chk" class="icon">&nbsp;</div>
     <label for="name"><%= HTML_CONFIG['form_name'] %></label>
     <input type="text" name="name" id="name" value="<%= @params[:name] %>" />
     <label for="email"><%= HTML_CONFIG['form_email'] %></label><input type="email" name="email" id="email" value="<%= @params[:email] %>" />
@@ -53,11 +53,11 @@
         type:     'get',
         success:  function(data) {
           $("#login_chk").attr('title', '<%= MESSAGE_CONFIG["login_already_exists"] %>');
-          $("#login_chk").addClass("not_ok");
+          $("#login_chk").addClass("not_ok icon");
         },
         error: function(data) {
           $("#login_chk").attr('title', '');
-          $("#login_chk").addClass("ok");
+          $("#login_chk").addClass("ok icon");
         }
       });
     }

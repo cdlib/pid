@@ -1,3 +1,6 @@
+# Session secret - The system is expecting the name of an environment variable that stores the session secret
+session_secret: 'PID_SESSION_SECRET'
+
 # Session expiration in seconds
 session_expires: 900
 

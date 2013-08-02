@@ -3,7 +3,7 @@
   
   <form action="/user/forgot" method="post">
     <label><%= HTML_CONFIG['form_userid'] %></label>
-    <input type="text" id="login" name="login" value="<%= @login %>" /><div id="login_chk">&nbsp;</div>
+    <input type="text" id="login" name="login" value="<%= @login %>" /><div id="login_chk" class="icon">&nbsp;</div>
 
     <label>&nbsp;</label><input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_forgotten_password'] %>" />
     <label>&nbsp;</label><a class="letterpress" href="/user/login"><%= HTML_CONFIG['link_to_login'] %></a>
@@ -26,11 +26,11 @@
       type:     'get',
       success:  function(data) {
         $("#login_chk").attr('title', '');
-        $("#login_chk").addClass("ok");
+        $("#login_chk").addClass("ok icon");
       },
       error: function(data) {
         $("#login_chk").attr('title', '<%= MESSAGE_CONFIG['invalid_login'] %>');
-        $("#login_chk").addClass("not_ok");
+        $("#login_chk").addClass("not_ok icon");
       }
     });
   });
