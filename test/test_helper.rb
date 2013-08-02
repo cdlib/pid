@@ -11,7 +11,10 @@ require 'capybara/dsl'
 require 'capybara/poltergeist'
 
 Capybara.register_driver :poltergeist do |app|
-  Capybara::Poltergeist::Driver.new(app)
+  Capybara::Poltergeist::Driver.new(app, {
+        :js_errors => true,
+        :run_server => false
+    })
 end
 
 Capybara.configure do |config|

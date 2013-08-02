@@ -7,6 +7,7 @@ require 'shortcake'
 class PidApp < Sinatra::Application
   $stdout.puts "loading configuration files"
   
+  APP_CONFIG = YAML.load_file('conf/app.yml')
   DATABASE_CONFIG = YAML.load_file('conf/db.yml')
   SECURITY_CONFIG = YAML.load_file('conf/security.yml')
   MESSAGE_CONFIG = YAML.load_file('conf/message.yml')
@@ -70,11 +71,12 @@ class PidApp < Sinatra::Application
   #reload the Redis database from the data stored in the DB
   if DATABASE_CONFIG['rebuild_redis_on_startup']
     $stdout.puts "Rebuilding the Redis database for pid resolution"
-    shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
+    shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
     shorty.flushall!
     Pid.all.each do |pid| 
       begin
-        shorty.create(pid.id.to_s, pid.url) if !pid.deactivated 
+        shorty.create(pid.id.to_s, (pid.deactivated ? 
+            "http://#{APP_CONFIG['host']}#{':' + APP_CONFIG['port'].to_s unless APP_CONFIG['port'].nil? }/link/dead"  : pid.url))
       rescue Exception => e
         $stdout.puts "something happened while rebuilding the Redis DB for PID #{pid.id}: #{e.message}"
       end
@@ -91,7 +93,7 @@ class PidApp < Sinatra::Application
     end
     
     def hostname()
-      "#{request.scheme.to_s}://#{request.host.to_s}#{':' + request.port.to_s unless request.port.nil? }/"
+      "#{request.scheme.to_s}://#{APP_CONFIG['host']}#{':' + APP_CONFIG['port'].to_s unless APP_CONFIG['port'].nil? }/"
     end
     
     def logged_in?

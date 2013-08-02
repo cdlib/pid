@@ -1,79 +1,87 @@
-<section id="pid_info">
-  <h3>PID <%= @pid.id %></h3>
-  <h4 class="red"><% if(@pid.deactivated) %>Inactive!<% end %></h4>
-  
-  <div id="edit_message" class="red"><%= @message %></div>
-  
-  <% maintainers = "" %>
-  <% #@pid.groups.each do |group| %> 
-    <% #maintainers += "#{group.id}\n"  %><br />
-  <% #end %>
-  
-  <ul>
-    <li>
-      <form id="edit_pid_form" action="/link/edit" method="post">
-        <table>
-          <tr><td class="bold">URL:</td><td><input type="text" id="url" name="url" style="width: 450px;" value="<%= @pid.url %>" /></td></tr>
-          <tr><td class="bold">Maintainers:</td><td>
-            <textarea id="maintainers" name="maintainers" style="width: 160px; height: 60px;"><%= maintainers %></textarea>
-          </td></tr>
-          <tr><td class="bold">Active:</td><td><input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %>" /></td></tr>
-          <tr><td colspan="2">&nbsp;</td></tr>
-          <tr><td></td><td>
-            <button id="save_pid" name="save_pid">Save</button>
-            <button id="cancel" name="cancel" style="float: right;">Close</button>
-          </td></tr>
-        </table>
-        
-        <input type="hidden" id="pid" name="pid" value="<%= @pid.id %>" />
-      </form>
-    </li>
-  </ul>
-  
+<section id="pid_edit">
+  <h3><%= HTML_CONFIG['header_pid_edit'] %></h3>
+	
+	<article><%= HTML_CONFIG['edit_pid_text'] %></article>
+	
+	<form action="/link/batch" method="post" enctype="multipart/form-data">
+		<label>File:</label><input type="file" id="csv" name="csv" accept="csv" />
+		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_process_batch'] %>">
+		<progress></progress>
+	</form>
+	
 </section>
 
+<section class="errors">
+	<%= "#{@msg}<br /><br />" %>
+</section>
+
+<section id="batch_results">
+	
+</section>
+
+
 <script type="text/javascript">
-  $(document).ready(function() {
-    $("#save_pid").click( function(event){
-      event.preventDefault();
-      var pid = $("#pid").val();
-      
-      $.ajax({
-        url:      '/link' + '?ajax=1',
-        data:     $("#edit_pid_form").serialize(),
-        type:     'put',
-        success:  function(data) {
-          $("#content_" + pid).html(data);
+
+	$('progress').hide();
+
+	/*
+	$("#submit").click( function(e) {
+		e.preventDefault();
+		
+		if($("#csv").val().trim() != ''){
+			var reader = new FileReader();
+			var xhr = new XMLHttpRequest();
+			this.xhr = xhr;
+			
+			this.xhr.upload.addEventListener('progress', progressHandlingFunction, false);
+			
+alert("made it");			
+			
+			xhr.open('POST', '/link/batch');
+			
+			reader.onload = function(e){
+				xhr.sendAsBinary(e.target.result);
+			}
+			reader.readAsBinaryString($("#csv"));
+			
+			/*
+			$.ajax({
+				url: "/link/batch",
+				type: "post",
+				data: new FormData($('form')[0]),
+				xhr: function(){
+					var xhr = $.ajaxSettings.xhr();
+					
+					if(xhr.upload){
+						xhr.upload.addEventListener('progress', progressHandlingFunction, false);
+					}
+					return xhr;
+				},
+				beforeSend: function() {
+					$('progress').show();
+				},
+				success:  function(data) {
+          $("#batch_results").html(data);
         },
         error: function(data) {
-          $("#content_" + pid).html(data);
-        },
-        complete: {}
-      });
+          $("#errors").html('<%= MESSAGE_CONFIG['batch_upload_failure'] %>');
+        }, 
+				complete: function(){
+					$('progress').hide();
+				}
+			});
+	
+		}else{
+			$("#csv").html("");
+		}
+		
+	});
+	*/
+	
+	function progressHandlingFunction(e){
+		if(e.lengthComputable){
+			$('progress').attr({value: e.loaded, max: e.total});
+		}
+	}
 
-    });
-    
-    $("#cancel").click( function(event) {
-      var pid = $("#pid").val();
-      event.preventDefault();
-      
-      // if the content_[pid] element exists then the edit is in a modal dialog so perform
-      // an ajax request back to the server to load the show form
-      if($("#content_" + pid).length !== 0){
-        $.ajax({
-          url:      '/link/' + pid + '?ajax=1',
-          type:     'get',
-          success:  function(data) {
-            $("#content_" + pid).html(data);
-          },
-          error: function(data) {
-            $("#content_" + pid).html(data);
-          },
-          complete: {}
-      });
-      }else{
-        window.location = "/link/" + pid;
-      }
-    });
-  });
 </script>

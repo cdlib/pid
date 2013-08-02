@@ -1,0 +1,13 @@
+organization_name: 'California Digital Library'
+application_name: 'PID Service'
+
+# The server and port where the main PID application will be hosted (comment out the port if you do not need to specify)
+host: 'localhost'
+port: 3000
+
+# Redis host and port are required
+redis_host: 'localhost'
+redis_port: 6379
+
+# Limit the number of results that are returned during a PID search
+search_results_limit: 5000

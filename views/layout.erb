@@ -1,47 +1,49 @@
 <html>
   <head>
-    <title><%= HTML_CONFIG['organization_name'] %> - <%= HTML_CONFIG['application_name'] %></title>
+    <title><%= HTML_CONFIG['organization_name'] %> - <%= APP_CONFIG['application_name'] %></title>
     
     <link rel="stylesheet" type="text/css" href="/css/pid.css" />
     <script type="text/javascript" src="/js/jquery-1.10.2.min.js"></script>
-		<script type="text/javascript" src="/js/pid.js"></script>
+    <script type="text/javascript" src="/js/pid.js"></script>
   </head>
   
   <body>
-		<div id="main">
-    	<header>
-      	<img src="/logo.gif" width="198" height="71" border="0" 
-              alt="<%= HTML_CONFIG['organization_name'] %>" title="<%= HTML_CONFIG['organization_name'] %>">
+    <div id="main">
+      <header>
+        <img src="/logo.gif" width="198" height="71" border="0" 
+              alt="<%= APP_CONFIG['organization_name'] %>" title="<%= APP_CONFIG['organization_name'] %>">
               
-      	<h2 style="display: inline; margin-left: 45px; vertical-align: 20px;"><%= HTML_CONFIG['application_name'] %></h2>
-    	</header>
+        <h2 style="display: inline; margin-left: 45px; vertical-align: 20px;"><%= APP_CONFIG['application_name'] %></h2>
+      </header>
     
-			<% if @hide_nav.nil? %>
-    		<nav>
-      		<div class="nav_spacer">
-        		<ul>
-          		<li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
-          		<li class="grey">|</li>
-          		<li><a href="/link"><%= HTML_CONFIG['nav_home'] %></a></li>
-          		<li class="grey">|</li>
-          		<li><a href="/link/search"><%= HTML_CONFIG['nav_pid_search'] %></a></li>
-          		<li class="grey">|</li>
-          		<li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
-          		<li class="grey">|</li>
-          		<li><a href="/user/list"><%= HTML_CONFIG['nav_user'] %></a></li>
-          		<li class="grey">|</li>
-          		<li><a href="/link/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
-          		<li class="grey">|</li>
-          		<li><a href="/link/help"><%= HTML_CONFIG['nav_help'] %></a></li>
-          		<li class="grey">|</li>
-          		<li><a href="/user/logout" class="navy"><%= HTML_CONFIG['nav_logout'] %></a></li>
-        		</ul>
-      		</div>
-    		</nav>
-			<% end %>
-		
-    	<%= yield %>
-			
-		</div>
+      <% if @hide_nav.nil? %>
+        <nav>
+          <div class="nav_spacer">
+            <ul>
+              <li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
+              <li class="grey">|</li>
+              <li><a href="/link"><%= HTML_CONFIG['nav_home'] %></a></li>
+              <li class="grey">|</li>
+              <li><a href="/link/search"><%= HTML_CONFIG['nav_pid_search'] %></a></li>
+              <li class="grey">|</li>
+              <li><a href="/link/edit"><%= HTML_CONFIG['nav_pid_update'] %></a></li>
+              <li class="grey">|</li>
+              <li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
+              <li class="grey">|</li>
+              <li><a href="/user/list"><%= HTML_CONFIG['nav_user'] %></a></li>
+              <li class="grey">|</li>
+              <li><a href="/link/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
+              <li class="grey">|</li>
+              <li><a href="/link/help"><%= HTML_CONFIG['nav_help'] %></a></li>
+              <li class="grey">|</li>
+              <li><a href="/user/logout" class="navy"><%= HTML_CONFIG['nav_logout'] %></a></li>
+            </ul>
+          </div>
+        </nav>
+      <% end %>
+    
+      <%= yield %>
+      
+    </div>
   </body>
 </html>

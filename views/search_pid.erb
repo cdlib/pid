@@ -13,10 +13,15 @@
     </select>
     
 		<label><%= HTML_CONFIG['form_pid_range'] %></label>
-    <input type="number" id="low" name="low" value="<%= params[:low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="low" name="low" value="<%= params[:pid_low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
 		<div> - </div> 
-    <input type="number" id="high" name="high" value="<%= params[:high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="high" name="high" value="<%= params[:pid_high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
     <div>(between <%= @pid_min %> and <%= @pid_max %>)</div>
+		
+		<label><%= HTML_CONFIG['form_created_date_range'] %></label>
+		<input type="date" id="created_low" name="created_low" value="<%= params[:created_low] %>" />
+		<div> - </div> 
+		<input type="date" id="created_high" name="created_high" value="<%= params[:created_high] %>" />
 		
 		<label><%= HTML_CONFIG['form_modified_date_range'] %></label>
 		<input type="date" id="modified_low" name="modified_low" value="<%= params[:modified_low] %>" />
@@ -25,7 +30,8 @@
 		
 		<label><%= HTML_CONFIG['form_active'] %></label>
 		<select id="active" name="active">
-			<option value="1" <%= 'selected="true"' if params[:active] != '0' %>>Yes</option>
+			<option <%= 'selected="true"' if params[:active] == '' %>></option>
+			<option value="1" <%= 'selected="true"' if params[:active] == '1' %>>Yes</option>
 			<option value="0" <%= 'selected="true"' if params[:active] == '0' %>>No</option>
 		</select>
 

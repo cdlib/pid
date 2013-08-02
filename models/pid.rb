@@ -82,7 +82,9 @@ class Pid
   # ------------------------------------------------------------------------------
   def self.create_or_update(params)
     is_seed = (params[:is_seed].nil?) ? false : params[:is_seed]
+    dead_pid_url = params[:dead_pid_url]
     params.delete(:is_seed)
+    params.delete(:dead_pid_url)
 
     Pid.transaction do |t|
       begin
@@ -144,7 +146,7 @@ class Pid
             raise Exception.new("Unable to save PID: #{e.class}: #{e.message}")
           end
             
-          @@shorty.create_or_update(pid.id.to_s, pid.url.to_s)
+          @@shorty.create_or_update(pid.id.to_s, (pid.deactivated ? dead_pid_url : pid.url.to_s))
             
         else
           raise Exception.new("Failure saving Pid: #{pid.errors.full_messages.join("\n")}")

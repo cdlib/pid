@@ -167,8 +167,6 @@ $stdout.puts '.... sowing PIDs'
 # Process the pid version records
 # ---------------------------------------------------------------
 i = 0; j = 0; k = 0
-#FIXME - Don't hard-code this!
-dead_pid_url = "http://localhost:3000/link/dead"
 
 begin
   last_pid = nil
@@ -210,9 +208,6 @@ begin
     if !user.group.nil?
       params[:group] = user.group
     end
-    
-    #Swap out null urls with the dead pid default page
-    params[:url] = dead_pid_url unless params[:url]
     
     # See if the PID exists
     if Pid.get(incoming.id).nil?  

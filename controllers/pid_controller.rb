@@ -15,17 +15,28 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   get '/link/search' do
     @results = []
-    @users = (current_user.super) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
+    defaults = get_search_defaults
     
-    if !Pid.first(:group => current_user.group).nil? || (current_user.super && !Pid.first().nil?)
-      @pid_min = (current_user.super) ? Pid.first(:order => [:id.asc]).id : Pid.first(:group => current_user.group, :order => [:id.asc]).id
-      @pid_max = (current_user.super) ? Pid.first(:order => [:id.desc]).id : Pid.first(:group => current_user.group, :order => [:id.desc]).id
-    else
-      @pid_min = 0
-      @pid_max = 0
-    end
+    @users = defaults[:users]
+    @pid_min = defaults[:pid_min]
+    @pid_max = defaults[:pid_max]
+    
+    params[:pid_low] ||= defaults[:pid_min]
+    params[:pid_high] ||= defaults[:pid_max]
+    
+    params[:created_low] ||= defaults[:created_low]
+    params[:created_high] ||= defaults[:created_high]
+    params[:modified_low] ||= defaults[:modified_low]
+    params[:modified_high] ||= defaults[:modified_high]
     
     erb :search_pid
+  end
+  
+# ---------------------------------------------------------------
+# Display the batch edit page
+# ---------------------------------------------------------------  
+  get '/link/edit' do
+    erb :edit_pid
   end
   
 # ---------------------------------------------------------------
@@ -54,8 +65,12 @@ class PidApp < Sinatra::Application
         @groups = Group.all if user.super
         @group = user.group
 
-        erb :show_pid
-        
+        if params[:ajax] == "true"
+          erb :edit_pid_form, :layout => false
+        else
+          erb :show_pid
+        end
+
       else
         401
       end
@@ -77,46 +92,110 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
 # Process the PIDs search form
 # ---------------------------------------------------------------  
+  post '/link/batch' do
+		@msg = '', @failures = []
+		
+		if params[:csv][:type] == 'text/csv'
+
+			begin
+			  # Loop through the items in the CSV
+				CSV.foreach(params[:csv][:tempfile]) do |row| 
+					id, url, cat, note = row
+					
+					# If the PID id is null they would like to mint the PID
+					if id.nil?
+						# Make sure the URL is not missing
+						if !url.nil?
+            	pid = Pid.mint(:url => url, 
+               							 :username => current_user.login,
+                             :group => current_user.group,
+                             :change_category => cat,
+                             :notes => note)
+						else
+							@failures << "Cannot mint a new inactive PID! Make sure that the URL column has a value if the PID id is empty!"
+						end
+						
+					# We are updating an existing PID
+					else
+						pid = Pid.first(id)
+					
+						# If the PID was found and its in the same group as the user or the user is an admin
+						if !pid.nil?
+							if pid.group != current_user.group && !current_user.super
+            		pid.revise({:url => url.nil? ? pid.url : url, 
+														:change_category => cat,
+														:notes => note,
+              	 					  :deactivated => url.nil? ? true : false,
+                            :group =>  current_user.group,
+                            :username => current_user.login,
+                            :modified_at => Time.now,
+			 									    :dead_pid_url => "#{hostname}link/dead"})
+							else
+								@failures << "PID #{id} does not belong to your group!<br />"
+							end
+						else
+							@failures << "PID #{id} does not exist!<br />"
+						end
+					end
+					
+				end
+				
+				@msg = MESSAGE_CONFIG['batch_process_success']
+			rescue Exception => e
+				@msg = "#{MESSAGE_CONFIG['batch_process_failure']}<br /><br />#{e.message}"
+			end
+
+		else
+			@msg = MESSAGE_CONFIG['invalid_file_type']
+		end
+		
+    erb :edit_pid
+  end
+
+# ---------------------------------------------------------------
+# Process the PIDs search form
+# ---------------------------------------------------------------  
   post '/link/search' do
-    user = current_user
     @results = []
+    defaults = get_search_defaults
     
-    # Load the user list by the current user's group or everyone is they're a super admin
-    @users = (user.super) ? User.all(:order => [:login.asc]) : User.all(:group => user.group, :order => [:login.asc])
-    
-    # Set the min and max PIDs for the range inputs (based on user's group unless they are a super admin)
-    if !Pid.first(:group => user.group).nil? || (user.super && !Pid.first().nil?)
-      @pid_min = (user.super) ? Pid.first(:order => [:id.asc]).id : Pid.first(:group => user.group, :order => [:id.asc]).id
-      @pid_max = (user.super) ? Pid.first(:order => [:id.desc]).id : Pid.first(:group => user.group, :order => [:id.desc]).id
-    else
-      @pid_min = 0
-      @pid_max = 0
-    end
+    @users = defaults[:users]
+    @pid_min = defaults[:pid_min]
+    @pid_max = defaults[:pid_max]
     
     # If either of the PID range values are empty set them to the limits
-    params[:low] = @pid_min if params[:low].empty?
-    params[:high] = @pid_max if params[:high].empty?
+    params[:pid_low] = defaults[:pid_min] if (params[:pid_low].nil? ? true : params[:pid_low].empty?)
+    params[:pid_high] = defaults[:pid_max] if (params[:pid_high].nil? ? true : params[:pid_high].empty?)
+    
+    # If the date ranges are empty set them to the limits
+    params[:created_low] = defaults[:created_low] if (params[:created_low].nil? ? true : params[:created_low].empty?)
+    params[:created_high] = defaults[:created_high] if (params[:created_high].nil? ? true : params[:created_high].empty?)
+    params[:modified_low] = defaults[:modified_low] if (params[:modified_low].nil? ? true : params[:modified_low].empty?)
+    params[:modified_high] = defaults[:modified_high] if (params[:modified_high].nil? ? true : params[:modified_high].empty?)
       
     # If the PID high range is less than the low range, swap them 
-    params[:low], params[:high] = params[:high], params[:low] if params[:high] < params[:low]
+    params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high] < params[:pid_low]
       
     # Limit the search results based on the value in the config
-    args = {:limit => HTML_CONFIG['search_results_limit'].to_i}
+    args = {:limit => APP_CONFIG['search_results_limit'].to_i}
       
     # Set the search criteria based on the user's input
     args[:url.like] = '%' + params[:url] + '%' unless params[:url].empty?
     args[:username] = User.get(params[:userid]).login unless params[:userid].empty?
-    args[:id.gte] = params[:low]
-    args[:id.lte] = params[:high]
-    args[:deactivated] = (params[:active] == '0') ? true : false
+    
+    args[:deactivated] = (params[:active] == '0') ? true : false unless params[:active].empty?
       
-    if !params[:modified_low].empty?
-      args[:modified_at.gte] = params[:modified_low] 
-      args[:modified_at.lte] = params[:modified_high] ||= Time.now
-    end
-      
+    args[:id.gte] = params[:pid_low]
+    args[:id.lte] = params[:pid_high]
+    
+    args[:modified_at.gte] = "#{params[:modified_low]} 00:00:00"
+    args[:modified_at.lte] = "#{params[:modified_high]} 23:59:59"
+    
+    args[:created_at.gte] = "#{params[:created_low]} 00:00:00" 
+    args[:created_at.lte] = "#{params[:created_high]} 23:59:59"
+    
     # Filter the results to the user's group unless the user is an admin
-    args[:group] = user.group unless user.super
+    args[:group] = current_user.group unless current_user.super
       
     @results = Pid.all(args)
       
@@ -138,11 +217,12 @@ class PidApp < Sinatra::Application
         if @pid.url != params[:url] || @pid.group.id != params[:group] || (@pid.deactivated != ((params[:active] == "on") ? false : true))
             
           begin
-            @pid.revise({:url => (params[:active] == "on") ? params[:url] : "#{hostname()}link/dead", 
+            @pid.revise({:url => params[:url], 
                          :deactivated => (params[:active] == "on") ? false : true,
                          :group =>  params[:group],
                          :username => user.login,
-                         :modified_at => Time.now})
+                         :modified_at => Time.now,
+			 									 :dead_pid_url => "#{hostname}link/dead"})
         
             @msg = MESSAGE_CONFIG['pid_update_success']
         
@@ -286,6 +366,38 @@ class PidApp < Sinatra::Application
       {:code => 404, :message => "URL was empty #{url}"}
     end
       
+  end
+  
+private
+  def get_search_defaults 
+    group = current_user.group 
+    super_user = current_user.super
+    
+    defaults = {:pid_min => 0, :pid_max => 0, :modified_low => '', :modified_high => '', :created_low => '', :created_high => ''}
+    
+    defaults[:users] = (super_user) ? User.all(:order => [:login.asc]) : User.all(:group => group, :order => [:login.asc])
+    
+    # If the group (or system in the case of a super user) has PIDs find the first and last otherwise default to generic values
+    if !Pid.first(:group => group).nil? || (super_user && !Pid.first().nil?)
+      if super_user
+        defaults[:pid_min] = Pid.first(:order => [:id.asc]).id
+        defaults[:pid_max] = Pid.first(:order => [:id.desc]).id
+        defaults[:modified_low] = Pid.first(:order => [:modified_at.asc]).modified_at.strftime("%Y-%m-%d")
+        defaults[:modified_high] = Pid.first(:order => [:modified_at.desc]).modified_at.strftime("%Y-%m-%d")
+        defaults[:created_low] = Pid.first(:order => [:created_at.asc]).created_at.strftime("%Y-%m-%d")
+        defaults[:created_high] = Pid.first(:order => [:created_at.desc]).created_at.strftime("%Y-%m-%d")
+      else
+        defaults[:pid_min] = Pid.first(:group => group, :order => [:id.asc]).id
+        defaults[:pid_max] = Pid.first(:group => group, :order => [:id.desc]).id
+        defaults[:modified_low] = Pid.first(:group => group, :order => [:modified_at.asc]).modified_at.strftime("%Y-%m-%d")
+        defaults[:modified_high] = Pid.first(:group => group, :order => [:modified_at.desc]).modified_at.strftime("%Y-%m-%d")
+        defaults[:created_low] = Pid.first(:group => group, :order => [:created_at.asc]).created_at.strftime("%Y-%m-%d")
+        defaults[:created_high] = Pid.first(:group => group, :order => [:created_at.desc]).created_at.strftime("%Y-%m-%d")
+      end
+    end
+    
+    
+    defaults
   end
 
 end
