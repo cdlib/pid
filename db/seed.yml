@@ -1,5 +1,5 @@
 # Indicates whether or not the tables in the DB should be emptied prior to the seed
-flush_tables: true
+flush_tables: false
 # Turn on/off verbose debugging information
 debug_on: false
 

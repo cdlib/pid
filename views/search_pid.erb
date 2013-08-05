@@ -13,9 +13,9 @@
     </select>
     
 		<label><%= HTML_CONFIG['form_pid_range'] %></label>
-    <input type="number" id="low" name="low" value="<%= params[:pid_low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="pid_low" name="pid_low" value="<%= params[:pid_low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
 		<div> - </div> 
-    <input type="number" id="high" name="high" value="<%= params[:pid_high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="pid_high" name="pid_high" value="<%= params[:pid_high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
     <div>(between <%= @pid_min %> and <%= @pid_max %>)</div>
 		
 		<label><%= HTML_CONFIG['form_created_date_range'] %></label>
@@ -35,7 +35,8 @@
 			<option value="0" <%= 'selected="true"' if params[:active] == '0' %>>No</option>
 		</select>
 
-    <label>&nbsp;</label><input type="submit" name="<%= HTML_CONFIG['button_search'] %>" />
+    <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
+		<input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
 
   <article><%= HTML_CONFIG['search_text'] %></article>
@@ -76,3 +77,21 @@
 
 <% end %>
 
+<script type="text/javascript">
+	$("#reset").click( function(event){
+		event.preventDefault();
+		
+		$("#url").val('');
+		$("userid").val('');
+		
+		$("#pid_low").val('<%= @defaults[:pid_min] %>');
+		$("#pid_high").val('<%= @defaults[:pid_max] %>');
+		
+		$("#created_low").val('<%= @defaults[:created_low] %>');
+		$("#created_high").val('<%= @defaults[:created_high] %>');
+		$("#modified_low").val('<%= @defaults[:modified_low] %>');
+		$("#modified_high").val('<%= @defaults[:modified_high] %>');
+		
+		$("#active").val('');
+	});
+</script>

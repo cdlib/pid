@@ -15,19 +15,19 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   get '/link/search' do
     @results = []
-    defaults = get_search_defaults
+    @defaults = get_search_defaults
     
-    @users = defaults[:users]
-    @pid_min = defaults[:pid_min]
-    @pid_max = defaults[:pid_max]
+    @users = @defaults[:users]
+    @pid_min = @defaults[:pid_min]
+    @pid_max = @defaults[:pid_max]
     
-    params[:pid_low] ||= defaults[:pid_min]
-    params[:pid_high] ||= defaults[:pid_max]
+    params[:pid_low] ||= @defaults[:pid_min]
+    params[:pid_high] ||= @defaults[:pid_max]
     
-    params[:created_low] ||= defaults[:created_low]
-    params[:created_high] ||= defaults[:created_high]
-    params[:modified_low] ||= defaults[:modified_low]
-    params[:modified_high] ||= defaults[:modified_high]
+    params[:created_low] ||= @defaults[:created_low]
+    params[:created_high] ||= @defaults[:created_high]
+    params[:modified_low] ||= @defaults[:modified_low]
+    params[:modified_high] ||= @defaults[:modified_high]
     
     erb :search_pid
   end
@@ -36,6 +36,10 @@ class PidApp < Sinatra::Application
 # Display the batch edit page
 # ---------------------------------------------------------------  
   get '/link/edit' do
+    @failures = [] 
+    @mints = [] 
+    @revisions = []
+    
     erb :edit_pid
   end
   
@@ -92,63 +96,83 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
 # Process the PIDs search form
 # ---------------------------------------------------------------  
-  post '/link/batch' do
-		@msg = '', @failures = []
-		
-		if params[:csv][:type] == 'text/csv'
+  post '/link/edit' do
+    @msg = ''
+    @failures = [] 
+    @mints = []
+    @revisions = []
+    
+    if !params[:csv].empty?
+      if params[:csv][:type] == 'text/csv'
 
-			begin
-			  # Loop through the items in the CSV
-				CSV.foreach(params[:csv][:tempfile]) do |row| 
-					id, url, cat, note = row
-					
-					# If the PID id is null they would like to mint the PID
-					if id.nil?
-						# Make sure the URL is not missing
-						if !url.nil?
-            	pid = Pid.mint(:url => url, 
-               							 :username => current_user.login,
-                             :group => current_user.group,
-                             :change_category => cat,
-                             :notes => note)
-						else
-							@failures << "Cannot mint a new inactive PID! Make sure that the URL column has a value if the PID id is empty!"
-						end
-						
-					# We are updating an existing PID
-					else
-						pid = Pid.first(id)
-					
-						# If the PID was found and its in the same group as the user or the user is an admin
-						if !pid.nil?
-							if pid.group != current_user.group && !current_user.super
-            		pid.revise({:url => url.nil? ? pid.url : url, 
-														:change_category => cat,
-														:notes => note,
-              	 					  :deactivated => url.nil? ? true : false,
-                            :group =>  current_user.group,
-                            :username => current_user.login,
-                            :modified_at => Time.now,
-			 									    :dead_pid_url => "#{hostname}link/dead"})
-							else
-								@failures << "PID #{id} does not belong to your group!<br />"
-							end
-						else
-							@failures << "PID #{id} does not exist!<br />"
-						end
-					end
-					
-				end
-				
-				@msg = MESSAGE_CONFIG['batch_process_success']
-			rescue Exception => e
-				@msg = "#{MESSAGE_CONFIG['batch_process_failure']}<br /><br />#{e.message}"
-			end
+        begin
+          # Loop through the items in the CSV
+          CSV.foreach(params[:csv][:tempfile]) do |row| 
+            id, url, cat, note = row
+          
+            # If the PID id is null they would like to mint the PID
+            if id.nil?
+              # Make sure the URL is not missing
+              if !url.nil?
+                begin
+                  pid = Pid.mint(:url => url, 
+                                 :username => current_user.login,
+                                 :group => current_user.group,
+                                 :change_category => cat,
+                                 :notes => note)
 
-		else
-			@msg = MESSAGE_CONFIG['invalid_file_type']
-		end
-		
+                  @mints << pid
+                rescue Exception => e
+                  @failures << "#{MESSAGE_CONFIG['batch_process_mint_failure'].gsub('{?}', id)} #{e.message}"
+                end
+              else
+                @failures << MESSAGE_CONFIG['batch_process_mint_inactive']
+              end
+            
+            # We are updating an existing PID
+            else
+              pid = Pid.get(id)
+          
+              # If the PID was found and its in the same group as the user or the user is an admin
+              if !pid.nil?
+
+                if pid.group == current_user.group || current_user.super
+                  begin 
+                    pid.revise({:url => url.nil? ? pid.url : url, 
+                                :change_category => cat,
+                                :notes => note,
+                                :deactivated => url.nil? ? true : false,
+                                :group =>  current_user.group,
+                                :username => current_user.login,
+                                :modified_at => Time.now,
+                                :dead_pid_url => "#{hostname}link/dead"})
+                             
+                    @revisions << Pid.get(pid.id)
+                  rescue Exception => e
+                    @failures << "#{MESSAGE_CONFIG['batch_process_revise_failure'].gsub('{?}', id)} #{e.message}"
+                  end
+                else
+                  @failures << MESSAGE_CONFIG['batch_process_revise_wrong_group'].gsub('{?}', id)
+                end
+              else
+                @failures << MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', '')
+              end
+            end
+          
+          end
+        
+          @msg = MESSAGE_CONFIG['batch_process_success']
+        rescue Exception => e
+          @msg = "#{MESSAGE_CONFIG['batch_process_failure']}<br /><br />#{e.message}"
+        end
+
+      else
+        @msg = MESSAGE_CONFIG['invalid_file_type']
+      end
+    else
+      @msg = MESSAGE_CONFIG['no_file_selected']
+    end
+
     erb :edit_pid
   end
 
@@ -157,21 +181,21 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   post '/link/search' do
     @results = []
-    defaults = get_search_defaults
+    @defaults = get_search_defaults
     
-    @users = defaults[:users]
-    @pid_min = defaults[:pid_min]
-    @pid_max = defaults[:pid_max]
-    
+    @users = @defaults[:users]
+    @pid_min = @defaults[:pid_min]
+    @pid_max = @defaults[:pid_max]
+
     # If either of the PID range values are empty set them to the limits
-    params[:pid_low] = defaults[:pid_min] if (params[:pid_low].nil? ? true : params[:pid_low].empty?)
-    params[:pid_high] = defaults[:pid_max] if (params[:pid_high].nil? ? true : params[:pid_high].empty?)
+    params[:pid_low] = @defaults[:pid_min] if (params[:pid_low].nil? ? true : params[:pid_low].empty?)
+    params[:pid_high] = @defaults[:pid_max] if (params[:pid_high].nil? ? true : params[:pid_high].empty?)
     
     # If the date ranges are empty set them to the limits
-    params[:created_low] = defaults[:created_low] if (params[:created_low].nil? ? true : params[:created_low].empty?)
-    params[:created_high] = defaults[:created_high] if (params[:created_high].nil? ? true : params[:created_high].empty?)
-    params[:modified_low] = defaults[:modified_low] if (params[:modified_low].nil? ? true : params[:modified_low].empty?)
-    params[:modified_high] = defaults[:modified_high] if (params[:modified_high].nil? ? true : params[:modified_high].empty?)
+    params[:created_low] = @defaults[:created_low] if (params[:created_low].nil? ? true : params[:created_low].empty?)
+    params[:created_high] = @defaults[:created_high] if (params[:created_high].nil? ? true : params[:created_high].empty?)
+    params[:modified_low] = @defaults[:modified_low] if (params[:modified_low].nil? ? true : params[:modified_low].empty?)
+    params[:modified_high] = @defaults[:modified_high] if (params[:modified_high].nil? ? true : params[:modified_high].empty?)
       
     # If the PID high range is less than the low range, swap them 
     params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high] < params[:pid_low]
@@ -222,7 +246,7 @@ class PidApp < Sinatra::Application
                          :group =>  params[:group],
                          :username => user.login,
                          :modified_at => Time.now,
-			 									 :dead_pid_url => "#{hostname}link/dead"})
+                          :dead_pid_url => "#{hostname}link/dead"})
         
             @msg = MESSAGE_CONFIG['pid_update_success']
         

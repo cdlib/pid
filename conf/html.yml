@@ -68,6 +68,9 @@ search_no_matches: 'No PIDs matched your search criteria!'
 create_pids_tooltip: 'One URL per line. Each URL should include the protocol (e.g. http://)'
 
 batch_upload_failure: 'Unable to process the file you selected. Make sure its a CSV file!'
+batch_failures: 'The following PID(s) could not be updated:'
+batch_mint_log: 'Successfully minted the following PID(s):'
+batch_revision_log: 'Successfully updated the following PID(s):'
 
 # Create multiple pids, some failed error message
 create_pids_some_errors:
@@ -82,6 +85,7 @@ button_reset_password: 'Save'
 button_save_user: 'Save'
 button_register_user: 'Save'
 button_search: 'Search'
+button_reset: 'Reset'
 button_update_pid: 'Save'
 button_process_batch: 'Upload'
 
