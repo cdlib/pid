@@ -27,6 +27,14 @@ header_pid_inactive: 'Inactive!'
 header_pid_register: 'Mint a new PID'
 header_pid_register_success: 'Successfully created the following PID(s)'
 header_reports: 'Reporting'
+header_report_inactive: 'Inactive reports'
+header_report_invalid: 'Invalid URLs'
+header_report_invalid_error: 'The following URLs are returning a server error'
+header_report_invalid_not_found: 'The following URLs are returning a not found message'
+header_report_invalid_moved: 'The following URLs are working but are redirected to another URL which may or may not be correct'
+header_report_duplicate: 'Duplicate URLs'
+header_report_maintenance_criteria: 'PID maintenance report criteria'
+header_report_maintenance_results: 'PID maintenance report results'
 header_help: 'Help'
 
 # Page based links to other pages
@@ -34,6 +42,7 @@ link_to_login: 'Login'
 link_to_forgotten_password: 'I forgot my password'
 link_to_register_user: 'Register a new user'
 link_to_user_list: 'Return to the user list'
+link_to_reports: 'Return to the report list'
 
 # Form elements
 form_userid: 'User Id:'
@@ -63,6 +72,8 @@ form_urls: 'URL(s):'
 
 # No matches to the search
 search_no_matches: 'No PIDs matched your search criteria!'
+
+report_no_activity: 'No PIDs found.'
 
 # Create pid textarea tooltip
 create_pids_tooltip: 'One URL per line. Each URL should include the protocol (e.g. http://)'
@@ -101,6 +112,9 @@ th_affiliation: 'Affiliation'
 th_pid: 'PID'
 th_url: 'URL'
 th_modified_date: 'Updated'
+th_deactivated_by: 'Deactivated By'
+th_deactivated_on: 'Deactivated On'
+th_duplicate_pids: 'Duplicate PIDs'
 
 # True/False values in tables
 td_true: 'Yes'
@@ -123,11 +137,13 @@ unauthorized_text:
 search_text: 'This utility will only return 100 results at a time. If your search returned 5,000 PIDs, you should refine your criteria.'
 
 reports_text: 
-  "This is where the user will be able to run PID reports.
+  "Please select on of the following reports below:
   <ul>
-    <li>Inactive PIDs</li>
-    <li>PIDs with invalid URL targets</li>
-    <li>PID usage (if we log hits going forward)</li>
+    <li><a href='/report/inactive' class='letterpress'>Inactive PIDs</a></li>
+    <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URL targets</a> (may take a while to run)</li>
+		<li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a> (may take a verrry long time to run)</li>
+    <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
+		<li><a href='/report/usage' class='letterpress'>PID usage statistics</a></li>
   </ul>"
 
 help_text: 

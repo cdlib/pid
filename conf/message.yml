@@ -55,4 +55,4 @@ batch_process_revise_failure: 'PID #{?} could not be updated - '
 batch_process_revise_wrong_group: 'PID #{?} does not belong to your group!'
 batch_process_revise_missing: 'PID #{?} does not exist!'
 
-reports_inactive_failure: 'There was a problem retrieving the list of inactive PIDs.'
+reports_failure: 'There was a problem processing the report: '

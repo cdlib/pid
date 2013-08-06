@@ -1,0 +1,34 @@
+<section id="duplicate_report">
+	<h3><%= HTML_CONFIG['header_report_duplicate'] %></h3>
+	
+	<a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+	
+	<% i = 1 %>
+  <% unless @results.empty? %>
+    <table>
+      <tr><th /><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
+      <% @results.each do |url, pids| %>
+        <tr>
+          <td><%= i %>)</td>
+          <td><a href="<%= url %>" target="_blank" class="underline" title="<%= url %>">
+                  <%= (url.size > 80) ? url.slice(0, 79) + ' ...' : url %></a></td>
+          <td>
+						<% pids.split(',').each do |pid| %>
+            	<a href="/link/<%= pid %>" class="letterpress"><%= pid %></a>, 
+						<% end %>
+					</td>
+        </tr>
+        
+        <% i = i.next %>
+      <% end %>
+    </table>
+    
+  <% else %>
+    <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
+  <% end %>
+	
+	<div class="errors">
+		<%= @msg %>
+	</div>
+	
+</section>

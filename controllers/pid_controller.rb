@@ -198,7 +198,7 @@ class PidApp < Sinatra::Application
     params[:modified_high] = @defaults[:modified_high] if (params[:modified_high].nil? ? true : params[:modified_high].empty?)
       
     # If the PID high range is less than the low range, swap them 
-    params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high] < params[:pid_low]
+    params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high].to_i < params[:pid_low].to_i
       
     # Limit the search results based on the value in the config
     args = {:limit => APP_CONFIG['search_results_limit'].to_i}
@@ -336,7 +336,7 @@ class PidApp < Sinatra::Application
   end
 
 # ---------------------------------------------------------------
-# Verify the URL by doing a GET - for future use
+# Security checks
 # ---------------------------------------------------------------
   before '/link' do
     redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
@@ -344,26 +344,6 @@ class PidApp < Sinatra::Application
   
   before '/link/*' do
     redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
-  end
-  
-  
-# ---------------------------------------------------------------
-# Verify the URL by doing a GET - for future use
-# ---------------------------------------------------------------  
-  def verify_url(url)
-    # SCP - not allowed by contract to check live URLs automatically
-    # for all journals. Will happen while loading seed data, editing in masse.
-      
-    unless url[-1] == "/"
-      url += "/"
-    end
-      
-    #Test to make sure this a valid URL
-    uri = URI.parse(url)
-    req = Net::HTTP.new(uri.host, uri.port)
-    res = req.request_head(uri.path)
-      
-    res.code.to_i
   end
     
     

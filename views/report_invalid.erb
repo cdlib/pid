@@ -1,0 +1,86 @@
+<section id="invalid_report">
+	<h3><%= HTML_CONFIG['header_report_invalid'] %></h3>
+	
+	<a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+	
+  <% if @error.empty? && @not_found.empty? && @moved.empty? %>
+    <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
+		
+	<% else %>
+		<% unless @error.empty? %>
+			<h4><%= HTML_CONFIG['header_report_invalid_error'] %></h4>
+  
+			<% i = 1 %>
+			<table>
+      	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
+        		<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
+      	<% @error.each do |err| %>
+        	<tr>
+          	<td><%= i %>)</td>
+          	<td>
+            	<a href="/link/<%= err.id %>" class="letterpress"><%= err.id %></a>
+          	</td>
+          	<td><a href="<%= err.url %>" target="_blank" class="underline" title="<%= err.url %>">
+                  	<%= (err.url.size > 80) ? err.url.slice(0, 79) + ' ...' : err.url %></a></td>
+          	<td><%= err.username %></td>
+          	<td><%= err.modified_at.strftime("%m/%d/%Y") %></td>
+        	</tr>
+        
+        	<% i = i.next %>
+      	<% end %>
+    	</table>
+		<% end %>
+  
+		<% unless @not_found.empty? %>
+			<h4><%= HTML_CONFIG['header_report_invalid_not_found'] %></h4>
+  
+			<% i = 1 %>
+			<table>
+      	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
+        		<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
+      	<% @not_found.each do |not_fnd| %>
+        	<tr>
+          	<td><%= i %>)</td>
+          	<td>
+            	<a href="/link/<%= not_fnd.id %>" class="letterpress"><%= not_fnd.id %></a>
+          	</td>
+          	<td><a href="<%= not_fnd.url %>" target="_blank" class="underline" title="<%= not_fnd.url %>">
+                  	<%= (not_fnd.url.size > 80) ? not_fnd.url.slice(0, 79) + ' ...' : not_fnd.url %></a></td>
+          	<td><%= not_fnd.username %></td>
+          	<td><%= not_fnd.modified_at.strftime("%m/%d/%Y") %></td>
+        	</tr>
+        
+        	<% i = i.next %>
+      	<% end %>
+    	</table>
+		<% end %>
+		
+		<% unless @moved.empty? %>
+			<h4><%= HTML_CONFIG['header_report_invalid_moved'] %></h4>
+  
+			<% i = 1 %>
+			<table>
+      	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
+        		<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
+      	<% @moved.each do |mvd| %>
+        	<tr>
+          	<td><%= i %>)</td>
+          	<td>
+            	<a href="/link/<%= mvd.id %>" class="letterpress"><%= mvd.id %></a>
+          	</td>
+          	<td><a href="<%= mvd.url %>" target="_blank" class="underline" title="<%= mvd.url %>">
+                  	<%= (mvd.url.size > 80) ? mvd.url.slice(0, 79) + ' ...' : mvd.url %></a></td>
+          	<td><%= mvd.username %></td>
+          	<td><%= mvd.modified_at.strftime("%m/%d/%Y") %></td>
+        	</tr>
+        
+        	<% i = i.next %>
+      	<% end %>
+    	</table>
+		<% end %>
+  <% end %>
+	
+	<div class="errors">
+		<%= @msg %>
+	</div>
+</section>

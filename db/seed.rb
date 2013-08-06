@@ -170,6 +170,7 @@ i = 0; j = 0; k = 0
 
 begin
   last_pid = nil
+  dead_pid_url = 'http://localhost:3000/link/dead'
   
   CSV.foreach(versions_file, :headers => true) do |row|
     incoming = spawn_object(Pid, row)
@@ -184,6 +185,7 @@ begin
       if chk
         params[:url] = chk.url
       end
+      params[:dead_pid_url] = dead_pid_url
       params[:deactivated] = true
     end
   

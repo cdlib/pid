@@ -361,6 +361,7 @@ class PidApp < Sinatra::Application
 #--------------------------------------------------------------------------------------------------------------
 # Default error pages
 # --------------------------------------------------------------------------------------------------------------
+=begin
   not_found do
     erb :not_found
   end
@@ -368,7 +369,8 @@ class PidApp < Sinatra::Application
   error do
     erb :error
   end
-  
+=end
+
 # --------------------------------------------------------------------------------------------------------------
 # Redirect to the login if the user isn't authenticated for all but the login/logout/forgotten password/reset password pages
 # --------------------------------------------------------------------------------------------------------------

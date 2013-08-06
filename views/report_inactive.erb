@@ -1,0 +1,35 @@
+<section id="inactive_report">
+	<h3><%= HTML_CONFIG['header_report_inactive'] %></h3>
+	
+	<a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+	
+	<% i = 1 %>
+  <% unless @results.empty? %>
+    <table>
+      <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_deactivated_by'] %></th>
+        <th><%= HTML_CONFIG['th_deactivated_on'] %></th></tr>
+      <% @results.each do |result| %>
+        <tr>
+          <td><%= i %>)</td>
+          <td>
+            <a href="/link/<%= result.id %>" class="letterpress"><%= result.id %></a>
+          </td>
+          <td><a href="<%= result.url %>" target="_blank" class="underline" title="<%= result.url %>">
+                  <%= (result.url.size > 80) ? result.url.slice(0, 79) + ' ...' : result.url %></a></td>
+          <td><%= result.username %></td>
+          <td><%= result.modified_at.strftime("%m/%d/%Y") %></td>
+        </tr>
+        
+        <% i = i.next %>
+      <% end %>
+    </table>
+    
+  <% else %>
+    <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
+  <% end %>
+	
+	<div class="errors">
+		<%= @msg %>
+	</div>
+	
+</section>
