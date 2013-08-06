@@ -20,37 +20,44 @@ class PidApp < Sinatra::Application
   set :sessions, :expire_after => SECURITY_CONFIG['session_expires']
   
   set :root, File.dirname(__FILE__)
-
-
-  # FIXME Extract database settings into a db.yml file
-#  configure :production do
-#    ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/db/prod.db"
-#  end
   
-#  configure :development do
-#    ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/db/dev.db"
-#  end
+  args = nil
   
-#  configure :seeded do  
-#    ENV['DATABASE_URL'] ||= "sqlite3://#{File.absolute_path(File.dirname(__FILE__))}/db/seeded.db"
-#    ENV['DATABASE_URL'] = "mysql://root:@localhost/seeded"
-    
-#  end
+  configure :production do
+    args = {:adapter => DATABASE_CONFIG['db_adapter'],
+            :host => DATABASE_CONFIG['db_host'],
+            :port => DATABASE_CONFIG['db_port'].to_i,
+            :database => DATABASE_CONFIG['db_name'],
+            :username => ENV[DATABASE_CONFIG['db_username']],
+            :password => ENV[DATABASE_CONFIG['db_password']]}
+  end
   
-#  configure :test do
-#    ENV['DATABASE_URL'] ||= "sqlite::memory:"
-#  end
+  configure :development do
+    args = {:adapter => DATABASE_CONFIG['db_adapter'],
+            :host => DATABASE_CONFIG['db_host'],
+            :port => DATABASE_CONFIG['db_port'].to_i,
+            :database => DATABASE_CONFIG['db_name'],
+            :username => ENV[DATABASE_CONFIG['db_username']],
+            :password => ENV[DATABASE_CONFIG['db_password']]}
+  end
+  
+  configure :seeded do  
+    args = {:adapter => DATABASE_CONFIG['db_adapter'],
+            :host => DATABASE_CONFIG['db_host'],
+            :port => DATABASE_CONFIG['db_port'].to_i,
+            :database => DATABASE_CONFIG['db_name'],
+            :username => ENV[DATABASE_CONFIG['db_username']],
+            :password => ENV[DATABASE_CONFIG['db_password']]}
+  end
+  
+  configure :test do
+    args = ENV['DATABASE_URL'] ||= "sqlite::memory:"
+  end
   
   # set database
   $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
-  DataMapper.setup(:default, {
-    :adapter => DATABASE_CONFIG['db_adapter'],
-    :host => DATABASE_CONFIG['db_host'],
-    :port => DATABASE_CONFIG['db_port'].to_i,
-    :database => DATABASE_CONFIG['db_name'],
-    :username => ENV[DATABASE_CONFIG['db_username']],
-    :password => ENV[DATABASE_CONFIG['db_password']]
-  })
+
+  DataMapper.setup(:default, args)
 
   # load controllers and models
   $stdout.puts "Building controllers and models" 

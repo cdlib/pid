@@ -148,3 +148,6 @@ edit_pid_text:
 
 dead_pid_text:
   "The PID you are looking for is no longer active. Please contact so and so if you think that this is an error."
+
+error_text:
+  "Oops, something went wrong! Please use your browser's back button and try that again."

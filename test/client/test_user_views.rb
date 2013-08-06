@@ -21,8 +21,13 @@ class UserClientTestApp < Test::Unit::TestCase
     @group = Group.new(:id => 'UCLA', :name => 'test_group')
     @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd, 
                       :email => 'test@example.org', :super => true)
+    @mgr = User.new(:login => 'test_mgr', :name => 'Test Manager', :password => @pwd, 
+                      :email => 'mgr@example.org')
     @group.users << @user
+    @group.users << @mgr
     @group.save
+    
+    Maintainer.new(:group => @group, :user => @mgr).save
   end
   
   def teardown
@@ -64,7 +69,7 @@ class UserClientTestApp < Test::Unit::TestCase
   def test_logout_load
     login(@user.login, @pwd)
 
-    assert page.driver.cookies.include?('user'), 'Was unable to login!'
+    assert page.driver.cookies.include?('rack.session'), 'Was unable to login!'
 
     visit '/user/logout'
   
@@ -193,9 +198,9 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'name', with: ''
     fill_in 'email', with: ''
     click_button 'submit'
-    assert page.has_content?("#{HTML_CONFIG['form_userid']} cannot be blank!"), 'Was able to submit a blank user id!'
-    assert page.has_content?("#{HTML_CONFIG['form_name']} cannot be blank!"), 'Was able to submit a blank name!'
-    assert page.has_content?("#{HTML_CONFIG['form_email']} cannot be blank!"), 'Was able to submit a blank email!'
+    assert page.has_content?("#{HTML_CONFIG['form_userid'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank user id!'
+    assert page.has_content?("#{HTML_CONFIG['form_name'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank name!'
+    assert page.has_content?("#{HTML_CONFIG['form_email'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank email!'
   end
 
   def test_show_user_invalid_email
@@ -205,7 +210,7 @@ class UserClientTestApp < Test::Unit::TestCase
     
     fill_in 'email', with: 'this.is@abademail'
     click_button 'submit'
-    assert !page.has_content?("is not a valid email address!"), 'Was able to enter an invalid email!'
+    assert page.has_content?("is not a valid email address!"), 'Was able to enter an invalid email!'
   end
 
   def test_show_user_password_mismatch
@@ -216,7 +221,7 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'password', with: 'change_it'
     fill_in 'confirm', with: 'change'
     click_button 'submit'
-    assert !page.has_content?("#{HTML_CONFIG['form_new_password']} and #{HTML_CONFIG['form_confirm_password']} MUST match!"), 'Was able to submit passwords that do not match!'
+    assert page.has_content?("#{HTML_CONFIG['form_new_password'].gsub(':', '')} and #{HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
   end
 
   def test_show_userid_unique
@@ -231,11 +236,11 @@ class UserClientTestApp < Test::Unit::TestCase
   def test_show_user_userid_already_used
     user = User.new(:login => 'new_user', :name => 'New User', :password => @pwd, 
                       :email => 'new@example.org', :group => @group)
+    user.save
 
-    login(@user.login, @pwd)
+    login(user.login, @pwd)
     
     visit "/user/#{user.id}"
-
     fill_in 'login', with: @user.login
     assert page.has_selector?('.not_ok'), "An already used userid is displaying a green checkmark!"
   end
@@ -274,11 +279,11 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'confirm', with: ''
     click_button 'submit'
 
-    assert page.has_content?("#{HTML_CONFIG['form_userid']} cannot be blank!"), 'Was able to submit a blank user id!'
-    assert page.has_content?("#{HTML_CONFIG['form_name']} cannot be blank!"), 'Was able to submit a blank name!'
-    assert page.has_content?("#{HTML_CONFIG['form_email']} cannot be blank!"), 'Was able to submit a blank email!'
-    assert page.has_content?("#{HTML_CONFIG['form_new_password']} cannot be blank!"), 'Was able to submit a blank password!'
-    assert page.has_content?("#{HTML_CONFIG['form_confirm_password']} cannot be blank!"), 'Was able to submit a blank password confirmation!'
+    assert page.has_content?("#{HTML_CONFIG['form_userid'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank user id!'
+    assert page.has_content?("#{HTML_CONFIG['form_name'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank name!'
+    assert page.has_content?("#{HTML_CONFIG['form_email'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank email!'
+    assert page.has_content?("#{HTML_CONFIG['form_new_password'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank password!'
+    assert page.has_content?("#{HTML_CONFIG['form_confirm_password'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank password confirmation!'
   end
 
   def test_register_user_invalid_email
@@ -292,7 +297,8 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'password', with: 'password'
     fill_in 'confirm', with: 'password'
     click_button 'submit'
-    assert !page.has_content?("is not a valid email address!"), 'Was able to enter an invalid email!'
+    
+    assert page.has_content?("is not a valid email address!"), 'Was able to enter an invalid email!'
   end
 
   def test_register_user_password_mismatch
@@ -306,7 +312,8 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'password', with: 'change_it'
     fill_in 'confirm', with: 'change'
     click_button 'submit'
-    assert !page.has_content?("#{HTML_CONFIG['form_new_password']} and #{HTML_CONFIG['form_confirm_password']} MUST match!"), 'Was able to submit passwords that do not match!'
+    
+    assert page.has_content?("#{HTML_CONFIG['form_new_password'].gsub(':', '')} and #{HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
   end
 
   def test_register_userid_unique

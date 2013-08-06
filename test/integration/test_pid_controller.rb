@@ -53,16 +53,10 @@ class PidManageApp < Test::Unit::TestCase
 # ---------------------------------------------------------------
 # Search page tests
 # ---------------------------------------------------------------
-  def test_post_search_invalid_criteria
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    post '/link/search', {:url => ''}
-    
-    assert last_response.not_found?, 'We did not fail when passing empty criteria!'
-  end
-  
   def test_post_search_not_found
     post '/user/login', { :login => @user.login, :password => @pwd }
-    post '/link/search', {:url => 'blah blah blah'}
+    post '/link/search', {:url => 'blah blah blah', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
+                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
     
     assert last_response.not_found?, 'Search returned records for an invalid url!'
     
@@ -83,22 +77,26 @@ class PidManageApp < Test::Unit::TestCase
     # Warning, any tests to count the number of <tr> returned should account for the <th> row!
     
     # wilcard match 2 urls
-    post '/link/search', {:url => 'testme.abc'}
+    post '/link/search', {:url => 'testme.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
+                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
     assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status} (test: wilcard match 2 urls)"
     assert_equal 3, last_response.body.gsub("<tr>").count, "Expected 2 PIDs but got #{last_response.body.gsub('<tr>').count - 1}"
     
     # wilcard match 1 url
-    post '/link/search', {:url => 'www.testit.abc'}
+    post '/link/search', {:url => 'www.testit.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
+                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
     assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status}  (test: wilcard match 1 url)"
     assert_equal 2, last_response.body.gsub('<tr>').count, "Expected 1 PID but got #{last_response.body.gsub('<tr>').count - 1}"
     
     # wilcard match ALL urls
-    post '/link/search', {:url => '.abc'}
+    post '/link/search', {:url => '.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
+                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
     assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status} (test: wilcard match ALL urls)"
     assert_equal 5, last_response.body.gsub('<tr>').count, "Expected 4 PIDs but got #{last_response.body.gsub('<tr>').count - 1}"
     
     # specific url match
-    post '/link/search', {:url => 'http://test.cdlib.abc'}
+    post '/link/search', {:url => 'http://test.cdlib.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
+                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
     assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status}  (test: specific url match)"
     assert_equal 2, last_response.body.gsub('<tr>').count, "Expected 1 exact PID match but got #{last_response.body.gsub('<tr>').count - 1}"
     
@@ -114,7 +112,8 @@ class PidManageApp < Test::Unit::TestCase
     urls = *(1..110)
     urls.each{ |url| Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.login, :change_category => 'User_Entered', :group => @group)}
     
-    post '/link/search', {:url => 'testwikipedia.org/'}
+    post '/link/search', {:url => 'testwikipedia.org/', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
+                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
     assert last_response.ok?, "Something went wrong when searching for >100 PIDs status: #{last_response.status}"
     assert_equal 101, last_response.body.gsub('<tr>').count, "Expected 100 PIDs but got #{last_response.body.gsub('<tr>').count - 1}"
   end

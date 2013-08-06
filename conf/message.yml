@@ -37,6 +37,14 @@ pid_update_failure: 'Unable to save your changes.'
 pid_unauthorized: 'You do not have permission to modify this PID!'
 pid_not_found: 'That PID could not be found!'
 
+pid_mint_default_note: 'Incoming request from {?ip?} to mint {?}'
+pid_mint_dead_url: 'The URL for PID {?} is not active. The PID was created but you should verify that you have supplied the correct URL!'
+pid_mint_failure: 'Unable to create PID for URL {?}.'
+pid_mint_invalid_url: 'Invalid URL format: {?}'
+pid_mint_empty_url: 'You must provide a URL!'
+
+pid_revise_dead_url: 'The URL you specified is not active. Your change has been saved but please make sure you have the correct URL!'
+
 invalid_file_type: 'The file you upload must be in the CSV format!'
 no_file_selected: 'You must select a file to upload!'
 batch_process_success: 'Your CSV was successfully processed!'
@@ -46,3 +54,5 @@ batch_process_mint_inactive: 'Cannot mint a new inactive PID! Make sure that the
 batch_process_revise_failure: 'PID #{?} could not be updated - '
 batch_process_revise_wrong_group: 'PID #{?} does not belong to your group!'
 batch_process_revise_missing: 'PID #{?} does not exist!'
+
+reports_inactive_failure: 'There was a problem retrieving the list of inactive PIDs.'

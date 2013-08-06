@@ -248,8 +248,13 @@ class PidApp < Sinatra::Application
                          :modified_at => Time.now,
                           :dead_pid_url => "#{hostname}link/dead"})
         
-            @msg = MESSAGE_CONFIG['pid_update_success']
-        
+            # Check to see if the PID's URL is valid, if not WARN the user
+            if verify_url(url) != 200
+              @msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', @pid.id) 
+            else
+              @msg = MESSAGE_CONFIG['pid_update_success']
+            end
+            
           rescue Exception => e
             @msg = MESSAGE_CONFIG['pid_update_failure'] 
             @msg += e.message
@@ -286,7 +291,7 @@ class PidApp < Sinatra::Application
     params[:new_urls].lines do |line|
       
       change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
-      notes = "Incoming request from #{request.ip} to mint #{url}" if request.referrer != "#{hostname}link/new"
+      notes = MESSAGE_CONFIG['pid_mint_default_note'].gsub('{?ip?}', request.ip).gsub('{?}', url) if request.referrer != "#{hostname}link/new"
       
       url = line.strip.gsub("\r\n", '').gsub("\n", '')
       
@@ -301,24 +306,27 @@ class PidApp < Sinatra::Application
                            :notes => notes)
             @successes << pid
           
+            # Check to see if the PID's URL is valid, if not WARN the user
+            @failures[line.strip] = MESSAGE_CONFIG['pid_mint_dead_url'].gsub('{?}', pid.id.to_s) if verify_url(url) != 200
+
           rescue Exception => e
-            fatal = true
-            @failures[line.strip] = "Unable to create PID for #{url}. #{e.message}"
+            fatal = true 
+            @failures[line.strip] = "#{MESSAGE_CONFIG['pid_mint_failure'].gsub('{?}', url)} - #{e.message}"
           end
         
         else
-          @failures[line.strip] = "Invalid URL format for #{url}"
+          @failures[line.strip] = MESSAGE_CONFIG['pid_mint_invalid_url'].gsub('{?}', url) 
         end
       
       else
-        @failures[line.strip] = "URL was empty #{url}"
+        @failures[line.strip] = MESSAGE_CONFIG['pid_mint_empty_url']
       end
       
     end
     
     if fatal                      # If any 500s were returned we should flag it with a 500
       response.status = 500
-    elsif @failures.count > 0     # If we had at least one failure return a 400
+    elsif @failures.count - @successes.count > 0     # If we had at least one failure return a 400 (inactive URLs are in here so check against success count!)
       response.status = 400
     else                          # We had no failures 302 (per PURL spec for success minting)
       response.status = 302
@@ -329,7 +337,7 @@ class PidApp < Sinatra::Application
 
 # ---------------------------------------------------------------
 # Verify the URL by doing a GET - for future use
-# ---------------------------------------------------------------  
+# ---------------------------------------------------------------
   before '/link' do
     redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
   end
@@ -358,40 +366,7 @@ class PidApp < Sinatra::Application
     res.code.to_i
   end
     
-# ---------------------------------------------------------------
-# Performs the mint and interprets the results for the route
-# ---------------------------------------------------------------  
-  def mint_pid(new_url, referrer, user)
-    change_category = (referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
-      
-    url = new_url.strip.gsub("\r\n", '').gsub("\n", '')
-      
-    unless url.empty?
-      if url =~ @@url_pattern
-      
-        begin
-          pid = Pid.mint(:url => url, 
-                         :username => user.login,
-                         :group => user.group,
-                         :change_category => change_category,
-                         :notes => "Incoming request from #{request.ip} to mint #{url}")
-          
-          {:code => 200, :message => pid}
-          
-        rescue Exception => e
-          {:code => 500, :message => "Unable to create PID for #{url}. #{e.message}"}
-        end
-        
-      else
-        {:code => 400, :message => "Invalid URL format for #{url}"}
-      end
-      
-    else
-      {:code => 404, :message => "URL was empty #{url}"}
-    end
-      
-  end
-  
+    
 private
   def get_search_defaults 
     group = current_user.group 
