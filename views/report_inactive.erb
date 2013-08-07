@@ -1,35 +1,67 @@
 <section id="inactive_report">
-	<h3><%= HTML_CONFIG['header_report_inactive'] %></h3>
-	
-	<a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
-	
-	<% i = 1 %>
-  <% unless @results.empty? %>
+  <h3><%= HTML_CONFIG['header_report_inactive'] %></h3>
+  
+  <a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+  
+  <% unless @json == '' %>
+    <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
     <table>
       <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_deactivated_by'] %></th>
-        <th><%= HTML_CONFIG['th_deactivated_on'] %></th></tr>
-      <% @results.each do |result| %>
-        <tr>
-          <td><%= i %>)</td>
-          <td>
-            <a href="/link/<%= result.id %>" class="letterpress"><%= result.id %></a>
-          </td>
-          <td><a href="<%= result.url %>" target="_blank" class="underline" title="<%= result.url %>">
-                  <%= (result.url.size > 80) ? result.url.slice(0, 79) + ' ...' : result.url %></a></td>
-          <td><%= result.username %></td>
-          <td><%= result.modified_at.strftime("%m/%d/%Y") %></td>
-        </tr>
-        
-        <% i = i.next %>
-      <% end %>
+          <th><%= HTML_CONFIG['th_deactivated_on'] %></th></tr>
     </table>
+    
+    <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
+    <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
   <% else %>
     <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
   <% end %>
-	
-	<div class="errors">
-		<%= @msg %>
-	</div>
-	
+  
 </section>
+
+<section class="errors">
+  <%= @msg %>
+</section>
+
+
+<script type="text/javascript">
+  
+  // Add a line to the table for each item in the JSON
+  var i = 1;
+  $.each($.parseJSON('<%= @json.gsub("'", '%27') %>'), function(idx, pid) {
+    var dt = new Date(pid.modified_at);
+    var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
+    
+    $("table tr:last").after("<tr>" +
+                              "<td>" + i + ")</td>" + 
+                              "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
+                              "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
+                                            ((pid.url.length > 80) ? pid.url.substring(0, 79) + " ..." : pid.url) + "</td>" +
+                              "<td>" + pid.username + "</td>" +
+                              "<td>" + modified + "</td>" +
+                            "</tr>");
+    i++;
+  });
+
+  // convert the JSON into a CSV output
+  $(".download").click( function(){
+    var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_deactivated_by'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_deactivated_on'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_change_category'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>\r\n';
+    
+    $.each($.parseJSON($("#data").val()), function(idx, pid) {
+      lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
+                  pid.change_category + '", "' + pid.notes + '"\r\n';
+    });
+    
+    alert(lines);
+    
+    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+  });
+
+</script>
+	

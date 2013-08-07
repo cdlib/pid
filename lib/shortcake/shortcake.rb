@@ -1,5 +1,6 @@
 require 'redis'
 require 'uri'
+require 'json'
 
 class Shortcake
   VALID_NS = Regexp.compile(/^[a-z0-9]{1,5}$/)
@@ -17,6 +18,10 @@ class Shortcake
   
   def update(shortcode, url)
     raise CodeDoesNotExist if !@redis.exists("sc:#{@ns}:codes:#{shortcode}")
+    
+    # Remove the PID association from its old URL!
+    clear_reverse_reference(shortcode, url)
+    
     create_url(shortcode, url, true)
   end
   
@@ -39,7 +44,8 @@ class Shortcake
   end
   
   def dbsize
-    @redis.dbsize
+    #@redis.dbsize
+    @redis.keys("sc:#{@ns}:codes:*").size
   end
   
   def codes
@@ -52,10 +58,52 @@ class Shortcake
     #raise ValidURLRequired if (url =~ URI::regexp).nil?
     raise ValidURLRequired if (url =~ PidApp::URI_REGEX).nil?
     raise CodeExists if !override && @redis.exists("sc:#{@ns}:codes:#{shortcode}")
+    
     @redis.multi do |multi|
       @redis.set("sc:#{@ns}:codes:#{shortcode}", url)
     end
+    
+    # Store by the URL as well so we can check for duplicates more easily
+    save_reverse_references(shortcode, url)
+    
     return true
+  end
+  
+  def clear_reverse_reference(shortcode, url)
+    old = @redis.get("url:#{@ns}:codes:#{url}")
+    pids = []
+    
+    # If the URL is associated wit hthe PID, remove the reference
+    if !old.nil?  
+      pids = JSON.parse(@redis.get("url:#{@ns}:codes:#{url}"))
+      pids.delete(shortcode)
+      
+      # If that was the only PID associated with that URL, remove the record
+      if pids.empty?
+        @redis.multi do |multi|
+          @redis.del("url:#{@ns}:codes:#{url}")
+        end
+        
+      # Otherwise update the record 
+      else
+        @redis.multi do |multi|
+          @redis.set("url:#{@ns}:codes:#{url}", pids.to_json)
+        end
+      end
+    end
+  end
+  
+  def save_reverse_references(shortcode, url)
+    old = @redis.get("url:#{@ns}:codes:#{url}")
+    pids = []
+
+    pids = JSON.parse(@redis.get("url:#{@ns}:codes:#{url}")) unless old.nil?
+    
+    pids << shortcode
+
+    @redis.multi do |multi|
+      @redis.set("url:#{@ns}:codes:#{url}", pids.to_json)
+    end
   end
 end
 

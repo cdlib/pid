@@ -25,8 +25,6 @@
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
 		<input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
-
-  <article><%= HTML_CONFIG['search_text'] %></article>
   
 </section>
 
@@ -37,13 +35,13 @@
 		
     <% i = 1 %>
     <% unless @results.empty? %>
-      <table>
+      <table style="border: 1pt solid #000;">
         <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
           <th><%= HTML_CONFIG['th_modified_date'] %></th><th><%= HTML_CONFIG['th_active'] %></th></tr>
         <% @results.each do |result| %>
           <tr>
 						<% if result[:versions].count > 1 %>
-							<td colspan="6"><table>
+
 								<tr>
 									<td rowspan="<%= result[:versions].count %>"><%= i %>)</td>
 									<td rowspan="<%= result[:versions].count %>"><a href="/link/<%= result[:id] %>" class="letterpress"><%= result[:id] %></a></td>
@@ -66,7 +64,7 @@
 									<% end %>
 								<% end %>
 								
-							</table></td>
+
 						<% else %>
           		<td><%= i %>)</td>
           		<td><a href="/link/<%= result[:id] %>" class="letterpress"><%= result[:id] %></a></td>

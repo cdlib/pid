@@ -99,6 +99,7 @@ button_search: 'Search'
 button_reset: 'Reset'
 button_update_pid: 'Save'
 button_process_batch: 'Upload'
+button_csv_download: 'Download as CSV'
 
 # Table headings
 th_userid: 'User Id'
@@ -115,6 +116,8 @@ th_modified_date: 'Updated'
 th_deactivated_by: 'Deactivated By'
 th_deactivated_on: 'Deactivated On'
 th_duplicate_pids: 'Duplicate PIDs'
+th_change_category: 'Change Category'
+th_notes: 'Notes'
 
 # True/False values in tables
 td_true: 'Yes'
@@ -134,7 +137,7 @@ unauthorized_text:
   "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 
   this is a mistake."	
 
-search_text: 'This utility will only return 100 results at a time. If your search returned 5,000 PIDs, you should refine your criteria.'
+search_text: 'This utility will only return 5,000 results at a time. If your search returned 5,000 PIDs, you should refine your criteria.'
 
 reports_text: 
   "Please select on of the following reports below:

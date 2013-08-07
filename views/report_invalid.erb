@@ -7,80 +7,95 @@
     <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
 		
 	<% else %>
-		<% unless @error.empty? %>
+	
+  	<% unless @error.empty? %>
 			<h4><%= HTML_CONFIG['header_report_invalid_error'] %></h4>
-  
-			<% i = 1 %>
-			<table>
+    	<button id="error" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
+    	<table id="error_table">
       	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-        		<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-      	<% @error.each do |err| %>
-        	<tr>
-          	<td><%= i %>)</td>
-          	<td>
-            	<a href="/link/<%= err.id %>" class="letterpress"><%= err.id %></a>
-          	</td>
-          	<td><a href="<%= err.url %>" target="_blank" class="underline" title="<%= err.url %>">
-                  	<%= (err.url.size > 80) ? err.url.slice(0, 79) + ' ...' : err.url %></a></td>
-          	<td><%= err.username %></td>
-          	<td><%= err.modified_at.strftime("%m/%d/%Y") %></td>
-        	</tr>
-        
-        	<% i = i.next %>
-      	<% end %>
+      			<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
     	</table>
-		<% end %>
-  
-		<% unless @not_found.empty? %>
+    
+    	<input type="hidden" id="error_json" value='<%= @error.gsub("'", '%27') %>' />
+  	<% end %>
+	
+  	<% unless @not_found.empty? %>
 			<h4><%= HTML_CONFIG['header_report_invalid_not_found'] %></h4>
-  
-			<% i = 1 %>
-			<table>
+    	<button id="not_found" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
+    	<table id="not_found_table">
       	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-        		<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-      	<% @not_found.each do |not_fnd| %>
-        	<tr>
-          	<td><%= i %>)</td>
-          	<td>
-            	<a href="/link/<%= not_fnd.id %>" class="letterpress"><%= not_fnd.id %></a>
-          	</td>
-          	<td><a href="<%= not_fnd.url %>" target="_blank" class="underline" title="<%= not_fnd.url %>">
-                  	<%= (not_fnd.url.size > 80) ? not_fnd.url.slice(0, 79) + ' ...' : not_fnd.url %></a></td>
-          	<td><%= not_fnd.username %></td>
-          	<td><%= not_fnd.modified_at.strftime("%m/%d/%Y") %></td>
-        	</tr>
-        
-        	<% i = i.next %>
-      	<% end %>
+      			<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
     	</table>
-		<% end %>
+    
+    	<input type="hidden" id="not_found_json" value='<%= @not_found.gsub("'", '%27') %>' />
+  	<% end %>
 		
-		<% unless @moved.empty? %>
+  	<% unless @moved.empty? %>
 			<h4><%= HTML_CONFIG['header_report_invalid_moved'] %></h4>
-  
-			<% i = 1 %>
-			<table>
+    	<button id="moved" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
+    	<table id="moved_table">
       	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-        		<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-      	<% @moved.each do |mvd| %>
-        	<tr>
-          	<td><%= i %>)</td>
-          	<td>
-            	<a href="/link/<%= mvd.id %>" class="letterpress"><%= mvd.id %></a>
-          	</td>
-          	<td><a href="<%= mvd.url %>" target="_blank" class="underline" title="<%= mvd.url %>">
-                  	<%= (mvd.url.size > 80) ? mvd.url.slice(0, 79) + ' ...' : mvd.url %></a></td>
-          	<td><%= mvd.username %></td>
-          	<td><%= mvd.modified_at.strftime("%m/%d/%Y") %></td>
-        	</tr>
-        
-        	<% i = i.next %>
-      	<% end %>
+      			<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
     	</table>
-		<% end %>
+    
+    	<input type="hidden" id="moved_json" value='<%= @moved.gsub("'", '%27') %>' />
+  	<% end %>
+		
   <% end %>
 	
-	<div class="errors">
-		<%= @msg %>
-	</div>
 </section>
+
+<section class="errors">
+  <%= @msg %>
+</section>
+
+
+<script type="text/javascript">
+  
+  // Add a line to the table for each item in the JSON
+  var i = 1;
+	
+	function processJSON(name, json) {
+		$.each($.parseJSON(json), function(idx, pid) {
+    	var dt = new Date(pid.modified_at);
+    	var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
+    
+    	$("#" + name + "_table tr:last").after("<tr>" +
+                              "<td>" + i + ")</td>" + 
+                              "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
+                              "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
+                                            ((pid.url.length > 80) ? pid.url.substring(0, 79) + " ..." : pid.url) + "</td>" +
+                              "<td>" + pid.username + "</td>" +
+                              "<td>" + modified + "</td>" +
+                            "</tr>");
+    	i++;
+		});
+	}
+  
+	processJSON('error', '<%= @error.gsub("'", '%27') %>');
+	processJSON('not_found', '<%= @not_found.gsub("'", '%27') %>');
+	processJSON('moved', '<%= @moved.gsub("'", '%27') %>');
+
+  // convert the JSON into a CSV output
+  $(".download").click( function(){
+    var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_userid'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_modified_date'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_change_category'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>\r\n';
+    
+    $.each($.parseJSON($("#" + this.id + "_json").val()), function(idx, pid) {
+      lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
+                  pid.change_category + '", "' + pid.notes + '"\r\n';
+    });
+    
+    alert(lines);
+    
+    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+  });
+
+</script>

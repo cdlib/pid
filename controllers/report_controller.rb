@@ -1,23 +1,26 @@
+require 'json'
+
 class PidApp < Sinatra::Application
-  
 # ---------------------------------------------------------------
 # Get the list of inactive PIDs
 # ---------------------------------------------------------------
   get '/report/inactive' do
-    @results = []
+    pids = []
     
     begin
       # If the user is a super user, get all of the inactive PIDs otherwise just the ones for their group
       if current_user.super
-        @results = Pid.all(:deactivated => true)
+        pids = Pid.all(:deactivated => true)
       else
-        @results = Pid.all(:deactivated => true, :group => current_user.group)
+        pids = Pid.all(:deactivated => true, :group => current_user.group)
       end
       
     rescue Exception => e
       @msg = "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
     end
-    
+
+    @json = pids.to_json
+
     erb :report_inactive
   end
 
@@ -25,9 +28,11 @@ class PidApp < Sinatra::Application
 # Get the list of PIDs with invalid URLs
 # ---------------------------------------------------------------
   get '/report/invalid' do
-    @moved = []
-    @not_found = []
-    @error = []
+    pids = []
+    moved = []
+    not_found = []
+    error = []
+    @msg = ""
     
     begin
       # If the user is a super user, get all of the PIDs otherwise just the ones for their group
@@ -39,21 +44,29 @@ class PidApp < Sinatra::Application
       
       pids.each do |pid|
         
-        # Check the URLs for each of the PIDs
-        case verify_url(pid.url).to_i
-        when 300..399
-          @moved << pid
-        when 400..499
-          @not_found << pid
-        when 500..999
-          @error << pid
+        begin
+          # Check the URLs for each of the PIDs
+          case verify_url(pid.url).to_i
+          when 300..399
+            moved << pid
+          when 400..499
+            not_found << pid
+          when 500..999
+            error << pid
+          end
+          
+        rescue Exception => e
+          error << pid
         end
-        
       end
       
     rescue Exception => e
-      @msg = "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
+      @msg += "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
     end
+    
+    @moved = moved.to_json
+    @not_found = not_found.to_json
+    @error = error.to_json
     
     erb :report_invalid
   end

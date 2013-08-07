@@ -68,3 +68,7 @@ function validate(required_flds, email_flds, url_flds, must_match_flds){
 
   return ret;
 }
+
+function jsonToCsv(json){
+	
+}
