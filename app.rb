@@ -3,6 +3,7 @@
 # load shortcake (redis/url redirect wrapper)
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
 require 'shortcake'
+require "net/http"
 
 class PidApp < Sinatra::Application
   $stdout.puts "loading configuration files"
@@ -112,6 +113,24 @@ class PidApp < Sinatra::Application
       return User.get(session[:user])
     end
     
+    # ---------------------------------------------------------------
+    # Verify the URL by doing a GET - for future use
+    # ---------------------------------------------------------------  
+    def verify_url(url)
+      # SCP - not allowed by contract to check live URLs automatically
+      # for all journals. Will happen while loading seed data, editing in masse.
+      
+      #Test to make sure this a valid URL
+      uri = URI.parse(url)
+      req = Net::HTTP.new(uri.host, uri.port)
+      if uri.path.empty?
+        res = req.request_get(url)
+      else
+        res = req.request_head(uri.path) 
+      end
+          
+      res.code.to_i  
+    end
   end
 end
 

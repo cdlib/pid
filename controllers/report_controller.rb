@@ -174,21 +174,4 @@ puts "Ending duplicate report - #{Time.now}"
     redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
   end
 
-# ---------------------------------------------------------------
-# Verify the URL by doing a GET - for future use
-# ---------------------------------------------------------------  
-private
-    def verify_url(url)
-      # SCP - not allowed by contract to check live URLs automatically
-      # for all journals. Will happen while loading seed data, editing in masse.
-      
-      #Test to make sure this a valid URL
-      uri = URI.parse(url)
-      req = Net::HTTP.new(uri.host, uri.port)
-      res = req.request_head(uri.path)
-            
-      res.code.to_i
-      
-    end
-
 end

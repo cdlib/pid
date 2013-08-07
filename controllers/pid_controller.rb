@@ -1,5 +1,3 @@
-require "net/http"
-
 class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
 # Display the new PID form

@@ -159,6 +159,7 @@ class PidManageApp < Test::Unit::TestCase
     post '/user/login', { :login => @user.login, :password => @pwd }
     
     post '/link', { :new_urls => "http://cdlib.org\nhttp://google.com" }
+    
     assert last_response.redirect?, "Failure minting new PIDs. status: #{last_response.status}"  #302 = success according to PURL standard
     assert_equal 'http://cdlib.org', Pid.get(1).url, 'PID 1 was not the url we were expecting!'
     assert_equal 'http://google.com', Pid.get(2).url, 'PID 2 was not the url we were expecting!'
