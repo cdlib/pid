@@ -69,6 +69,31 @@ function validate(required_flds, email_flds, url_flds, must_match_flds){
   return ret;
 }
 
-function jsonToCsv(json){
-	
+function reset_form_criteria(err_msg){
+  // Do an ajax call to the report controller to grab the defaults
+  $.ajax({
+    url: '/report/defaults',
+    type: 'get',
+    success: function(data) { 
+      var defaults = $.parseJSON(data);
+      
+      $("#url").val('');
+      $("#userid").val('');
+
+      $("#pid_low").val(defaults.pid_min);
+      $("#pid_high").val(defaults.pid_max);
+
+      $("#created_low").val(defaults.created_low);
+      $("#created_high").val(defaults.created_high);
+      $("#modified_low").val(defaults.modified_low);
+      $("#modified_high").val(defaults.modified_high);
+      $("#accessed_low").val(defaults.accessed_low);
+      $("#accessed_high").val(defaults.accessed_high);
+
+      $("#active").val('');
+    },
+    error: function(data) {
+      $(".errors").html(err_msg);
+    }
+  });
 }

@@ -3,32 +3,76 @@
 	
 	<a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
 	
-	<% i = 1 %>
-  <% unless @results.empty? %>
+  <% unless @json == '' %>
+    <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
     <table>
       <tr><th /><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
-      <% @results.each do |url, pids| %>
-        <tr>
-          <td><%= i %>)</td>
-          <td><a href="<%= url %>" target="_blank" class="underline" title="<%= url %>">
-                  <%= (url.size > 80) ? url.slice(0, 79) + ' ...' : url %></a></td>
-          <td>
-						<% pids.split(',').each do |pid| %>
-            	<a href="/link/<%= pid %>" class="letterpress"><%= pid %></a>, 
-						<% end %>
-					</td>
-        </tr>
-        
-        <% i = i.next %>
-      <% end %>
     </table>
+    
+    <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
+    <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
   <% else %>
     <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
   <% end %>
 	
-	<div class="errors">
-		<%= @msg %>
-	</div>
-	
+		
 </section>
+
+<section class="errors">
+	<%= @msg %>
+</section>
+
+<script type="text/javascript">
+  
+  // Add a line to the table for each item in the JSON
+  var i = 1;
+  $.each($.parseJSON('<%= @json.gsub("'", '%27') %>'), function(url, pids) {
+    
+		col = ""
+		$.each(pids, function(idx, pid) {
+			col += '<a href="/link/' + pid + '" class="letterpress">' + pid + '</a>, '
+		});
+		
+    $("table tr:last").after("<tr>" +
+                              "<td>" + i + ")</td>" + 
+                              "<td><a href=\"" + url + "\" target=\"_blank\" class=\"underline\" title=\"" + url + "\">" +
+                                            ((url.length > 80) ? url.substring(0, 79) + " ..." : url) + "</td>" +
+                              "<td>" + col + "</td>" +
+                            "</tr>");
+    i++;
+  });
+
+  // convert the JSON into a CSV output
+  $(".download").click( function(){
+    var hdrs = '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
+								'<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,';
+    
+		var lines = '';
+		var max_pids = 1;
+		
+    $.each($.parseJSON($("#data").val()), function(url, pids) {
+			lines += url + ',';
+			
+			if(pids.length > max_pids){
+				max_pids = pids.length;
+			}
+			
+			$.each(pids, function(idx, pid) {
+				lines += pid + ',';
+			});
+			
+      lines += '\r\n';
+    });
+    
+		for(i = 0; i < (max_pids - 1); i++){
+			hdrs += '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,';
+		}
+		
+    hdrs += '\r\n';
+    
+    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(hdrs + lines));
+  });
+
+</script>

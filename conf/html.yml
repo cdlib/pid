@@ -35,6 +35,8 @@ header_report_invalid_moved: 'The following URLs are working but are redirected 
 header_report_duplicate: 'Duplicate URLs'
 header_report_maintenance_criteria: 'PID maintenance report criteria'
 header_report_maintenance_results: 'PID maintenance report results'
+header_report_usage_criteria: 'PID maintenance report criteria'
+header_report_usage_results: 'PID maintenance report results'
 header_help: 'Help'
 
 # Page based links to other pages
@@ -69,9 +71,11 @@ form_modified_by: 'Last Modified by:'
 form_change_category: 'Change Category:'
 form_old_url: 'Old URL:'
 form_urls: 'URL(s):'
+form_activity_date_range: 'Activity Date Range:'
 
 # No matches to the search
 search_no_matches: 'No PIDs matched your search criteria!'
+unable_to_load_criteria_defaults: 'Unable to retrieve the defaults for the criteria'
 
 report_no_activity: 'No PIDs found.'
 
@@ -113,6 +117,9 @@ th_affiliation: 'Affiliation'
 th_pid: 'PID'
 th_url: 'URL'
 th_modified_date: 'Updated'
+th_last_modified_on: 'Last Modified On'
+th_last_modified_by: 'Last Modified By'
+th_number_modifications: '# Times Modified'
 th_deactivated_by: 'Deactivated By'
 th_deactivated_on: 'Deactivated On'
 th_duplicate_pids: 'Duplicate PIDs'

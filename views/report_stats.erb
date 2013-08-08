@@ -4,85 +4,104 @@
   <form action="/report/stats" method="post">
     <label><%= HTML_CONFIG['form_url'] %></label><input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
     
-		<label><%= HTML_CONFIG['form_userid'] %></label>
+    <label><%= HTML_CONFIG['form_userid'] %></label>
     <select id="userid" name="userid">
     <option value=""></option>
-      <% @users.each do |user| %>
+      <% params[:users].each do |user| %>
         <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name %> (<%= user.login %>)</option>
       <% end %>
     </select>
     
-		<label><%= HTML_CONFIG['form_created_date_range'] %></label>
-		<input type="date" id="created_low" name="created_low" value="<%= params[:created_low] %>" />
-		<div> - </div> 
-		<input type="date" id="created_high" name="created_high" value="<%= params[:created_high] %>" />
-		
-		<label><%= HTML_CONFIG['form_modified_date_range'] %></label>
-		<input type="date" id="modified_low" name="modified_low" value="<%= params[:modified_low] %>" />
-		<div> - </div> 
-		<input type="date" id="modified_high" name="modified_high" value="<%= params[:modified_high] %>" />
-		
+    <label><%= HTML_CONFIG['form_created_date_range'] %></label>
+    <input type="date" id="created_low" name="created_low" value="<%= params[:created_low] %>" />
+    <div> - </div> 
+    <input type="date" id="created_high" name="created_high" value="<%= params[:created_high] %>" />
+    
+    <label><%= HTML_CONFIG['form_modified_date_range'] %></label>
+    <input type="date" id="modified_low" name="modified_low" value="<%= params[:modified_low] %>" />
+    <div> - </div> 
+    <input type="date" id="modified_high" name="modified_high" value="<%= params[:modified_high] %>" />
+    
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
-		<input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
+    <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
   
+</section>
+
+<section class="errors">
+  <%= @msg %>
 </section>
 
 <% if request.request_method == "POST" %>
   
   <section id="search_results">
     <h3><%= HTML_CONFIG['header_report_maintenance_results'] %></h3>
-		
-    <% i = 1 %>
-    <% unless @results.empty? %>
-      <table style="border: 1pt solid #000;">
-        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-          <th><%= HTML_CONFIG['th_modified_date'] %></th><th><%= HTML_CONFIG['th_active'] %></th></tr>
-        <% @results.each do |result| %>
-          <tr>
-						<% if result[:versions].count > 1 %>
-
-								<tr>
-									<td rowspan="<%= result[:versions].count %>"><%= i %>)</td>
-									<td rowspan="<%= result[:versions].count %>"><a href="/link/<%= result[:id] %>" class="letterpress"><%= result[:id] %></a></td>
-								
-									<td><a href="<%= result[:url] %>" target="_blank" class="underline" title="<%= result[:url] %>">
-                    			<%= (result[:url].size > 80) ? result[:url].slice(0, 79) + ' ...' : result[:url] %></a></td>
-            			<td><%= result[:username] %></td>
-            			<td><%= result[:modified_at].strftime("%m/%d/%Y") %></td>
-								  <td class="center"><%= (result[:deactivated]) ? '<span class="red bold">' + HTML_CONFIG['td_false'] + '</span>' : HTML_CONFIG['td_true'] %></td>
-								</tr>
-								
-								<% result[:versions].each do |ver| %>
-									<% if ver.created_at != result[:modified_at] %>
-										<tr>
-											<td><%= ver.url %></td>
-											<td><%= ver.username %></td>
-											<td><%= ver.created_at.strftime("%m/%d/%Y") %></td>
-											<td class="center"><%= (ver.deactivated) ? '<span class="red bold">' + HTML_CONFIG['td_false'] + '</span>' : HTML_CONFIG['td_true'] %></td>
-										</tr>
-									<% end %>
-								<% end %>
-								
-
-						<% else %>
-          		<td><%= i %>)</td>
-          		<td><a href="/link/<%= result[:id] %>" class="letterpress"><%= result[:id] %></a></td>
-            	<td><a href="<%= result[:url] %>" target="_blank" class="underline" title="<%= result[:url] %>">
-                    			<%= (result[:url].size > 80) ? result[:url].slice(0, 79) + ' ...' : result[:url] %></a></td>
-            	<td><%= result[:username] %></td>
-            	<td><%= result[:modified_at].strftime("%m/%d/%Y") %></td>
-            	<td class="center"><%= (result[:deactivated]) ? '<span class="red bold">' + HTML_CONFIG['td_false'] + '</span>' : HTML_CONFIG['td_true'] %></td>
-						<% end %>
-          </tr>
-          
-          <% i = i.next %>
-        <% end %>
+    
+    <a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+  
+    <% unless @json == '' %>
+      <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
+      <table>
+        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_last_modified_by'] %></th>
+            <th><%= HTML_CONFIG['th_last_modified_on'] %></th><th><%= HTML_CONFIG['th_active'] %></th>
+            <th><%= HTML_CONFIG['th_number_modifications'] %></th></tr>
       </table>
-      
+    
+      <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
+      <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
     <% else %>
-      <article id="no_results"><%= HTML_CONFIG['search_no_matches'] %></article>
+      <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
     <% end %>
-		
-	</section>
+  </section>
 <% end %>
+    
+<script type="text/javascript">
+  
+  // Add a line to the table for each item in the JSON
+  var i = 1;
+  $.each($.parseJSON('<%= @json.gsub("'", '%27') %>'), function(idx, pid) {
+    
+    var dt = new Date(pid.modified_at);
+    var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
+    
+    $("table tr:last").after("<tr>" +
+                              "<td>" + i + ")</td>" + 
+                              "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
+                              "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
+                                            ((pid.url.length > 70) ? pid.url.substring(0, 69) + " ..." : pid.url) + "</td>" +
+                              "<td>" + pid.username + "</td>" +
+                              "<td>" + modified + "</td>" +
+                              "<td class=\"center\">" + (pid.deactivated ? "<span class=\"red bold\"><%= HTML_CONFIG['td_false'] %></span>" : "<%= HTML_CONFIG['td_true'] %>") + "</td>" +
+                              "<td class=\"center\">" + pid.versions.length + "</td>" +
+                            "</tr>");
+    i++;
+  });
+
+  // convert the JSON into a CSV output
+  $(".download").click( function(){
+    var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_last_modified_by'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_last_modified_on'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_change_category'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_active'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_number_modifications'].gsub(':', '') %>\r\n';
+    
+    $.each($.parseJSON($("#data").val()), function(idx, pid) {
+      lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
+                  pid.change_category + '", "' + pid.notes + '", ' + (pid.deactivated ? false : true) + ', ' +
+                  pid.versions.length + '\r\n';
+    });
+    
+    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+  });
+  
+  $("#reset").click( function() {
+    event.preventDefault();
+    reset_form_criteria('<%= HTML_CONFIG['unable_to_load_criteria_defaults'] %>');
+  });
+
+</script>

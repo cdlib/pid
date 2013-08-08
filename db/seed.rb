@@ -1,4 +1,5 @@
 seed_config = YAML.load_file('db/seed.yml')
+config = YAML.load_file('conf/app.yml')
 
 $stdout.puts 'Seeding the database'
 
@@ -170,7 +171,7 @@ i = 0; j = 0; k = 0
 
 begin
   last_pid = nil
-  dead_pid_url = 'http://localhost:3000/link/dead'
+  dead_pid_url = APP_CONFIG['dead_pid_url']
   
   CSV.foreach(versions_file, :headers => true) do |row|
     incoming = spawn_object(Pid, row)

@@ -7,7 +7,7 @@
 		<label><%= HTML_CONFIG['form_userid'] %></label>
     <select id="userid" name="userid">
     <option value=""></option>
-      <% @users.each do |user| %>
+      <% params[:users].each do |user| %>
         <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name %> (<%= user.login %>)</option>
       <% end %>
     </select>
@@ -39,8 +39,10 @@
 		<input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
 
-  <article><%= HTML_CONFIG['search_text'] %></article>
-  
+</section>
+
+<section class="errors">
+	<%= @msg %>
 </section>
 
 <% if request.request_method == "POST" %>
@@ -49,27 +51,17 @@
     <h3><%= HTML_CONFIG['header_search_results'] %></h3>
     
     <% i = 1 %>
-    <% unless @results.empty? %>
+    <% unless @json == '' %>
+			<button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+			
       <table>
         <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
           <th><%= HTML_CONFIG['th_modified_date'] %></th><th><%= HTML_CONFIG['th_active'] %></th></tr>
-        <% @results.each do |result| %>
-          <tr>
-            <td><%= i %>)</td>
-            <td>
-              <a href="/link/<%= result.id %>" class="letterpress"><%= result.id %></a>
-            </td>
-            <td><a href="<%= result.url %>" target="_blank" class="underline" title="<%= result.url %>">
-                    <%= (result.url.size > 80) ? result.url.slice(0, 79) + ' ...' : result.url %></a></td>
-            <td><%= result.username %></td>
-            <td><%= result.modified_at.strftime("%m/%d/%Y") %></td>
-            <td class="center"><%= (result.deactivated) ? '<span class="red bold">' + HTML_CONFIG['td_false'] + '</span>' : HTML_CONFIG['td_true'] %></td>
-          </tr>
-          
-          <% i = i.next %>
-        <% end %>
       </table>
       
+      <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
+      <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+			
     <% else %>
       <article id="no_results"><%= HTML_CONFIG['search_no_matches'] %></article>
     <% end %>
@@ -78,20 +70,49 @@
 <% end %>
 
 <script type="text/javascript">
-	$("#reset").click( function(event){
-		event.preventDefault();
-		
-		$("#url").val('');
-		$("userid").val('');
-		
-		$("#pid_low").val('<%= @defaults[:pid_min] %>');
-		$("#pid_high").val('<%= @defaults[:pid_max] %>');
-		
-		$("#created_low").val('<%= @defaults[:created_low] %>');
-		$("#created_high").val('<%= @defaults[:created_high] %>');
-		$("#modified_low").val('<%= @defaults[:modified_low] %>');
-		$("#modified_high").val('<%= @defaults[:modified_high] %>');
-		
-		$("#active").val('');
+	// Add a line to the table for each item in the JSON
+	var i = 1;
+	$.each($.parseJSON('<%= @json.gsub("'", '%27') %>'), function(idx, pid) {
+  
+  	var dt = new Date(pid.modified_at);
+  	var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
+  
+ 	 	$("table tr:last").after("<tr>" +
+                            	"<td>" + i + ")</td>" + 
+                            	"<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
+                            	"<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
+                                          ((pid.url.length > 70) ? pid.url.substring(0, 69) + " ..." : pid.url) + "</td>" +
+                            	"<td>" + pid.username + "</td>" +
+                            	"<td>" + modified + "</td>" +
+                            	"<td class=\"center\">" + (pid.deactivated ? "<span class=\"red bold\"><%= HTML_CONFIG['td_false'] %></span>" : "<%= HTML_CONFIG['td_true'] %>") + "</td>" +
+                            "</tr>");
+  	i++;
 	});
+	if(i >= <%= APP_CONFIG['search_results_limit'] %> ){
+		$(".errors").html('<%= HTML_CONFIG['search_text'] %>');
+	}
+
+	// convert the JSON into a CSV output
+	$(".download").click( function(){
+  	var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
+    						'<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
+              	'<%= HTML_CONFIG['th_change_category'].gsub(':', '') %>,' +
+              	'<%= HTML_CONFIG['th_notes'].gsub(':', '') %>,' +
+              	'<%= HTML_CONFIG['th_userid'].gsub(':', '') %>,' +
+              	'<%= HTML_CONFIG['th_modified_date'].gsub(':', '') %>,' +
+              	'<%= HTML_CONFIG['th_active'].gsub(':', '') %>\r\n';
+  
+  	$.each($.parseJSON($("#data").val()), function(idx, pid) {
+    	lines += '' + pid.id + ',"' + pid.url + '","' + pid.change_category + '", "' + pid.notes + '", "' + 
+    							pid.username + '", "' + pid.modified_at + '", ' + (pid.deactivated ? false : true) + '\r\n';
+  	});
+  
+  	window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+	});
+
+	$("#reset").click( function() {
+		event.preventDefault();
+		reset_form_criteria('<%= HTML_CONFIG['unable_to_load_criteria_defaults'] %>');
+	});
+	
 </script>

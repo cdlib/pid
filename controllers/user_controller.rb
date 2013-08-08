@@ -374,7 +374,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
 # Redirect to the login if the user isn't authenticated for all but the login/logout/forgotten password/reset password pages
 # --------------------------------------------------------------------------------------------------------------
-  before /^(?!\/user\/(forgot|reset|login|logout))/ do
+  before /^\/user\/(?!(forgot|reset|login|logout))/ do
     redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
   end
   

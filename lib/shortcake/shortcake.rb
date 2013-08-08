@@ -30,7 +30,11 @@ class Shortcake
   end
   
   def get(shortcode)
-    @redis.get("sc:#{@ns}:codes:#{shortcode}")
+    ret = @redis.get("sc:#{@ns}:codes:#{shortcode}")
+    
+    ret = @redis.get("url:#{@ns}:codes:#{shortcode}") if ret.nil?
+    
+    ret
   end
   
   def delete(shortcode)
@@ -52,18 +56,25 @@ class Shortcake
     @redis.keys("sc:#{@ns}:codes:*").map { |key| key[@ns.length+10, key.length] }
   end
   
-  private 
+private 
   def create_url(shortcode, url, override=false)
+    existing = @redis.get("sc:#{@ns}:codes:#{shortcode}")
+    
     raise ValidCodeRequired if !shortcode.kind_of?(String) || !shortcode.match(VALID_CODE)
     #raise ValidURLRequired if (url =~ URI::regexp).nil?
     raise ValidURLRequired if (url =~ PidApp::URI_REGEX).nil?
-    raise CodeExists if !override && @redis.exists("sc:#{@ns}:codes:#{shortcode}")
+    raise CodeExists if !override && !existing.nil?
+    
+    # If the code already exists, detach it from its old URL
+    if !existing.nil?
+      clear_reverse_reference(shortcode, existing)
+    end
     
     @redis.multi do |multi|
       @redis.set("sc:#{@ns}:codes:#{shortcode}", url)
     end
     
-    # Store by the URL as well so we can check for duplicates more easily
+    # associate the code with its url
     save_reverse_references(shortcode, url)
     
     return true
