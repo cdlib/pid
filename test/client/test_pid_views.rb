@@ -33,7 +33,7 @@ class PidClientTestApp < Test::Unit::TestCase
     Maintainer.new(:group => @group, :user => @mgr).save
     
     Pid.mint(:url => 'http://www.testme.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
-    Pid.mint(:url => 'http://maps.testme.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
+    Pid.mint(:url => 'http://maps.testme.abc', :username => @mgr.login, :change_category => 'User_Entered', :group => @group)
     Pid.mint(:url => 'http://test.cdlib.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
     Pid.mint(:url => 'http://www.testit.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
   end
@@ -56,40 +56,33 @@ class PidClientTestApp < Test::Unit::TestCase
   end
   
   def test_post_search
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    
-    Pid.mint(:url => 'http://www.testme.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
-    Pid.mint(:url => 'http://maps.testme.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
-    Pid.mint(:url => 'http://test.cdlib.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
-    Pid.mint(:url => 'http://www.testit.abc', :username => @user.login, :change_category => 'User_Entered', :group => @group)
+    login(@user.login, @pwd)
     
     # Warning, any tests to count the number of <tr> returned should account for the <th> row!
     
-    # wilcard match 2 urls
-    post '/link/search', {:url => 'testme.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
-                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
-    assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status} (test: wilcard match 2 urls)"
-    assert_equal 2, last_response.body.gsub("<tr>").count, "Expected 2 PIDs but got #{last_response.body.gsub('<tr>').count - 1}"
+    visit '/link/search'
     
-    # wilcard match 1 url
-    post '/link/search', {:url => 'www.testit.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
-                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
-    assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status}  (test: wilcard match 1 url)"
-    assert_equal 2, last_response.body.gsub('<tr>').count, "Expected 1 PID but got #{last_response.body.gsub('<tr>').count - 1}"
+  # wilcard match 1 urls
+    fill_in 'url', with: 'test.cdlib.abc'
+#    select @mgr.id, from: 'userid' 
+    click_button 'submit'
     
-    # wilcard match ALL urls
-    post '/link/search', {:url => '.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
-                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
-    assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status} (test: wilcard match ALL urls)"
+    trs = page.all("tr")
+    assert_equal 2, trs.size, "Expected 1 results but found #{trs.size - 1}"
     
-    assert_equal 5, last_response.body.gsub('<tr>').count, "Expected 4 PIDs but got #{last_response.body.gsub('<tr>').count - 1}"
+  # wilcard match 2 urls
+    fill_in 'url', with: 'testme.abc'
+    click_button 'submit'
     
-    # specific url match
-    post '/link/search', {:url => 'http://test.cdlib.abc', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
-                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
-    assert last_response.ok?, "Something went wrong during the search, status: #{last_response.status}  (test: specific url match)"
-    assert_equal 2, last_response.body.gsub('<tr>').count, "Expected 1 exact PID match but got #{last_response.body.gsub('<tr>').count - 1}"
+    trs = page.all("tr")
+    assert_equal 3, trs.size, "Expected 2 results but found #{trs.size - 1}"
+
+  # wilcard match ALL urls
+    fill_in 'url', with: '.abc'
+    click_button 'submit'
     
+    trs = page.all("tr")
+    assert_equal 5, trs.size, "Expected 4 results but found #{trs.size - 1}"
     
     # Search for PID ranges
     # Search for users
@@ -98,39 +91,24 @@ class PidClientTestApp < Test::Unit::TestCase
   end
   
   def test_post_search_record_limit
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    
-    # ensure that a search with over 100 hits returns only 100 PIDs
-    urls = *(1..5000)
-    urls.each{ |url| Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.login, :change_category => 'User_Entered', :group => @group)}
-    
-    post '/link/search', {:url => 'testwikipedia.org/', :userid => '', :pid_low => 1, :pid_high => 6000, :created_low => '2013-07-01', 
-                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
-    assert last_response.ok?, "Something went wrong when searching for >5000 PIDs status: #{last_response.status}"
-    assert_equal 5001, last_response.body.gsub('<tr>').count, "Expected 100 PIDs but got #{last_response.body.gsub('<tr>').count - 1}"
-  end
-  
-=begin
-  def test_search_max_results
-    urls = *(1..APP_CONFIG['search_results_limit'].to_i)
-    urls.each{ |url| Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.login, :change_category => 'User_Entered', :group => @group)}
-    
-puts "Max search results = #{APP_CONFIG['search_results_limit'].to_i}"
-    
     login(@user.login, @pwd)
     
+    # ensure that a search with over 100 hits returns only 100 PIDs
+    urls = *(1..(APP_CONFIG['search_results_limit'] + 1))
+    urls.each do |url| 
+      Pid.mint(:url => 'http://www.testwikipedia.org/#{url}', :username => @user.login, :change_category => 'User_Entered', :group => @group)
+    end
+    
     visit '/link/search'
-
-puts "Clicking button on #{Time.now}"
-
-    #click_button 'submit'
-    find_button("submit").click()
     
-puts "moved to next command on #{Time.now}"
-    
-    assert_equal (APP_CONFIG['search_results_limit'].to_i + 1), last_response.body.gsub('<tr>').count, "Expected #{APP_CONFIG['search_results_limit'].to_i} PIDs but got #{last_response.body.gsub('<tr>').count - 1}"
+  # wilcard match 1 urls
+    fill_in 'url', with: 'testwikipedia.org/'
+#    select @mgr.id, from: 'userid' 
+    click_button 'submit'
+   
+    trs = page.all("tr")
+    assert_equal (APP_CONFIG['search_results_limit'].to_i + 1), trs.size, "Expected #{APP_CONFIG['search_results_limit']} results but found #{trs.size - 1}"
   end
-=end
   
 # --------------------------------------------------------------------------------------------------------
 # Helper methods 
