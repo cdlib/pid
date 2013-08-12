@@ -18,11 +18,11 @@
         <td><%= user.name %></td>
         <td><a href="mailto:<%= user.email %>" class="underline"><%= user.email %></a></td>
         <% if @super %>
-          <td><%= user.group.name %></td>
+          <td><%= (user.group.nil?) ? '<span class="errors">None</span>' : user.group.name %></td>
           <td><%= (Maintainer.first(:group => user.group, :user => user).nil?) ? '' : HTML_CONFIG['td_true'] %></td>
         <% end %>
-        <td><%= (user.active) ? HTML_CONFIG['td_true'] : '<span class="red">' + HTML_CONFIG['td_false'] + '</span>' %></td>
-        <td><%= (user.locked) ? '<span class="red bold">' + HTML_CONFIG['td_true'] + '</span>' : HTML_CONFIG['td_false'] %></td>
+        <td><%= (user.active) ? HTML_CONFIG['td_true'] : '<span class="errors">' + HTML_CONFIG['td_false'] + '</span>' %></td>
+        <td><%= (user.locked) ? '<span class="errors">' + HTML_CONFIG['td_true'] + '</span>' : HTML_CONFIG['td_false'] %></td>
         <td><%= user.affiliation %></td>
       </tr>
     <% end %>
