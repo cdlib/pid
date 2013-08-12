@@ -54,7 +54,7 @@ class PidApp < Sinatra::Application
   end
   
   configure :test do
-    args = ENV['DATABASE_URL'] ||= "sqlite::memory:"
+    args = "sqlite::memory:"
     set :session_secret, 'test_redis_secret'
   end
   
