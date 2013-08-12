@@ -30,18 +30,23 @@
               <li class="grey">|</li>
               <li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
               <li class="grey">|</li>
-              <li><a href="/user/list"><%= HTML_CONFIG['nav_user'] %></a></li>
-              <li class="grey">|</li>
               <li><a href="/link/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
-              <li class="grey">|</li>
-              <li><a href="/link/help"><%= HTML_CONFIG['nav_help'] %></a></li>
+              <% if @super %>
+                <li class="grey">|</li>
+                <li><a href="/user/list"><%= HTML_CONFIG['nav_users'] %></a></li>
+                <li class="grey">|</li>
+                <li><a href="/group/list"><%= HTML_CONFIG['nav_groups'] %></a></li>
+              <% else %>
+                <li class="grey">|</li>
+                <li><a href="/user/list"><%= HTML_CONFIG['nav_user'] %></a></li>
+              <% end %>
               <li class="grey">|</li>
               <li><a href="/user/logout" class="navy"><%= HTML_CONFIG['nav_logout'] %></a></li>
             </ul>
           </div>
         </nav>
       <% end %>
-    
+
       <%= yield %>
       
     </div>

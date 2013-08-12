@@ -1,0 +1,21 @@
+<section id="group_list">
+  <h3><%= HTML_CONFIG['header_group_list'] %></h3>
+  
+  <a href="/group/new" class="letterpress right"><%= HTML_CONFIG['link_to_create_group'] %></a>
+  
+  <table>
+    <tr>
+      <th><%= HTML_CONFIG['th_groupid'] %></th><th><%= HTML_CONFIG['th_group_name'] %></th><th><%= HTML_CONFIG['th_description'] %></th>
+      <th><%= HTML_CONFIG['th_users'] %></th><th><%= HTML_CONFIG['th_maintainers'] %></th>
+    </tr>
+    <% @groups.each do |group| %>
+      <tr>
+        <td><a href="/group/<%= group.id %>" class="letterpress"><%= group.id %></a></td>
+        <td><%= group.name %></td>
+        <td><%= group.description %></td>
+        <td class="center"><%= group.users.size %></td>
+        <td class="center"><%= group.maintainers.size %></td>
+      </tr>
+    <% end %>
+  </table>
+</section>

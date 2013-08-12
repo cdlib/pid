@@ -378,6 +378,11 @@ class PidApp < Sinatra::Application
     redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
   end
   
+  before '/*' do
+    if !current_user.nil?
+      @super = true if current_user.super
+    end
+  end
   
 # --------------------------------------------------------------------------------------------------------------
 # Process the login

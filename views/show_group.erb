@@ -1,0 +1,105 @@
+<section id="group_view">
+  <h3><%= HTML_CONFIG['header_group_view'] %></h3>
+
+  <a href="/user/list" class="letterpress right"><%= HTML_CONFIG['link_to_group_list'] %></a>
+
+  <form>
+    <label for="id"><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @group.id %></span>
+    <label for="name"><%= HTML_CONFIG['form_group_name'] %></label>
+    <input type="text" name="name" id="name" value="<%= @group.name %>" />
+    <label for="description"><%= HTML_CONFIG['form_description'] %></label>
+    <input type="text" name="description" id="description" value="<%= @group.description %>" />
+		
+		<label for="maintainers"><%= HTML_CONFIG['form_maintainers'] %></label>
+		<span id="maintainers" class="form_informational">
+			<ul>
+				<% @maintainers.each do |maintainer| %>
+					<li><%= maintainer.login %> - <%= maintainer.name %>
+					<img id="delete_maint_<%= maintainer.id %>" src="/notok_15.png" alt="<%= HTML_CONFIG['link_to_delete_group'] %>" class="delete" /></li>
+				<% end %>
+			</ul>
+		</span>
+		
+		<label for="users"><%= HTML_CONFIG['form_users'] %></label>
+		<span id="users" class="form_informational">
+			<ul>
+				<% @group.users.each do |user| %>
+					<li><%= user.login %> - <%= user.name %>
+					<img id="delete_user_<%= user.id %>" src="/notok_15.png" alt="<%= HTML_CONFIG['link_to_delete_group'] %>" class="delete" /></li>
+				<% end %>
+			</ul>
+		</span>
+  </form>
+
+</section>
+
+<section class="errors">
+  <%= "#{@msg}<br /><br />" %>
+
+  <% if @group.errors %>
+    <% @group.errors.full_messages.each do | message | %>
+      <%= message %></br>
+    <% end %>
+  <% end %>
+</section>
+
+
+<script type="text/javascript">
+  
+	$(".delete").click( function(event) {
+		event.preventDefault();
+		
+		var id = $(this).attr('id');
+		var parts = id.split('_');
+		var url = '';
+		
+		if(parts[1] == 'maint'){
+			url = '/group/<%= @group.id %>/maintainer/' + parts[2];
+		}else{
+			url = '/group/<%= @group.id %>/user/' + parts[2];
+		}
+		
+		$.ajax({
+			url: url,
+			type: 'delete',
+			success: function(data) {
+				$("#" + id).parent().remove();
+				$(".errors").css('color', '#298A08');
+				$(".errors").html(data);
+			},
+			error: function(data) {
+				$(".errors").html(data);
+			}
+		});
+		
+	});
+	
+  $("#submit").click( function(event){
+    event.preventDefault();
+
+    var validation = validate(["name"], [], [], []);
+
+    // If there were no validation errors submit the changes to the application
+    if( validation == '' ){
+
+      $.ajax({
+        url:      '/group/<%= @group.id %>',
+        type:     'put',
+        data:     $("form").serialize(), 
+        success:  function(data) {
+          $("body").html(data);
+          $(".errors").css('color', '#298A08');
+        },
+        error: function(data) {
+          $("body").html(data);
+        },
+        complete: {}
+      });
+
+    // Otherwise display the errors to the user.
+    }else{
+      $(".errors").html(validation);
+    }
+  });
+
+</script>

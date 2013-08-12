@@ -1,0 +1,180 @@
+class PidApp < Sinatra::Application
+# --------------------------------------------------------------------------------------------------------------
+# Display the group list
+# --------------------------------------------------------------------------------------------------------------
+  get '/group/list' do
+    @groups = Group.all
+    erb :list_groups
+  end
+
+# --------------------------------------------------------------------------------------------------------------
+# Display the create group page
+# --------------------------------------------------------------------------------------------------------------
+  get '/group/new' do
+    erb :new_group
+  end
+    
+# --------------------------------------------------------------------------------------------------------------
+# Find the specified group
+# --------------------------------------------------------------------------------------------------------------
+  get '/group/:id' do
+    @group = Group.get(params[:id])
+    @maintainers = []
+    
+    redirect to('/not_found') if @group.nil?
+    
+    @group.maintainers.each do |maintainer|
+      @maintainers << User.get(maintainer.user.id) 
+    end
+    erb :show_group
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+# Update the specified group with the values provided
+# --------------------------------------------------------------------------------------------------------------
+  put '/group/:id' do
+    @group = Group.get(params[:id])
+    @maintainers = []
+    redirect to('/not_found') if @group.nil?
+    begin
+      @group.update(params).save
+      
+      @group.maintainers.each do |maintainer|
+        @maintainers << User.get(maintainer.user.id) 
+      end
+      
+      @msg = MESSAGE_CONFIG['group_update_success']
+    rescue Exception => e
+      @msg = MESSAGE_CONFIG['group_update_failure']
+      @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+    end
+    erb :show_group
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+# Create a new group with the values provided
+# --------------------------------------------------------------------------------------------------------------
+  post '/group/:id' do
+    begin
+      Group.new(params).save
+      
+      @msg = MESSAGE_CONFIG['group_create_success']
+    rescue Exception => e
+      @msg = MESSAGE_CONFIG['group_create_failure']
+      @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+    end
+    erb :new_group
+  end
+    
+# --------------------------------------------------------------------------------------------------------------
+# Delete the specified group (All users and maintainers must be detached before deleting)
+# --------------------------------------------------------------------------------------------------------------
+  delete '/group/:id' do
+    @group = Group.get(params[:id])
+    redirect to('/not_found') if @group.nil?
+    begin
+      if @group.users.empty? && @group.maintainers.empty?
+        @group.delete
+      
+        @msg = MESSAGE_CONFIG['group_delete_success']
+      else
+        @msg = MESSAGE_CONFIG['group_delete_has_children']
+      end
+    rescue Exception => e
+      @msg = MESSAGE_CONFIG['group_delete_failure']
+      @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+    end
+    erb :show_group
+  end
+
+# --------------------------------------------------------------------------------------------------------------
+# Add the specified user as a maintainer of the specified group
+# --------------------------------------------------------------------------------------------------------------  
+  post '/group/:group/maintainer/:user' do
+    group = Group.get(params[:group])
+    @maintainers = []
+    redirect to('/not_found') if group.nil?
+    begin
+      Maintainers.new(:group => group, :user => User.get(params[:user])).save
+      
+      Group.get(params[:group]).maintainers.each do |maintainer|
+        @maintainers << User.get(maintainer.user.id) 
+      end
+      
+      @msg = MESSAGE_CONFIG['group_add_maintainer_success']
+    rescue Exception => e
+      @msg = MESSAGE_CONFIG['group_add_maintainer_failure']
+      @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+    end
+  end
+
+# --------------------------------------------------------------------------------------------------------------
+# Remove the specified user from the list of Maintainers for the specified group
+# --------------------------------------------------------------------------------------------------------------
+  delete '/group/:group/maintainer/:user' do    
+    group = Group.get(params[:group])
+    @maintainers = []
+    redirect to('/not_found') if group.nil?
+    begin
+      maintainer = Maintainer.first(:group => group, :user => User.get(params[:user]))
+      maintainer.destroy
+      
+      Group.get(params[:group]).maintainers.each do |maintainer|
+        @maintainers << User.get(maintainer.user.id) 
+      end
+      
+      @msg = MESSAGE_CONFIG['group_remove_maintainer_success']
+    rescue Exception => e
+      @msg = MESSAGE_CONFIG['group_remove_maintainer_failure']
+      @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+    end
+    @msg
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+# Add the specified user to the specified group
+# --------------------------------------------------------------------------------------------------------------
+  post '/group/:group/user/:user' do
+    group = Group.get(params[:group])
+    redirect to('/not_found') if group.nil?
+    begin
+      group.users << User.get(params[:user])
+      group.save
+      
+      @msg = MESSAGE_CONFIG['group_add_user_success']
+    rescue Exception => e
+      @msg = MESSAGE_CONFIG['group_add_user_failure']
+      @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+    end
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+# Remove the specified user from the specified group
+# --------------------------------------------------------------------------------------------------------------
+  delete '/group/:group/user/:user' do
+    group = Group.get(params[:group])
+    @msg = ""
+    redirect to('/not_found') if group.nil?
+    begin      
+      group.users.delete(User.get(params[:user]))
+      group.save
+      
+      @msg = MESSAGE_CONFIG['group_remove_user_success']
+    rescue Exception => e
+      @msg = MESSAGE_CONFIG['group_remove_user_failure']
+      @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+    end
+    
+    erb @msg, :layout => false
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+# Redirect to the login if the user isn't authenticated 
+# Redirect to the unauthorized page if the user is not a super admin
+# --------------------------------------------------------------------------------------------------------------
+  before '/group/*' do
+    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
+    redirect to('/unauthorized') unless current_user.super
+  end
+    
+end

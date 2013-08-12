@@ -1,7 +1,7 @@
 require 'digest/sha1'
 class User
   include DataMapper::Resource
-  belongs_to :group
+  belongs_to :group, :required => false
   #has 1, :maintainer, :required => false
   
   property :id, Serial, :key => true

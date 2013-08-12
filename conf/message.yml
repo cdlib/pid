@@ -31,6 +31,23 @@ user_update_success: 'Your changes have been saved.'
 user_update_failure: 'Unable to save your changes!'
 user_unauthorized: 'You do not have permission to view or change that user!'
 
+# Group controller messages
+group_update_success: 'The group has been saved.'
+group_update_failure: 'Unable to save your changes!'
+group_create_success: 'The group has been saved.'
+group_create_failure: 'Unable to save your changes!'
+group_delete_has_children: 'You must first remove all of the users and maintainers from the group!'
+group_create_success: 'The group has been deleted.'
+group_create_failure: 'Unable to delete the group!'
+group_add_user_success: 'Successfully added the user.'
+group_add_user_failure: 'Unable to add the user!'
+group_remove_user_success: 'Successfully removed the user.'
+group_remove_user_failure: 'Unable to remove the user!'
+group_add_maintainer_success: 'Successfully added the user.'
+group_add_maintainer_failure: 'Unable to add the user!'
+group_remove_maintainer_success: 'Sucessfully removed the user.'
+group_remove_maintainer_failure: 'Unable to remove the user!'
+
 # PID controller messages
 pid_update_success: 'Your changes have been saved.'
 pid_update_failure: 'Unable to save your changes.'
