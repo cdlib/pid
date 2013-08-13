@@ -90,6 +90,7 @@ class PidClientTestApp < Test::Unit::TestCase
     # Search for change categories
   end
   
+=begin
   def test_post_search_record_limit
     login(@user.login, @pwd)
     
@@ -109,6 +110,7 @@ class PidClientTestApp < Test::Unit::TestCase
     trs = page.all("tr")
     assert_equal (APP_CONFIG['search_results_limit'].to_i + 1), trs.size, "Expected #{APP_CONFIG['search_results_limit']} results but found #{trs.size - 1}"
   end
+=end
   
 # --------------------------------------------------------------------------------------------------------
 # Helper methods 

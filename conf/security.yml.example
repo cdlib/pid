@@ -4,6 +4,16 @@ session_secret: 'secret_word'
 # Session expiration in seconds
 session_expires: 900
 
+# Default system administrator (the system will create the specified group if it does not exist)
+create_default_admin: false
+default_group_id: 'ADM'
+default_group_name: 'Administrators'
+default_admin_login: 'admin'
+default_admin_password: 'password'
+default_admin_name: 'Administrator'
+default_admin_email: 'admin@institution.org'
+
+
 # The number of failed login attempts before the user's account is locked
 max_login_attempts: 5
 # The number of minutes after which an account will unlock automatically - leave blank to prevent accounts from auto-unlocking

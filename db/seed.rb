@@ -105,6 +105,10 @@ i = 0; j = 0
 CSV.foreach(users_file, :headers => true) do |row|
   user = spawn_object(User, row)
   
+  if user.password.nil?
+    user.password = seed_config['default_password']
+  end
+    
   if user.valid?
     begin
       user.save

@@ -3,6 +3,8 @@ require_relative '../test_helper'
 class PidGroupApp < Test::Unit::TestCase
   include Rack::Test::Methods
 
+  HTML_CONFIG = YAML.load_file('conf/html.yml')
+
   def app
     PidApp
   end
@@ -63,7 +65,7 @@ class PidGroupApp < Test::Unit::TestCase
     
     get "/group/list"
     assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
-    assert_equal 'http://example.org/group/list', last_response.location, 'Did not get to the group list page!'
+    assert last_response.body.include?(HTML_CONFIG['header_group_list']), 'Did not get to the group list page!'
   end
   
   def test_get_group
@@ -71,10 +73,7 @@ class PidGroupApp < Test::Unit::TestCase
     
     get "/group/#{@group.id}"
     assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
-    
-puts last_response.inspect
-    
-    assert_equal "http://example.org/group/#{@group.id}", last_response.location, 'Did not get to the group page!'
+    assert last_response.body.include?(HTML_CONFIG['header_group_view']), 'Did not get to the group page!'
   end
   
 # ---------------------------------------------------------------

@@ -19,40 +19,19 @@ class PidApp < Sinatra::Application
   DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/dead" : APP_CONFIG['dead_pid_url']
 
   enable :sessions # enable cookie-based sessions
-  set :session_secret, ENV[SECURITY_CONFIG['session_secret']]
+  set :session_secret, SECURITY_CONFIG['session_secret']
   set :sessions, :expire_after => SECURITY_CONFIG['session_expires']
   
   set :root, File.dirname(__FILE__)
   
-  args = nil
-  
-  configure :production do
-    args = {:adapter => DATABASE_CONFIG['db_adapter'],
+  args = args = {:adapter => DATABASE_CONFIG['db_adapter'],
             :host => DATABASE_CONFIG['db_host'],
             :port => DATABASE_CONFIG['db_port'].to_i,
             :database => DATABASE_CONFIG['db_name'],
-            :username => ENV[DATABASE_CONFIG['db_username']],
-            :password => ENV[DATABASE_CONFIG['db_password']]}
-  end
+            :username => DATABASE_CONFIG['db_username'],
+            :password => DATABASE_CONFIG['db_password']}
   
-  configure :development do
-    args = {:adapter => DATABASE_CONFIG['db_adapter'],
-            :host => DATABASE_CONFIG['db_host'],
-            :port => DATABASE_CONFIG['db_port'].to_i,
-            :database => DATABASE_CONFIG['db_name'],
-            :username => ENV[DATABASE_CONFIG['db_username']],
-            :password => ENV[DATABASE_CONFIG['db_password']]}
-  end
-  
-  configure :seeded do  
-    args = {:adapter => DATABASE_CONFIG['db_adapter'],
-            :host => DATABASE_CONFIG['db_host'],
-            :port => DATABASE_CONFIG['db_port'].to_i,
-            :database => DATABASE_CONFIG['db_name'],
-            :username => ENV[DATABASE_CONFIG['db_username']],
-            :password => ENV[DATABASE_CONFIG['db_password']]}
-  end
-  
+  # If we're in test mode switch to SQLite and a temp Redis secret
   configure :test do
     args = "sqlite::memory:"
     set :session_secret, 'test_redis_secret'
@@ -78,6 +57,23 @@ class PidApp < Sinatra::Application
     require_relative 'db/seed.rb'
   end
 
+  # Create the default admin account if the security file indicates that we should do so
+  if SECURITY_CONFIG['create_default_admin']
+    $stdout.puts 'Creating default administrator'
+    
+    grp = Group.get(SECURITY_CONFIG['default_group_id']) 
+    grp = Group.new({:id => SECURITY_CONFIG['default_group_id'], :name => SECURITY_CONFIG['default_group_name']}).save if grp.nil?
+
+    adm = User.new({:login => SECURITY_CONFIG['default_admin_login'],
+                    :name => SECURITY_CONFIG['default_admin_name'],
+                    :password => SECURITY_CONFIG['default_admin_password'],
+                    :email => SECURITY_CONFIG['default_admin_email'],
+                    :group => grp,
+                    :super => true})
+    grp.users << adm
+    grp.save
+  end
+  
   # OPTIMIZE - Should this go here?
   #reload the Redis database from the data stored in the DB
   if DATABASE_CONFIG['rebuild_redis_on_startup']
