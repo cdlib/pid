@@ -1,17 +1,16 @@
 rebuild_redis_on_startup: false
 
 db_adapter: 'mysql'
-db_host: 'mysql-dev.cdlib.org'
-db_port: '3322'
+
+db_host: 'server.domain.org'
+db_port: '3306'
 db_name: 'pid'
-
-#This system is expecting the names of Environment variables that contain the user id and password
-db_username: 'PID_DATABASE_USER'
-db_password: 'PID_DATABASE_PWD'
+db_username: 'user'
+db_password: 'password'
 
 
-#db_username: 'root'
-#db_password: ''
 #db_host: 'localhost'
 #db_port: '1433'
 #db_name: 'seeded'
+#db_username: 'root'
+#db_password: ''
