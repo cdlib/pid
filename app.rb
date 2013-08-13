@@ -8,11 +8,11 @@ require "net/http"
 class PidApp < Sinatra::Application
   $stdout.puts "loading configuration files"
   
-  APP_CONFIG = YAML.load_file('conf/app.yml')
-  DATABASE_CONFIG = YAML.load_file('conf/db.yml')
-  SECURITY_CONFIG = YAML.load_file('conf/security.yml')
-  MESSAGE_CONFIG = YAML.load_file('conf/message.yml')
-  HTML_CONFIG = YAML.load_file('conf/html.yml')
+  APP_CONFIG = YAML.load_file('conf/app.yml') if File.exists?('conf/app.yml')
+  DATABASE_CONFIG = YAML.load_file('conf/db.yml') if File.exists?('conf/db.yml')
+  SECURITY_CONFIG = YAML.load_file('conf/security.yml') if File.exists?('conf/security.yml')
+  MESSAGE_CONFIG = YAML.load_file('conf/message.yml') if File.exists?('conf/message.yml')
+  HTML_CONFIG = YAML.load_file('conf/html.yml') if File.exists('conf/html.yml')
 
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
@@ -35,6 +35,13 @@ class PidApp < Sinatra::Application
   configure :test do
     args = "sqlite::memory:"
     set :session_secret, 'test_redis_secret'
+    
+    # Use the default YAML files if there are none in the conf directory
+    APP_CONFIG = YAML.load_file('conf/app.yml.example') if APP_CONFIG.nil?
+    DATABASE_CONFIG = YAML.load_file('conf/db.yml.example') if DATABASE_CONFIG.nil?
+    SECURITY_CONFIG = YAML.load_file('conf/security.yml.example') if SECURITY_CONFIG.nil?
+    MESSAGE_CONFIG = YAML.load_file('conf/message.yml.example') if MESSAGE_CONFIG.nil?
+    HTML_CONFIG = YAML.load_file('conf/html.yml.example') if HTML_CONFIG.nil?
   end
   
   # set database
