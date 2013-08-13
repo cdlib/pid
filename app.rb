@@ -16,21 +16,6 @@ class PidApp < Sinatra::Application
 
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
-  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/dead" : APP_CONFIG['dead_pid_url']
-
-  enable :sessions # enable cookie-based sessions
-  set :session_secret, SECURITY_CONFIG['session_secret']
-  set :sessions, :expire_after => SECURITY_CONFIG['session_expires']
-  
-  set :root, File.dirname(__FILE__)
-  
-  args = args = {:adapter => DATABASE_CONFIG['db_adapter'],
-            :host => DATABASE_CONFIG['db_host'],
-            :port => DATABASE_CONFIG['db_port'].to_i,
-            :database => DATABASE_CONFIG['db_name'],
-            :username => DATABASE_CONFIG['db_username'],
-            :password => DATABASE_CONFIG['db_password']}
-  
   # If we're in test mode switch to SQLite and a temp Redis secret
   configure :test do
     args = "sqlite::memory:"
@@ -42,7 +27,25 @@ class PidApp < Sinatra::Application
     SECURITY_CONFIG = YAML.load_file('conf/security.yml.example') if SECURITY_CONFIG.nil?
     MESSAGE_CONFIG = YAML.load_file('conf/message.yml.example') if MESSAGE_CONFIG.nil?
     HTML_CONFIG = YAML.load_file('conf/html.yml.example') if HTML_CONFIG.nil?
+  else
+    args = args = {:adapter => DATABASE_CONFIG['db_adapter'],
+              :host => DATABASE_CONFIG['db_host'],
+              :port => DATABASE_CONFIG['db_port'].to_i,
+              :database => DATABASE_CONFIG['db_name'],
+              :username => DATABASE_CONFIG['db_username'],
+              :password => DATABASE_CONFIG['db_password']}
+  
+    set :session_secret, SECURITY_CONFIG['session_secret']
   end
+
+  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/dead" : APP_CONFIG['dead_pid_url']
+
+  enable :sessions # enable cookie-based sessions
+  
+  set :sessions, :expire_after => SECURITY_CONFIG['session_expires']
+  
+  set :root, File.dirname(__FILE__)
+  
   
   # set database
   $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
