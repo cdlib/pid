@@ -8,35 +8,28 @@ require "net/http"
 class PidApp < Sinatra::Application
   $stdout.puts "loading configuration files"
   
-  APP_CONFIG = YAML.load_file('conf/app.yml') if File.exists?('conf/app.yml')
-  DATABASE_CONFIG = YAML.load_file('conf/db.yml') if File.exists?('conf/db.yml')
-  SECURITY_CONFIG = YAML.load_file('conf/security.yml') if File.exists?('conf/security.yml')
-  MESSAGE_CONFIG = YAML.load_file('conf/message.yml') if File.exists?('conf/message.yml')
-  HTML_CONFIG = YAML.load_file('conf/html.yml') if File.exists?('conf/html.yml')
+  APP_CONFIG = YAML.load_file(File.exists?('conf/app.yml') ? 'conf/app.yml' : 'conf/app.yml.example')
+  DATABASE_CONFIG = YAML.load_file(File.exists?('conf/db.yml') ? 'conf/db.yml' : 'conf/db.yml.example')
+  SECURITY_CONFIG = YAML.load_file(File.exists?('conf/security.yml') ? 'conf/security.yml' : 'conf/security.yml.example')
+  MESSAGE_CONFIG = YAML.load_file(File.exists?('conf/message.yml') ? 'conf/message.yml' : 'conf/message.yml.example')
+  HTML_CONFIG = YAML.load_file(File.exists?('conf/html.yml') ? 'conf/html.yml' : 'conf/html.yml.example')
 
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+
+  args = {:adapter => DATABASE_CONFIG['db_adapter'],
+          :host => DATABASE_CONFIG['db_host'],
+          :port => DATABASE_CONFIG['db_port'].to_i,
+          :database => DATABASE_CONFIG['db_name'],
+          :username => DATABASE_CONFIG['db_username'],
+          :password => DATABASE_CONFIG['db_password']}
+  
+  set :session_secret, SECURITY_CONFIG['session_secret']
 
   # If we're in test mode switch to SQLite and a temp Redis secret
   configure :test do
     args = "sqlite::memory:"
     set :session_secret, 'test_redis_secret'
-    
-    # Use the default YAML files if there are none in the conf directory
-    APP_CONFIG = YAML.load_file('conf/app.yml.example') if APP_CONFIG.nil?
-    DATABASE_CONFIG = YAML.load_file('conf/db.yml.example') if DATABASE_CONFIG.nil?
-    SECURITY_CONFIG = YAML.load_file('conf/security.yml.example') if SECURITY_CONFIG.nil?
-    MESSAGE_CONFIG = YAML.load_file('conf/message.yml.example') if MESSAGE_CONFIG.nil?
-    HTML_CONFIG = YAML.load_file('conf/html.yml.example') if HTML_CONFIG.nil?
-  else
-    args = args = {:adapter => DATABASE_CONFIG['db_adapter'],
-              :host => DATABASE_CONFIG['db_host'],
-              :port => DATABASE_CONFIG['db_port'].to_i,
-              :database => DATABASE_CONFIG['db_name'],
-              :username => DATABASE_CONFIG['db_username'],
-              :password => DATABASE_CONFIG['db_password']}
-  
-    set :session_secret, SECURITY_CONFIG['session_secret']
-  end
+  end    
 
   DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/dead" : APP_CONFIG['dead_pid_url']
 
