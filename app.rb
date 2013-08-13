@@ -12,7 +12,7 @@ class PidApp < Sinatra::Application
   DATABASE_CONFIG = YAML.load_file('conf/db.yml') if File.exists?('conf/db.yml')
   SECURITY_CONFIG = YAML.load_file('conf/security.yml') if File.exists?('conf/security.yml')
   MESSAGE_CONFIG = YAML.load_file('conf/message.yml') if File.exists?('conf/message.yml')
-  HTML_CONFIG = YAML.load_file('conf/html.yml') if File.exists('conf/html.yml')
+  HTML_CONFIG = YAML.load_file('conf/html.yml') if File.exists?('conf/html.yml')
 
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 

@@ -12,4 +12,4 @@ redis_host: 'localhost'
 redis_port: 6379
 
 # Limit the number of results that are returned during a PID search
-search_results_limit: 5000
+search_results_limit: 50
