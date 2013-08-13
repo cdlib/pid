@@ -1,7 +1,7 @@
 <section id="group_view">
   <h3><%= HTML_CONFIG['header_group_view'] %></h3>
 
-  <a href="/user/list" class="letterpress right"><%= HTML_CONFIG['link_to_group_list'] %></a>
+  <a href="/group/list" class="letterpress right"><%= HTML_CONFIG['link_to_group_list'] %></a>
 
   <form>
     <label for="id"><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @group.id %></span>
@@ -9,26 +9,65 @@
     <input type="text" name="name" id="name" value="<%= @group.name %>" />
     <label for="description"><%= HTML_CONFIG['form_description'] %></label>
     <input type="text" name="description" id="description" value="<%= @group.description %>" />
-		
-		<label for="maintainers"><%= HTML_CONFIG['form_maintainers'] %></label>
-		<span id="maintainers" class="form_informational">
-			<ul>
-				<% @maintainers.each do |maintainer| %>
-					<li><%= maintainer.login %> - <%= maintainer.name %>
-					<img id="delete_maint_<%= maintainer.id %>" src="/notok_15.png" alt="<%= HTML_CONFIG['link_to_delete_group'] %>" class="delete" /></li>
-				<% end %>
-			</ul>
-		</span>
-		
-		<label for="users"><%= HTML_CONFIG['form_users'] %></label>
-		<span id="users" class="form_informational">
-			<ul>
-				<% @group.users.each do |user| %>
-					<li><%= user.login %> - <%= user.name %>
-					<img id="delete_user_<%= user.id %>" src="/notok_15.png" alt="<%= HTML_CONFIG['link_to_delete_group'] %>" class="delete" /></li>
-				<% end %>
-			</ul>
-		</span>
+    <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_save_group'] %>" />
+  </form>
+    
+  <h3><%= HTML_CONFIG['header_manage_maintainers'] %></h3>
+  <span id="maintainers" class="form_association">
+    <table id="maintainer_table">
+      <% @associations[:maintainers].each do |maintainer| %>
+        <tr>
+          <td />
+          <td><%= maintainer.login %> - <%= maintainer.name %></td>
+          <td colspan="2"><img id="delete_maintainer_<%= maintainer.id %>" src="/notok_15.png" alt="<%= HTML_CONFIG['link_to_delete_group'] %>" title="<%= HTML_CONFIG['link_to_delete_group'] %>" class="delete" /></td>
+        </tr>
+      <% end %>
+        
+      <% if !@associations[:available_maintainers].empty? %>
+        <tr>
+          <td><%= HTML_CONFIG['form_add_user'] %></td>
+          <td colspan="2">
+            <select id="new_maintainer" name="new_maintainer">
+              <option value=""></option>
+              <% @associations[:available_maintainers].each do |maintainer| %>
+                <option value="<%= maintainer.id %>"><%= maintainer.login %> - <%= maintainer.name %></option>
+              <% end %>
+            </select>
+          </td>
+          <td><img id="add_maintainer" src="/add_15.png" alt="<%= HTML_CONFIG['link_to_add_user'] %>" title="<%= HTML_CONFIG['link_to_add_user'] %>" class="add" /></td>
+        </tr>
+      <% end %>
+    </table>
+  </span>
+    
+    <h3><%= HTML_CONFIG['header_manage_users'] %></h3>
+    <span id="users" class="form_association">
+      <table id="user_table">
+        
+        <% @associations[:users].each do |user| %>
+          <tr>
+            <td />
+            <td><%= user.login %> - <%= user.name %></td>
+            <td colspan="2"><img id="delete_user_<%= user.id %>" src="/notok_15.png" alt="<%= HTML_CONFIG['link_to_delete_group'] %>" title="<%= HTML_CONFIG['link_to_delete_group'] %>" class="delete" /></td>
+          </tr>
+        <% end %>
+        
+        <% if !@associations[:available_users].empty? %>
+          <tr>
+            <td><%= HTML_CONFIG['form_add_user'] %></td>
+            <td colspan="2">
+              <select id="new_user">
+                <option value=""></option>
+                <% @associations[:available_users].each do |user| %>
+                  <option value="<%= user.id %>"><%= user.login %> - <%= user.name %></option>
+                <% end %>
+              </select>
+            </td>
+            <td><img id="add_user" src="/add_15.png" alt="<%= HTML_CONFIG['link_to_add_user'] %>" title="<%= HTML_CONFIG['link_to_add_user'] %>" class="add" /></td>
+          </tr>
+        <% end %>
+      </table>
+    </span>
   </form>
 
 </section>
@@ -46,34 +85,46 @@
 
 <script type="text/javascript">
   
-	$(".delete").click( function(event) {
-		event.preventDefault();
-		
-		var id = $(this).attr('id');
-		var parts = id.split('_');
-		var url = '';
-		
-		if(parts[1] == 'maint'){
-			url = '/group/<%= @group.id %>/maintainer/' + parts[2];
-		}else{
-			url = '/group/<%= @group.id %>/user/' + parts[2];
-		}
-		
-		$.ajax({
-			url: url,
-			type: 'delete',
-			success: function(data) {
-				$("#" + id).parent().remove();
-				$(".errors").css('color', '#298A08');
-				$(".errors").html(data);
-			},
-			error: function(data) {
-				$(".errors").html(data);
-			}
-		});
-		
-	});
-	
+  $(".delete").click( function(event) {
+    event.preventDefault();
+    
+    removePerson(this);
+    
+  });
+  
+  $(".add").click( function(event) {
+    event.preventDefault();
+    
+    var id = $(this).attr('id');
+    var parts = id.split('_');
+    
+    var url = '', name = '', id = '';
+        
+    url = '/group/<%= @group.id %>/' + parts[1] + '/' + $('#new_' + parts[1]).val();
+    id = $('#new_' + parts[1]).val();
+    name = $('#new_' + parts[1] + ' option:selected').text();
+    
+    $.ajax({
+      url: url,
+      type: 'post',
+      success: function(data) {
+        /* remove the selected user from the dropdown */
+        $('#new_' + parts[1] + " option[value='" + id + "']").remove();
+
+        /* Add the user to the table */
+        $('#' + parts[1] + '_table tr:first').before('<tr><td /><td>' + name + '<td colspan="2"><img id="delete_' + parts[1] + '_' + id +
+                                          '" src="/notok_15.png" alt="<%= HTML_CONFIG['link_to_delete_group'] %>" ' +
+                                          'title="<%= HTML_CONFIG['link_to_delete_group'] %>" class="delete" ' +
+                                          'onclick="removePerson(this);"/></td></tr>');
+        $(".errors").css('color', '#298A08');
+        $(".errors").html(data);
+      },
+      error: function(data) {
+        $(".errors").html(data);
+      }
+    });
+  });
+  
   $("#submit").click( function(event){
     event.preventDefault();
 
@@ -101,5 +152,31 @@
       $(".errors").html(validation);
     }
   });
+  
+  function removePerson(obj) {
+    var id = $(obj).attr('id');
+    var parts = id.split('_');
+    var url = '';
+    
+    url = '/group/<%= @group.id %>/' + parts[1] + '/' + parts[2];
+    
+    $.ajax({
+      url: url,
+      type: 'delete',
+      success: function(data) {
+        /* Add the person to the dropdown box */
+        $('#new_' + parts[1]).append('<option value="' + parts[2] + '">' + $('#' + id).parent().parent().find('td').eq(1).text() + '</option>');
+        
+        /* Remove the person from the table */
+        $("#" + id).parent().parent().remove();
+        
+        $(".errors").css('color', '#298A08');
+        $(".errors").html(data);
+      },
+      error: function(data) {
+        $(".errors").html(data);
+      }
+    });
+  }
 
 </script>

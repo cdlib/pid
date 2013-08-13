@@ -5,3 +5,4 @@
 *.lock
 .DS_Store
 vendor
+conf/*.yml

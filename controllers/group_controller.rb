@@ -19,13 +19,11 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   get '/group/:id' do
     @group = Group.get(params[:id])
-    @maintainers = []
     
     redirect to('/not_found') if @group.nil?
+
+    @associations = get_users_and_maintainer_lists(@group)
     
-    @group.maintainers.each do |maintainer|
-      @maintainers << User.get(maintainer.user.id) 
-    end
     erb :show_group
   end
   
@@ -34,20 +32,20 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   put '/group/:id' do
     @group = Group.get(params[:id])
-    @maintainers = []
+    
     redirect to('/not_found') if @group.nil?
+
     begin
-      @group.update(params).save
-      
-      @group.maintainers.each do |maintainer|
-        @maintainers << User.get(maintainer.user.id) 
-      end
+      @group.update(:name => params[:name], :description => params[:description])
       
       @msg = MESSAGE_CONFIG['group_update_success']
     rescue Exception => e
       @msg = MESSAGE_CONFIG['group_update_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
+    
+    @associations = get_users_and_maintainer_lists(@group)
+    
     erb :show_group
   end
   
@@ -92,20 +90,20 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------  
   post '/group/:group/maintainer/:user' do
     group = Group.get(params[:group])
-    @maintainers = []
+    @msg = ""
+    
     redirect to('/not_found') if group.nil?
+
     begin
-      Maintainers.new(:group => group, :user => User.get(params[:user])).save
-      
-      Group.get(params[:group]).maintainers.each do |maintainer|
-        @maintainers << User.get(maintainer.user.id) 
-      end
+      Maintainer.new(:group => group, :user => User.get(params[:user])).save
       
       @msg = MESSAGE_CONFIG['group_add_maintainer_success']
     rescue Exception => e
       @msg = MESSAGE_CONFIG['group_add_maintainer_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
+    
+    erb @msg, :layout => false
   end
 
 # --------------------------------------------------------------------------------------------------------------
@@ -113,22 +111,21 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   delete '/group/:group/maintainer/:user' do    
     group = Group.get(params[:group])
-    @maintainers = []
+    @msg = ""
+    
     redirect to('/not_found') if group.nil?
+
     begin
       maintainer = Maintainer.first(:group => group, :user => User.get(params[:user]))
       maintainer.destroy
-      
-      Group.get(params[:group]).maintainers.each do |maintainer|
-        @maintainers << User.get(maintainer.user.id) 
-      end
       
       @msg = MESSAGE_CONFIG['group_remove_maintainer_success']
     rescue Exception => e
       @msg = MESSAGE_CONFIG['group_remove_maintainer_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
-    @msg
+    
+    erb @msg, :layout => false
   end
   
 # --------------------------------------------------------------------------------------------------------------
@@ -136,7 +133,10 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   post '/group/:group/user/:user' do
     group = Group.get(params[:group])
+    @msg = ""
+    
     redirect to('/not_found') if group.nil?
+    
     begin
       group.users << User.get(params[:user])
       group.save
@@ -146,6 +146,8 @@ class PidApp < Sinatra::Application
       @msg = MESSAGE_CONFIG['group_add_user_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
+    
+    erb @msg, :layout => false
   end
   
 # --------------------------------------------------------------------------------------------------------------
@@ -154,7 +156,9 @@ class PidApp < Sinatra::Application
   delete '/group/:group/user/:user' do
     group = Group.get(params[:group])
     @msg = ""
+    
     redirect to('/not_found') if group.nil?
+    
     begin      
       group.users.delete(User.get(params[:user]))
       group.save
@@ -177,4 +181,19 @@ class PidApp < Sinatra::Application
     redirect to('/unauthorized') unless current_user.super
   end
     
+private
+  def get_users_and_maintainer_lists(group)
+    ret = {:users => [], :maintainers => [], :available_users => [], :available_maintainers => []}
+    
+    if !group.nil?
+      group.users.each{ |user| ret[:users] << user }
+      Group.get(group.id).maintainers.each{ |maintainer| ret[:maintainers] << User.get(maintainer.user.id) }
+      
+      User.all.each{ |user| ret[:available_users] << user unless group.users.include?(user) }
+      User.all.each{ |user| ret[:available_maintainers] << user unless ret[:maintainers].include?(user) }
+    end
+    
+    ret
+  end
+
 end

@@ -42,6 +42,8 @@ header_report_maintenance_results: 'PID maintenance report results'
 header_report_usage_criteria: 'PID maintenance report criteria'
 header_report_usage_results: 'PID maintenance report results'
 header_help: 'Help'
+header_manage_maintainers: 'Managers'
+header_manage_users: 'Users'
 
 # Page based links to other pages
 link_to_login: 'Login'
@@ -51,7 +53,8 @@ link_to_user_list: 'Return to the user list'
 link_to_create_group: 'Create a new group'
 link_to_group_list: 'Return to the group list'
 link_to_reports: 'Return to the report list'
-link_to_delete_group: 'Delete'
+link_to_delete_group: 'Remove'
+link_to_add_user: 'Add'
 
 # Form elements
 form_userid: 'User Id:'
@@ -84,6 +87,7 @@ form_group_name: 'Name:'
 form_description: 'Description:'
 form_maintainers: 'Managers:'
 form_users: 'Users:'
+form_add_user: 'Add:'
 
 # No matches to the search
 search_no_matches: 'No PIDs matched your search criteria!'
@@ -116,6 +120,7 @@ button_reset: 'Reset'
 button_update_pid: 'Save'
 button_process_batch: 'Upload'
 button_csv_download: 'Download as CSV'
+button_save_group: 'Save'
 
 # Table headings
 th_userid: 'User Id'
