@@ -5,8 +5,6 @@ class UserClientTestApp < Test::Unit::TestCase
   include Capybara::DSL
   
   Capybara.app = PidApp.new
-  MESSAGE_CONFIG = YAML.load_file('conf/message.yml')
-  HTML_CONFIG = YAML.load_file('conf/html.yml')
   
   def app
     PidApp
@@ -51,7 +49,7 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'login', with: @user.login
     click_button 'submit'
   
-    assert page.has_content?(MESSAGE_CONFIG['no_password']), 'Did not receive the missing password message!'
+    assert page.has_content?(PidApp::MESSAGE_CONFIG['no_password']), 'Did not receive the missing password message!'
   end
 
   def test_login_missing_userid
@@ -60,7 +58,7 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'password', with: @pwd
     click_button 'submit'
   
-    assert page.has_content?(MESSAGE_CONFIG['no_login']), 'Did not receive the missing userid message!'
+    assert page.has_content?(PidApp::MESSAGE_CONFIG['no_login']), 'Did not receive the missing userid message!'
   end  
   
 # --------------------------------------------------------------------------------------------------------
@@ -141,17 +139,17 @@ class UserClientTestApp < Test::Unit::TestCase
     visit "/user/reset?n=#{reset_params[:n]}&c=#{reset_params[:c]}"
 
     click_button 'submit'
-    assert !page.has_content?("#{HTML_CONFIG['form_new_password']} cannot be blank!"), 'Was able to leave the password blank!'
-    assert !page.has_content?("#{HTML_CONFIG['form_confirm_password']} cannot be blank!"), 'Was able to leave the password confirmation blank!'
+    assert !page.has_content?("#{PidApp::HTML_CONFIG['form_new_password']} cannot be blank!"), 'Was able to leave the password blank!'
+    assert !page.has_content?("#{PidApp::HTML_CONFIG['form_confirm_password']} cannot be blank!"), 'Was able to leave the password confirmation blank!'
 
     fill_in 'password', with: @pwd
     click_button 'submit'
-    assert !page.has_content?("#{HTML_CONFIG['form_confirm_password']} cannot be blank!"), 'Was able to leave the password confirmation blank!'
+    assert !page.has_content?("#{PidApp::HTML_CONFIG['form_confirm_password']} cannot be blank!"), 'Was able to leave the password confirmation blank!'
 
     fill_in 'password', with: ''
     fill_in 'confirm', with: @pwd
     click_button 'submit'
-    assert !page.has_content?("#{HTML_CONFIG['form_new_password']} cannot be blank!"), 'Was able to leave the password blank!'
+    assert !page.has_content?("#{PidApp::HTML_CONFIG['form_new_password']} cannot be blank!"), 'Was able to leave the password blank!'
   end
 
   def test_reset_password_mismatch
@@ -162,7 +160,7 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'password', with: 'change_it'
     fill_in 'confirm', with: 'change'
     click_button 'submit'
-    assert !page.has_content?("#{HTML_CONFIG['form_new_password']} and #{HTML_CONFIG['form_confirm_password']} MUST match!"), 'Was able to submit passwords that do not match!'
+    assert !page.has_content?("#{PidApp::HTML_CONFIG['form_new_password']} and #{PidApp::HTML_CONFIG['form_confirm_password']} MUST match!"), 'Was able to submit passwords that do not match!'
   end
 
 # --------------------------------------------------------------------------------------------------------
@@ -173,8 +171,8 @@ class UserClientTestApp < Test::Unit::TestCase
     
     visit "/user/list"
 
-    assert page.has_content?(HTML_CONFIG['th_email']), 'The email column header was not found!'
-    assert page.has_content?(HTML_CONFIG['th_name']), 'The name column header was not found!'
+    assert page.has_content?(PidApp::HTML_CONFIG['th_email']), 'The email column header was not found!'
+    assert page.has_content?(PidApp::HTML_CONFIG['th_name']), 'The name column header was not found!'
   end
 
 # --------------------------------------------------------------------------------------------------------
@@ -198,9 +196,9 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'name', with: ''
     fill_in 'email', with: ''
     click_button 'submit'
-    assert page.has_content?("#{HTML_CONFIG['form_userid'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank user id!'
-    assert page.has_content?("#{HTML_CONFIG['form_name'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank name!'
-    assert page.has_content?("#{HTML_CONFIG['form_email'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank email!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_userid'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank user id!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_name'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank name!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_email'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank email!'
   end
 
   def test_show_user_invalid_email
@@ -221,7 +219,7 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'password', with: 'change_it'
     fill_in 'confirm', with: 'change'
     click_button 'submit'
-    assert page.has_content?("#{HTML_CONFIG['form_new_password'].gsub(':', '')} and #{HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_new_password'].gsub(':', '')} and #{PidApp::HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
   end
 
   def test_show_userid_unique
@@ -252,7 +250,7 @@ class UserClientTestApp < Test::Unit::TestCase
 
     fill_in 'email', with: 'this.is@goodemail.org'
     click_button 'submit'
-    assert page.has_content?(MESSAGE_CONFIG['user_update_success']), 'Was unable to edit the user!'
+    assert page.has_content?(PidApp::MESSAGE_CONFIG['user_update_success']), 'Was unable to edit the user!'
   end
 
 # --------------------------------------------------------------------------------------------------------
@@ -279,11 +277,11 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'confirm', with: ''
     click_button 'submit'
 
-    assert page.has_content?("#{HTML_CONFIG['form_userid'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank user id!'
-    assert page.has_content?("#{HTML_CONFIG['form_name'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank name!'
-    assert page.has_content?("#{HTML_CONFIG['form_email'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank email!'
-    assert page.has_content?("#{HTML_CONFIG['form_new_password'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank password!'
-    assert page.has_content?("#{HTML_CONFIG['form_confirm_password'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank password confirmation!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_userid'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank user id!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_name'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank name!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_email'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank email!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_new_password'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank password!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_confirm_password'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank password confirmation!'
   end
 
   def test_register_user_invalid_email
@@ -313,7 +311,7 @@ class UserClientTestApp < Test::Unit::TestCase
     fill_in 'confirm', with: 'change'
     click_button 'submit'
     
-    assert page.has_content?("#{HTML_CONFIG['form_new_password'].gsub(':', '')} and #{HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
+    assert page.has_content?("#{PidApp::HTML_CONFIG['form_new_password'].gsub(':', '')} and #{PidApp::HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
   end
 
   def test_register_userid_unique

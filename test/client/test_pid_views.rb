@@ -5,9 +5,6 @@ class PidClientTestApp < Test::Unit::TestCase
   include Capybara::DSL
   
   Capybara.app = PidApp.new
-  MESSAGE_CONFIG = YAML.load_file('conf/message.yml')
-  HTML_CONFIG = YAML.load_file('conf/html.yml')
-  APP_CONFIG = YAML.load_file('conf/app.yml')
   
   def app
     PidApp
