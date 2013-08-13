@@ -54,12 +54,11 @@ This is a prototype of a revised version of the PURL Server. It implements a cor
   
   The PIDs file should include all historical information about a PID on separate lines. the lines should appear in chronological order: 
   For example:
-| id  | url | modified_at | username | change_category |
-| --- | --- | ----------- | -------- | --------------- |
-| 123 | http://www.google.com/ | 2000-04-19 13:43:10 | jdoe | BATCH |
-| 123 | http://www.google.com/search?q=ruby+format+date&oq=ruby+format+date | 2000-10-18 14:33:25 | jdoe | USER_ENTERED |
-| 123 | http://www.google.com/search?q=ruby+config | 2007-11-14 15:03:03 | jdoe | USER_ENTERED |
-    
+		id,url,modified_at,username,change_category
+		123,http://www.google.com/,2000-04-19 13:43:10,jdoe,BATCH
+		123,http://www.google.com/search?q=ruby+format+date&oq=ruby+format+date,2000-10-18 14:33:25,jdoe,USER_ENTERED
+		123,http://www.google.com/search?q=ruby+config,2007-11-14 15:03:03,jdoe,USER_ENTERED
+
   In the example above, the first line will create the initial PID record, and all subsequent lines will 'revise' the PID. Each revision will
   update the url, change_category, modified_at, and deactivated (should the URL be null) status of the PID record, and then add itself to the
   PidVersion recordset.
@@ -69,8 +68,8 @@ This is a prototype of a revised version of the PURL Server. It implements a cor
   
   The first line of the each csv file should contain the attribute names, and those names should match the property names in the model.rb. 
   For example:
-| id | name | description |
-| ADMIN | Administrators | Institution's administrators |
+		id,name,description
+		ADMIN,Administrators,Institution's administrators
       
   When referencing groups or users within a csv file, use user_id/group_id as the csv headers when you want the actual id value and 
   user/group as the csv header when you want the entire model. The maintainers.csv is expecting the entire user and group objects.
