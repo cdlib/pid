@@ -11,6 +11,14 @@ class PidApp < Sinatra::Application
       # If the user is a super user, get all of the inactive PIDs otherwise just the ones for their group
       if current_user.super
         pids = Pid.all(:deactivated => true)
+        
+      # If the user manages groups show the pids for all of those groups
+      elsif !Maintainer.all(:user => current_user).empty?
+        Maintainer.all(:user => current_user).each do |maintainer| 
+puts "manager: #{maintainer.group.id}"          
+          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+        end
+        
       else
         pids = Pid.all(:deactivated => true, :group => current_user.group)
       end
@@ -18,6 +26,8 @@ class PidApp < Sinatra::Application
     rescue Exception => e
       @msg = "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
     end
+
+    puts pids.inspect
 
     @json = pids.to_json
 
@@ -38,6 +48,13 @@ class PidApp < Sinatra::Application
       # If the user is a super user, get all of the PIDs otherwise just the ones for their group
       if current_user.super
         pids = Pid.all(:deactivated => false)
+        
+      # If the user manages groups show the pids for all of those groups
+      elsif !Maintainer.all(:user => current_user).empty?
+        Maintainer.all(:user => current_user).each do |maintainer| 
+          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+        end
+          
       else
         pids = Pid.all(:group => current_user.group, :deactivated => false)
       end
@@ -81,6 +98,13 @@ class PidApp < Sinatra::Application
       
       if current_user.super
         pids = Pid.all(:deactivated => false)
+        
+      # If the user manages groups show the pids for all of those groups
+      elsif !Maintainer.all(:user => current_user).empty?
+        Maintainer.all(:user => current_user).each do |maintainer| 
+          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+        end
+          
       else
         pids = Pid.all(:deactivated => false, :group => current_user.group)
       end
@@ -140,8 +164,16 @@ class PidApp < Sinatra::Application
     args[:created_at.lte] = "#{@params[:created_high]} 23:59:59"
     
     # Filter the results to the user's group unless the user is an admin
-    args[:group] = current_user.group unless current_user.super
-      
+    if !current_user.super
+      args[:group] = current_user.group 
+    
+    # If the user manages groups show the pids for all of those groups
+    elsif !Maintainer.all(:user => current_user).empty?
+      Maintainer.all(:user => current_user).each do |maintainer| 
+        (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+      end
+    end
+    
     pids = Pid.all(args)
       
     pids.each do |pid|
@@ -185,7 +217,15 @@ post '/report/usage' do
   args[:id.lte] = @params[:pid_high]
   
   # Filter the results to the user's group unless the user is an admin
-  args[:group] = current_user.group unless current_user.super
+  if !current_user.super
+    args[:group] = current_user.group
+    
+  # If the user manages groups show the pids for all of those groups
+  elsif !Maintainer.all(:user => current_user).empty?
+    Maintainer.all(:user => current_user).each do |maintainer| 
+      (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+    end
+  end
     
   pids = Pid.all(args)
     
