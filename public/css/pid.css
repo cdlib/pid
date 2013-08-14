@@ -211,6 +211,13 @@ form input[type=submit] {
     0px 1px 0px rgba(175,193,230,0.3);  
 }
 
+#spinner {
+	position:					absolute;
+	
+	top:							-20px;
+	left:							320px;
+}
+
 ul {
   color:              #005695;
 }
@@ -233,6 +240,9 @@ table th {
   background:          #005695;
   background:         -moz-linear-gradient(top, #0b3761 0%, #0b3761);
   background:         -webkit-gradient(linear, left top, left bottom, from(#0b3761), to(#0b3761));
+}
+table th a {
+  color:              #fff;
 }
 table td {
   padding:            3px 5px 6px 5px;
