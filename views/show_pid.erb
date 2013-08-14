@@ -21,6 +21,7 @@
     <label><%= HTML_CONFIG['form_modified_date'] %></label>
     <span class="form_informational"><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
     <label><%= HTML_CONFIG['form_modified_by'] %></label><span class="form_informational"><%= @pid.username %></span>
+		<label><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @pid.group.id %></span>
     <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= @pid.change_category %></span>
     <label for="active"><%= HTML_CONFIG['form_active'] %></label>
     <input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %>" />

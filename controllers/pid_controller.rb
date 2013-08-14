@@ -57,7 +57,7 @@ class PidApp < Sinatra::Application
     user = current_user
     
     if @pid
-      if user.group == @pid.group || user.super
+      if user.group == @pid.group || !Maintainer.first(:group => @pid.group, :user => user).nil? || user.super
         @groups = Group.all if user.super
         @group = user.group
 
@@ -128,7 +128,7 @@ class PidApp < Sinatra::Application
               # If the PID was found and its in the same group as the user or the user is an admin
               if !pid.nil?
 
-                if pid.group == current_user.group || current_user.super
+                if pid.group == current_user.group || !Maintainer.first(:group => pid.group, :user => current_user).nil? || current_user.super
                   begin 
                     pid.revise({:url => url.nil? ? pid.url : url, 
                                 :change_category => cat,
@@ -195,9 +195,13 @@ class PidApp < Sinatra::Application
     args[:created_at.lte] = "#{@params[:created_high]} 23:59:59"
     
     # Filter the results to the user's group unless the user is an admin
-    args[:group] = current_user.group unless current_user.super
+    if !Maintainer.all(:user => current_user).empty?
+      Maintainer.all(:user => current_user).each{ |maintainer| (Pid.all(args) & Pid.all(:group => maintainer.group)).each{ |pid| results << pid } }
+    else
+      args[:group] = current_user.group unless current_user.super
       
-    results = Pid.all(args)
+      results = Pid.all(args)
+    end
       
     @json = results.to_json
       
@@ -215,7 +219,7 @@ class PidApp < Sinatra::Application
     @msg = "blah"
     
     if @pid
-      if @pid.group == user.group || user.super
+      if @pid.group == user.group || !Maintainer.first(:group => @pid.group, :user => user).nil? || user.super
         # Don't save if nothing has changed!
         if @pid.url != params[:url] || @pid.group.id != params[:group] || (@pid.deactivated != ((params[:active] == "on") ? false : true))
             

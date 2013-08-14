@@ -242,13 +242,6 @@ class PidApp < Sinatra::Application
                                 :name => params[:name], :affiliation => params[:affiliation], :group => Group.get(params[:group]))
             new_user.save
         
-            #group = Group.get(params[:group])
-            
-            # If the user was designated as a maintainer of the group and they are not already a maintainer
-            #if params[:maintainer] && Maintainer.first(:group => group, :user => new_user).nil?
-            #  Maintainer.new(:group => Group.get(params[:group]), :user => new_user).save
-            #end
-        
             @msg = MESSAGE_CONFIG['user_register_success']
             params = {} # Clear the params so the user can do another registration
         
@@ -291,8 +284,6 @@ class PidApp < Sinatra::Application
         
           @user = user
           @groups = (curr_user.super) ? Group.all : (!curr_user.group.maintainers.first(:user => curr_user).nil?) ? [curr_user.group] : nil          
-          
-          #@maintainer = true unless Maintainer.first(:group => user.group, :user => user).nil?
         
           erb :show_user
         else
@@ -317,8 +308,7 @@ class PidApp < Sinatra::Application
     
     user = User.get(params[:id])
     group = Group.get(params[:group])
-    #maintainer = Maintainer.first(:group => group, :user => user)
-        
+
     #If the user is changing their own record or they are a maintainer of their group or is an admin
     if user == curr_user || !curr_user.group.maintainers.first(:user => curr_user).nil? || curr_user.super
 
@@ -335,9 +325,6 @@ class PidApp < Sinatra::Application
           # If a password change was entered, update the user's password
           user.update(:password => params[:password].strip) if !params[:password].empty? && params[:password] == params[:confirm]
           
-          # Setup the Group Maintainer relationship
-          #maintainer = config_group_management((params[:maintainer] == 'on'), group, user)
-                          
           @msg = MESSAGE_CONFIG['user_update_success']   
         end
         
@@ -359,8 +346,6 @@ class PidApp < Sinatra::Application
     @user = user
     @groups = (curr_user.super) ? Group.all : (!curr_user.group.maintainers.first(:user => curr_user).nil?) ? [curr_user.group] : nil
     @super = curr_user.super
-    
-    #@maintainer = !maintainer.nil?
 
     erb :show_user
   end
@@ -372,20 +357,6 @@ class PidApp < Sinatra::Application
   get '/user/login_exists/:id' do
     status = User.first(:login => params[:id]).nil? ? 404 : 200
   end
-  
-  
-#--------------------------------------------------------------------------------------------------------------
-# Default error pages
-# --------------------------------------------------------------------------------------------------------------
-=begin
-  not_found do
-    erb :not_found
-  end
-
-  error do
-    erb :error
-  end
-=end
 
 # --------------------------------------------------------------------------------------------------------------
 # Redirect to the login if the user isn't authenticated for all but the login/logout/forgotten password/reset password pages
@@ -475,37 +446,4 @@ private
     {:user => user, :message => msg}
   end
   
-# --------------------------------------------------------------------------------------------------------------
-# Configure the group <--> user management relationship
-# --------------------------------------------------------------------------------------------------------------
-=begin
-  def config_group_management(is_maintainer, group, user)
-    
-    if !group.nil? && !user.nil?
-      begin
-        maintainer = Maintainer.first(:group => group, :user => user)
-
-        # remove any maintainer records for other/old groups
-        Maintainer.all(:user => user).each do |maint|
-          maint.destroy if maint.group != group
-        end
-    
-        # If the user was designated as a maintainer of the group and they are not already a maintainer
-        if is_maintainer && maintainer.nil?
-          return Maintainer.create(:group => group, :user => user)
-          
-        # If the user was designated as NOT being a maintainer and they are already a maintainer
-        elsif !is_maintainer && !maintainer.nil?
-          maintainer.destroy
-          return nil
-        end
-        
-      rescue Exception => e
-        raise e
-      end
-    else
-      return nil
-    end
-  end
-=end
 end

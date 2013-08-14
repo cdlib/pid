@@ -64,6 +64,8 @@ class PidClientTestApp < Test::Unit::TestCase
 #    select @mgr.id, from: 'userid' 
     click_button 'submit'
     
+#puts page.html    
+    
     trs = page.all("tr")
     assert_equal 2, trs.size, "Expected 1 results but found #{trs.size - 1}"
     
@@ -85,6 +87,8 @@ class PidClientTestApp < Test::Unit::TestCase
     # Search for users
     # Search for date ranges
     # Search for change categories
+    
+    # Search as Maintainer of multiple groups and as super admin
   end
   
 =begin
