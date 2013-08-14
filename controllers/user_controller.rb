@@ -172,8 +172,24 @@ class PidApp < Sinatra::Application
     if !user.nil?
       # If the current user manages the group or is an admin
       if !user.group.maintainers.first(:user => user).nil? || user.super
-        @users = (user.super) ? User.all(:order => [:login.asc]) : User.all(:group => user.group, :order => [:login.asc])
+        @users = (user.super) ? User.all() : User.all(:group => user.group)
         @super = user.super
+        
+        @maintainers = {}
+        Maintainer.all.each do |maintainer| 
+          # If this isn't the user's main group and the user is a maintainer of the group, add its users          
+          if maintainer.user == user && maintainer.group != user.group && !user.super            
+            User.all(:group => maintainer.group).each{ |user| @users << user }
+          end
+          
+          if !@maintainers[maintainer.user.id].nil?
+            @maintainers[maintainer.user.id] += ", "
+          end
+          @maintainers[maintainer.user.id] = @maintainers[maintainer.user.id].to_s + maintainer.group.id 
+        end
+        
+        # Sort the user list by login
+        @users.sort_by{ |x,y| x.login <=> y.login unless x.nil? || y.nil? }
         
         erb :list_users
       else
@@ -226,12 +242,12 @@ class PidApp < Sinatra::Application
                                 :name => params[:name], :affiliation => params[:affiliation], :group => Group.get(params[:group]))
             new_user.save
         
-            group = Group.get(params[:group])
+            #group = Group.get(params[:group])
             
             # If the user was designated as a maintainer of the group and they are not already a maintainer
-            if params[:maintainer] && Maintainer.first(:group => group, :user => new_user).nil?
-              Maintainer.new(:group => Group.get(params[:group]), :user => new_user).save
-            end
+            #if params[:maintainer] && Maintainer.first(:group => group, :user => new_user).nil?
+            #  Maintainer.new(:group => Group.get(params[:group]), :user => new_user).save
+            #end
         
             @msg = MESSAGE_CONFIG['user_register_success']
             params = {} # Clear the params so the user can do another registration
@@ -274,9 +290,9 @@ class PidApp < Sinatra::Application
         if user == curr_user || !curr_user.group.maintainers.first(:user => curr_user).nil? || curr_user.super
         
           @user = user
-          @groups = (curr_user.super) ? Group.all : (!curr_user.group.maintainers.first(:user => curr_user).nil?) ? [curr_user.group] : nil
+          @groups = (curr_user.super) ? Group.all : (!curr_user.group.maintainers.first(:user => curr_user).nil?) ? [curr_user.group] : nil          
           
-          @maintainer = true unless Maintainer.first(:group => user.group, :user => user).nil?
+          #@maintainer = true unless Maintainer.first(:group => user.group, :user => user).nil?
         
           erb :show_user
         else
@@ -301,7 +317,7 @@ class PidApp < Sinatra::Application
     
     user = User.get(params[:id])
     group = Group.get(params[:group])
-    maintainer = Maintainer.first(:group => group, :user => user)
+    #maintainer = Maintainer.first(:group => group, :user => user)
         
     #If the user is changing their own record or they are a maintainer of their group or is an admin
     if user == curr_user || !curr_user.group.maintainers.first(:user => curr_user).nil? || curr_user.super
@@ -320,7 +336,7 @@ class PidApp < Sinatra::Application
           user.update(:password => params[:password].strip) if !params[:password].empty? && params[:password] == params[:confirm]
           
           # Setup the Group Maintainer relationship
-          maintainer = config_group_management((params[:maintainer] == 'on'), group, user)
+          #maintainer = config_group_management((params[:maintainer] == 'on'), group, user)
                           
           @msg = MESSAGE_CONFIG['user_update_success']   
         end
@@ -344,7 +360,7 @@ class PidApp < Sinatra::Application
     @groups = (curr_user.super) ? Group.all : (!curr_user.group.maintainers.first(:user => curr_user).nil?) ? [curr_user.group] : nil
     @super = curr_user.super
     
-    @maintainer = !maintainer.nil?
+    #@maintainer = !maintainer.nil?
 
     erb :show_user
   end
@@ -462,6 +478,7 @@ private
 # --------------------------------------------------------------------------------------------------------------
 # Configure the group <--> user management relationship
 # --------------------------------------------------------------------------------------------------------------
+=begin
   def config_group_management(is_maintainer, group, user)
     
     if !group.nil? && !user.nil?
@@ -490,4 +507,5 @@ private
       return nil
     end
   end
+=end
 end

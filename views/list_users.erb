@@ -7,8 +7,9 @@
     <tr>
       <th><%= HTML_CONFIG['th_userid'] %></th><th><%= HTML_CONFIG['th_name'] %></th><th><%= HTML_CONFIG['th_email'] %></th>
       <% if @super %>
-        <th><%= HTML_CONFIG['th_group'] %></th><th><%= HTML_CONFIG['th_maintainer'] %></th>
+        <th><%= HTML_CONFIG['th_group'] %></th>
       <% end %>
+      <th><%= HTML_CONFIG['th_maintainer'] %></th>
       <th><%= HTML_CONFIG['th_active'] %></th><th><%= HTML_CONFIG['th_locked'] %></th>
       <th><%= HTML_CONFIG['th_affiliation'] %></th>
     </tr>
@@ -19,8 +20,8 @@
         <td><a href="mailto:<%= user.email %>" class="underline"><%= user.email %></a></td>
         <% if @super %>
           <td><%= (user.group.nil?) ? '<span class="errors">None</span>' : user.group.name %></td>
-          <td><%= (Maintainer.first(:group => user.group, :user => user).nil?) ? '' : HTML_CONFIG['td_true'] %></td>
         <% end %>
+        <td><%= @maintainers[user.id] %></td>
         <td><%= (user.active) ? HTML_CONFIG['td_true'] : '<span class="errors">' + HTML_CONFIG['td_false'] + '</span>' %></td>
         <td><%= (user.locked) ? '<span class="errors">' + HTML_CONFIG['td_true'] + '</span>' : HTML_CONFIG['td_false'] %></td>
         <td><%= user.affiliation %></td>

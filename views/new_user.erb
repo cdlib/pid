@@ -20,8 +20,6 @@
       <input type="text" id="group" name="group" readonly="true" value="<%= @params[:group] %>" />
     <% end %>
     
-    <label for="maintainer"><%= HTML_CONFIG['form_group_maintainer'] %></label>
-    <input type="checkbox" name="maintainer" id="maintainer" <% if @params[:maintainer] %>checked="checked"<% end %> />
     <label for="login"><%= HTML_CONFIG['form_userid'] %></label>
     <input type="text" name="login" id="login" value="<%= @params[:userid] %>" /><div id="login_chk" class="icon">&nbsp;</div>
     <label for="name"><%= HTML_CONFIG['form_name'] %></label>
