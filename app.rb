@@ -181,12 +181,7 @@ class PidApp < Sinatra::Application
         defaults[:created_low] = Pid.first(args, :order => [:created_at.asc]).created_at.strftime("%Y-%m-%d")
         defaults[:created_high] = Pid.first(args, :order => [:created_at.desc]).created_at.strftime("%Y-%m-%d")
       end
-      
-      if !Statistic.first().nil?
-        defaults[:accessed_low] = Statistic.first(args, :order => [:accessed.asc]).accessed.strftime("%Y-%m-%d")
-        defaults[:accessed_high] = Statistic.first(args, :order => [:accessed.desc]).accessed.strftime("%Y-%m-%d")
-      end
-      
+            
       # If either of the PID range values that were passed in then use the default
       params[:pid_low] = defaults[:pid_min] if (params[:pid_low].nil? ? true : params[:pid_low].empty?)
       params[:pid_high] = defaults[:pid_max] if (params[:pid_high].nil? ? true : params[:pid_high].empty?)

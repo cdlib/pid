@@ -1,51 +1,50 @@
 <section id="invalid_report">
-	<h3><%= HTML_CONFIG['header_report_invalid'] %></h3>
-	
-	<a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
-	
+  <h3><%= HTML_CONFIG['header_report_invalid'] %></h3>
+  
+  <a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+  
   <% if @error.empty? && @not_found.empty? && @moved.empty? %>
     <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
-		
-	<% else %>
-	
-  	<% unless @error.empty? %>
-			<h4><%= HTML_CONFIG['header_report_invalid_error'] %></h4>
-    	<button id="error" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-    	<table id="error_table">
-      	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-      			<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-    	</table>
+  <% else %>
+    <% unless @error.empty? %>
+      <h4><%= HTML_CONFIG['header_report_invalid_error'] %></h4>
+      <button id="error" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-    	<input type="hidden" id="error_json" value='<%= @error.gsub("'", '%27') %>' />
-  	<% end %>
-	
-  	<% unless @not_found.empty? %>
-			<h4><%= HTML_CONFIG['header_report_invalid_not_found'] %></h4>
-    	<button id="not_found" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+      <table id="error_table">
+        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
+            <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
+      </table>
     
-    	<table id="not_found_table">
-      	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-      			<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-    	</table>
+      <input type="hidden" id="error_json" value='<%= @error.gsub("'", '%27') %>' />
+    <% end %>
+  
+    <% unless @not_found.empty? %>
+      <h4><%= HTML_CONFIG['header_report_invalid_not_found'] %></h4>
+      <button id="not_found" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-    	<input type="hidden" id="not_found_json" value='<%= @not_found.gsub("'", '%27') %>' />
-  	<% end %>
-		
-  	<% unless @moved.empty? %>
-			<h4><%= HTML_CONFIG['header_report_invalid_moved'] %></h4>
-    	<button id="moved" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+      <table id="not_found_table">
+        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
+            <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
+      </table>
     
-    	<table id="moved_table">
-      	<tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-      			<th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-    	</table>
+      <input type="hidden" id="not_found_json" value='<%= @not_found.gsub("'", '%27') %>' />
+    <% end %>
     
-    	<input type="hidden" id="moved_json" value='<%= @moved.gsub("'", '%27') %>' />
-  	<% end %>
-		
+    <% unless @moved.empty? %>
+      <h4><%= HTML_CONFIG['header_report_invalid_moved'] %></h4>
+      <button id="moved" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    
+      <table id="moved_table">
+        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
+            <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
+      </table>
+    
+      <input type="hidden" id="moved_json" value='<%= @moved.gsub("'", '%27') %>' />
+    <% end %>
+    
   <% end %>
-	
+  
 </section>
 
 <section class="errors">
@@ -57,13 +56,13 @@
   
   // Add a line to the table for each item in the JSON
   var i = 1;
-	
-	function processJSON(name, json) {
-		$.each($.parseJSON(json), function(idx, pid) {
-    	var dt = new Date(pid.modified_at);
-    	var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
+  
+  function processJSON(name, json) {
+    $.each($.parseJSON(json), function(idx, pid) {
+      var dt = new Date(pid.modified_at);
+      var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
     
-    	$("#" + name + "_table tr:last").after("<tr>" +
+      $("#" + name + "_table tr:last").after("<tr>" +
                               "<td>" + i + ")</td>" + 
                               "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
                               "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
@@ -71,13 +70,13 @@
                               "<td>" + pid.username + "</td>" +
                               "<td>" + modified + "</td>" +
                             "</tr>");
-    	i++;
-		});
-	}
+      i++;
+    });
+  }
   
-	processJSON('error', '<%= @error.gsub("'", '%27') %>');
-	processJSON('not_found', '<%= @not_found.gsub("'", '%27') %>');
-	processJSON('moved', '<%= @moved.gsub("'", '%27') %>');
+  processJSON('error', '<%= @error.gsub("'", '%27') %>');
+  processJSON('not_found', '<%= @not_found.gsub("'", '%27') %>');
+  processJSON('moved', '<%= @moved.gsub("'", '%27') %>');
 
   // convert the JSON into a CSV output
   $(".download").click( function(){

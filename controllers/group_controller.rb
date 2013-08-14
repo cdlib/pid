@@ -36,7 +36,7 @@ class PidApp < Sinatra::Application
     redirect to('/not_found') if @group.nil?
 
     begin
-      @group.update(:name => params[:name], :description => params[:description])
+      @group.update(:name => params[:name], :description => params[:description], :host => request.ip)
       
       @msg = MESSAGE_CONFIG['group_update_success']
     rescue Exception => e
@@ -54,6 +54,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   post '/group/:id' do
     begin
+      params[:host] = request.ip
       Group.new(params).save
       
       @msg = MESSAGE_CONFIG['group_create_success']

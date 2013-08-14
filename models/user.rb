@@ -34,7 +34,8 @@ class User
   property :hashed_password, String
   property :salt, String
   property :created_at, DateTime
-
+  property :host, String, :length => 30
+  
   attr_accessor :password
 
   def active?

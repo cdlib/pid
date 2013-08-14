@@ -21,7 +21,7 @@ class PidApp < Sinatra::Application
 # Process the login
 # ---------------------------------------------------------------
   post '/user/login' do
-    result = process_login(params['login'], params['password'])
+    result = process_login(params['login'], params['password'], request.ip)
     @msg = result[:message]
     
     if current_user.nil?
@@ -95,6 +95,7 @@ class PidApp < Sinatra::Application
           user.password = params[:password]
           user.reset_timer = nil
           user.reset_code = nil
+          user.host = request.ip
           user.save
           
           redirect '/user/login', {:login => user.login, :msg => MESSAGE_CONFIG['password_reset_success']}
@@ -238,7 +239,7 @@ class PidApp < Sinatra::Application
         if params[:password] == params[:confirm]
         
           begin
-            new_user = User.new(:login => params[:login], :email => params[:email], :password => params[:password],
+            new_user = User.new(:login => params[:login], :email => params[:email], :password => params[:password], :host => request.ip,
                                 :name => params[:name], :affiliation => params[:affiliation], :group => Group.get(params[:group]))
             new_user.save
         
@@ -320,7 +321,8 @@ class PidApp < Sinatra::Application
                       :affiliation => (!params[:affiliation].nil?) ? params[:affiliation].strip : user.login,
                       :active => (params[:active] == 'on'),
                       :locked => (params[:locked] == 'on'),
-                      :group => (!group.nil?) ? group : curr_user.group)
+                      :group => (!group.nil?) ? group : curr_user.group,
+                      :host => request.ip)
         
           # If a password change was entered, update the user's password
           user.update(:password => params[:password].strip) if !params[:password].empty? && params[:password] == params[:confirm]
@@ -375,7 +377,7 @@ class PidApp < Sinatra::Application
 # Process the login
 # --------------------------------------------------------------------------------------------------------------
 private  
-  def process_login(login, password)
+  def process_login(login, password, ip)
     user = nil
     msg = MESSAGE_CONFIG['failed_login']
     
@@ -410,6 +412,7 @@ private
                   user.locked = true
                   # If a lock timer was specified in the config, set the timer on the user's record
                   user.locked_timer = Time.now.to_i + (SECURITY_CONFIG['release_account_lock_after'].to_i * 60) if SECURITY_CONFIG['release_account_lock_after']
+                  user.host = ip
                   
                   msg = MESSAGE_CONFIG['account_locked']
                   msg = msg.gsub('${?}', SECURITY_CONFIG['release_account_lock_after'].to_s) if !SECURITY_CONFIG['release_account_lock_after'].nil?

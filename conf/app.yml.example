@@ -13,3 +13,6 @@ redis_port: 6379
 
 # Limit the number of results that are returned during a PID search
 search_results_limit: 50
+
+# The maximum CSV file size allowed for upload on the Edit PID page (in kb)
+max_upload_csv_size: 10240   #10MB

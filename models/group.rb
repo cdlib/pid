@@ -16,6 +16,7 @@ class Group
       :format    => 'Group names must be 200 no more than characters without symbols.'
     }
   property :description, String, :length => 250
+  property :host, String, :length => 30
   
   def self.flush!
     DataMapper.auto_migrate!(:default)

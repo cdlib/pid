@@ -135,7 +135,6 @@
   function buildResultsTable(json){
     var i = 1;
     $.each($.parseJSON(json), function(idx, pid) {
-  
       var dt = new Date(pid.modified_at);
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
   
@@ -150,5 +149,6 @@
                               "</tr>");
       i++;
     });
+		return i;
   }
 </script>

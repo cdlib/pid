@@ -17,10 +17,6 @@ class PidApp < Sinatra::Application
     @json = [].to_json
     @params = get_search_defaults({})
     
-    #@users = @defaults[:users]
-    #@pid_min = @defaults[:pid_min]
-    #@pid_max = @defaults[:pid_max]
-    
     erb :search_pid
   end
   
@@ -99,7 +95,7 @@ class PidApp < Sinatra::Application
 
         begin
           # Loop through the items in the CSV
-          CSV.foreach(params[:csv][:tempfile]) do |row| 
+          CSV.foreach(params[:csv][:tempfile], :field_size_limit => APP_CONFIG['max_upload_csv_size']) do |row| 
             id, url, cat, note = row
           
             # If the PID id is null they would like to mint the PID
@@ -141,13 +137,13 @@ class PidApp < Sinatra::Application
                              
                     @revisions << Pid.get(pid.id)
                   rescue Exception => e
-                    @failures << "#{MESSAGE_CONFIG['batch_process_revise_failure'].gsub('{?}', id)} #{e.message}"
+                    @failures << "#{MESSAGE_CONFIG['batch_process_revise_failure'].gsub('{?}', id)} - #{e.message}"
                   end
                 else
                   @failures << MESSAGE_CONFIG['batch_process_revise_wrong_group'].gsub('{?}', id)
                 end
               else
-                @failures << MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', '')
+                @failures << MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', id)
               end
             end
           
@@ -229,7 +225,8 @@ class PidApp < Sinatra::Application
                          :group =>  params[:group],
                          :username => user.login,
                          :modified_at => Time.now,
-                         :dead_pid_url => DEAD_PID_URL})
+                         :dead_pid_url => DEAD_PID_URL,
+                         :host => request.ip})
         
             # Check to see if the PID's URL is valid, if not WARN the user
             if verify_url(url) != 200
@@ -298,7 +295,8 @@ class PidApp < Sinatra::Application
                            :username => current_user.login,
                            :group => current_user.group,
                            :change_category => change_category,
-                           :notes => notes)
+                           :notes => notes,
+                           :host => request.ip)
             @successes << pid
           
             # Check to see if the PID's URL is valid, if not WARN the user

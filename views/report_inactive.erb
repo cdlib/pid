@@ -6,9 +6,13 @@
   <% unless @json == '' %>
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
+    <img src="/spinner.gif" id="spinner" />
     <table>
-      <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_deactivated_by'] %></th>
-          <th><%= HTML_CONFIG['th_deactivated_on'] %></th></tr>
+      <tr><th />
+        <th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
+        <th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
+        <th id="th_username"><a href="#"><%= HTML_CONFIG['th_deactivated_by'] %></a></th>
+        <th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_deactivated_on'] %></a></th></tr>
     </table>
     
     <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
@@ -26,24 +30,35 @@
 
 
 <script type="text/javascript">
+  $("#spinner").hide();
   
   // Add a line to the table for each item in the JSON
-  var i = 1;
-  $.each($.parseJSON('<%= @json.gsub("'", '%27') %>'), function(idx, pid) {
-    var dt = new Date(pid.modified_at);
-    var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
-    
-    $("table tr:last").after("<tr>" +
-                              "<td>" + i + ")</td>" + 
-                              "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
-                              "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
-                                            ((pid.url.length > 80) ? pid.url.substring(0, 79) + " ..." : pid.url) + "</td>" +
-                              "<td>" + pid.username + "</td>" +
-                              "<td>" + modified + "</td>" +
-                            "</tr>");
-    i++;
-  });
+  var i = buildResultsTable('<%= @json.gsub("'", '%27') %>')
 
+  $("th").click( function() {
+    $("#spinner").show();
+    
+    var id = $(this).attr('id').replace('th_', '');
+    
+    // Remove all of the existing lines from the search results
+    $("table").find('tr:gt(0)').remove();
+
+    //Sort the JSON by the selected column
+    var json = $.parseJSON($("#data").val())
+    json.sort( function(x,y) {
+      return x[id].toString().localeCompare(y[id].toString());
+    });
+    
+    //Update the json stored in the hidden field for CSV download
+    var json_txt = JSON.stringify(json);
+    $("#data").val(json_txt);
+    
+    //Reconstruct the table
+    buildResultsTable(json_txt);
+    
+    $("#spinner").hide();
+  });
+  
   // convert the JSON into a CSV output
   $(".download").click( function(){
     var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
@@ -60,6 +75,25 @@
     
     window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
   });
+  
+  function buildResultsTable(json){
+    var i = 1;
+    $.each($.parseJSON(json), function(idx, pid) {
+      var dt = new Date(pid.modified_at);
+      var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
+    
+      $("table tr:last").after("<tr>" +
+                              "<td>" + i + ")</td>" + 
+                              "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
+                              "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
+                                            ((pid.url.length > 80) ? pid.url.substring(0, 79) + " ..." : pid.url) + "</td>" +
+                              "<td>" + pid.username + "</td>" +
+                              "<td>" + modified + "</td>" +
+                            "</tr>");
+      i++;
+    });
+		return i;
+  }
 
 </script>
-	
+  
