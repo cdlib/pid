@@ -176,9 +176,9 @@ class PidApp < Sinatra::Application
       if !Pid.first().nil?
         defaults[:pid_min] = Pid.first(args, :order => [:id.asc]).id
         defaults[:pid_max] = Pid.first(args, :order => [:id.desc]).id
-        defaults[:modified_low] = Pid.first(args, :order => [:modified_at.asc]).modified_at.strftime("%Y-%m-%d")
+        defaults[:modified_low] = (Pid.first(args, :order => [:modified_at.desc]).modified_at - 181).strftime("%Y-%m-%d")
         defaults[:modified_high] = Pid.first(args, :order => [:modified_at.desc]).modified_at.strftime("%Y-%m-%d")
-        defaults[:created_low] = Pid.first(args, :order => [:created_at.asc]).created_at.strftime("%Y-%m-%d")
+        defaults[:created_low] = (Pid.first(args, :order => [:created_at.desc]).created_at - 181).strftime("%Y-%m-%d")
         defaults[:created_high] = Pid.first(args, :order => [:created_at.desc]).created_at.strftime("%Y-%m-%d")
       end
             

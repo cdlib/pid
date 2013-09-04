@@ -97,3 +97,136 @@ function reset_form_criteria(err_msg){
     }
   });
 }
+
+
+/*
+ * ---------------------------------------------------------------------------------------------------
+ * Sorts the specified json data and updates the specified table with the sorted values
+ * ---------------------------------------------------------------------------------------------------
+ */
+var sort_col = 'id';
+var sort_dir = 'asc';
+
+function sort_json_data(json, column){  
+  // Set the sort column and the direction
+  if(sort_col != column){
+    sort_col = column;
+    sort_dir = 'asc';
+  }else{
+    sort_dir = (sort_dir == 'asc') ? 'desc' : 'asc';
+  }
+
+  // Resort the JSON data according to the selected column
+  json.sort( function(x,y) {
+    // Sort the data either ASC or DESC depending on the current direction, only do a String comparison if its not the PID id
+    if(sort_dir == 'asc'){
+      return (x[sort_col] > y[sort_col]) ? 1 : (x[sort_col] < y[sort_col]) ? -1 : 0;
+    }else{
+      return (y[sort_col] > x[sort_col]) ? 1 : (y[sort_col] < x[sort_col]) ? -1 : 0;
+    }
+  });
+  
+  return json;
+}
+
+/*
+ * ---------------------------------------------------------------------------------------------------
+ * Table Pagination Functions
+ * ---------------------------------------------------------------------------------------------------
+ */
+var pagination_page_size = 100;
+var pagination_total_lines = 0;
+var pagination_last_page = 1;
+ 
+// Initialize the pagination parameters for the page
+function paginate_init(page_size, line_count){
+  // Make sure that a positive value was passed into the function
+  pagination_page_size = (page_size > 1) ? page_size : 100;
+  pagination_total_lines = (line_count > 0) ? line_count : 0;
+  
+  // Determine the total number of pages
+  if((pagination_total_lines % pagination_page_size) == 0){
+    pagination_last_page = pagination_total_lines / pagination_page_size;
+  }else{
+    pagination_last_page = Math.floor(pagination_total_lines / pagination_page_size) + 1;
+  }
+}
+
+// Adds the pagination navigation to the specified table
+function pagination_build_nav(table, current_page){
+  // Remove the old pagination row
+  var rows = table.find('tr.page_nav');
+  
+  if(rows.length > 0){
+    rows.remove();
+  }
+  
+  // If the total page size is less than the total number of records then build out the table pagination
+  if(pagination_page_size < pagination_total_lines){
+    // Make sure the current page is valid
+    var page = (current_page > 0) ? ((current_page <= pagination_last_page) ? current_page : pagination_last_page) : 1;
+  
+    // Figure out how many column headings there are for the colspan value
+    var col_count = table.find('th').size();
+    
+    var nav = '<tr class="page_nav">' +
+                '<th colspan="' + col_count + '" class="pagination">Go to page:&nbsp;&nbsp;';
+    
+    // If there are more than 15 pages, show: 1 ... [5 less than the current page] - [5 more than the current page] ... [last page] 
+    if(pagination_last_page > 15){
+      nav += (page == 1) ? '<span>1</span>' : '<a href="#" onclick="$(\'#current_page\').val(1); changePage(); return false;">1</a>';
+      
+      // Determine the start are end pages
+      var start = ((page < 15) ? 2 : (page > (pagination_last_page - 15)) ? (pagination_last_page - 15) : (page - 5));
+      var end = ((page < 15) ? 15 : (page > (pagination_last_page - 15)) ? (pagination_last_page - 1) : (page + 5));
+      
+      if(page >= 15){
+        nav += '<span>...</span>';
+      }
+      
+      for(var i = start; i <= end; i++){
+        nav += (page == i) ? '<span>' + i + '</span>' : '<a href="#" onclick="$(\'#current_page\').val(' + i + '); changePage(); return false;">' + i + '</a>';
+      }
+      
+      if(page <= (pagination_last_page - 15)){
+        nav += '<span>...</span>';
+      }
+      
+      nav += (page == pagination_last_page) ? '<span>' + pagination_last_page + '</span>' : '<a href="#" onclick="$(\'#current_page\').val(' + pagination_last_page + '); changePage(); return false;">' + pagination_last_page + '</a>';
+
+    }else{
+      for(var i = 1; i <= pagination_last_page; i++){
+        nav += (page == i) ? '<span>' + i + '</span>' : '<a href="#" onclick="$(\'#current_page\').val(' + i + '); changePage(); return false;">' + i + '</a>';
+      }
+    }
+    nav += '<input type="hidden" id="current_page" value="' + page + '" /></th></tr>';
+    
+    table.find('tr').first().before(nav);
+    table.find('tr').last().after(nav);
+  }
+}
+
+// Returns a subset of the specified json that matches the current page
+function paginate_json(json, current_page){
+  var ret_json = [];
+  
+  // If the total page size is less than the total number of records then build out the table pagination
+  if(pagination_page_size < pagination_total_lines){
+    
+    // Make sure the current page is valid
+    var page = (current_page > 0) ? ((current_page <= pagination_last_page) ? current_page : pagination_last_page) : 1;
+    
+    // Determine what record we should start and end with
+    var start = pagination_page_size * (page - 1);
+    var end = (start + (pagination_page_size - 1) > pagination_total_lines) ? pagination_total_lines : (start + pagination_page_size);
+  
+    for(var i = start; i < end; i++){
+      ret_json.push(json[i]);
+    }
+    
+  }else{
+    ret_json = json;
+  }
+  
+  return ret_json;
+}

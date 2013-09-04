@@ -189,58 +189,7 @@ class PidApp < Sinatra::Application
   end
 
 # ---------------------------------------------------------------
-# Get the usage report
-# ---------------------------------------------------------------
-get '/report/usage' do
-  @results = []
-  @params = get_search_defaults(params)
-  
-  erb :report_usage
-end
-
-# ---------------------------------------------------------------
-# Process the usage report
-# ---------------------------------------------------------------
-post '/report/usage' do
-  @results = []
-  
-  @params = get_search_defaults(params)
-  
-  args = {}
-    
-  # Set the search criteria based on the user's input
-  args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
-  args[:username] = User.get(@params[:userid]).login unless @params[:userid].empty?
-  
-  args[:id.gte] = @params[:pid_low]
-  args[:id.lte] = @params[:pid_high]
-  
-  # Filter the results to the user's group unless the user is an admin
-  if !current_user.super
-    args[:group] = current_user.group
-    
-  # If the user manages groups show the pids for all of those groups
-  elsif !Maintainer.all(:user => current_user).empty?
-    Maintainer.all(:user => current_user).each do |maintainer| 
-      (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
-    end
-  end
-    
-  pids = Pid.all(args)
-    
-  pids.each do |pid|
-    stats << Statistic.all(:accessed.gte => "#{@params[:accessed_low]} 00:00:00", :accessed.lte => "#{@params[:accessed_high]} 23:59:59",
-                          :pid => pid)
-  end
-    
-  @json = stats.to_json
-  status 404 if @results.empty?
-  
-  erb :report_usage
-end
-
-# ---------------------------------------------------------------
-# Process the usage report
+# Reload the default criteria for the reports
 # ---------------------------------------------------------------
   get '/report/defaults' do
     get_search_defaults({}).to_json 

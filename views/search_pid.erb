@@ -57,10 +57,10 @@
       <img src="/spinner.gif" id="spinner" />
       <table>
         <tr><th />
-					<th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
-					<th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
+          <th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
+          <th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
           <th id="th_username"><a href="#"><%= HTML_CONFIG['th_userid'] %></a></th>
-					<th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_modified_date'] %></a></th>
+          <th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_modified_date'] %></a></th>
           <th id="th_deactivated"><a href="#"><%= HTML_CONFIG['th_active'] %></a></th></tr>
       </table>
       
@@ -77,13 +77,44 @@
 <script type="text/javascript">
   $("#spinner").hide();
 
-  // Add a line to the table for each item in the JSON
-  var i = buildResultsTable('<%= @json.gsub("'", '%27') %>')
-  
-  if(i >= <%= APP_CONFIG['search_results_limit'] %> ){
-    $(".errors").html('<%= HTML_CONFIG['search_text'] %>');
-  }
+  // Parse the json
+  var json = $.parseJSON('<%= @json.gsub("'", '%27') %>');
+  $("#data").val('<%= @json.gsub("'", '%27') %>');
 
+  // Setup table pagination
+  paginate_init(<%= APP_CONFIG['search_results_limit'] %>, json.length);
+  
+  // Filter the json dataset for the current page
+  var json_subset = paginate_json(json, 1);
+  
+  // Add a line to the table for each item in the JSON
+  buildResultsTable(json_subset);
+  
+  // Build the pagination navigation line
+  pagination_build_nav($("table"), 1);
+  
+  
+  $("th:not(.pagination)").click( function() {
+    $("#spinner").show();
+    
+    // Sort the entire json dataset
+    var sorted = sort_json_data($.parseJSON($("#data").val()), $(this).attr('id').replace('th_', ''));
+    
+    $("#data").val(JSON.stringify(sorted));
+    
+    // Get the paginated subset of json data and rebuild the table
+    buildResultsTable(paginate_json(sorted, parseInt($("#current_page").val())));
+
+    // Rebuild the pagination navigation
+    pagination_build_nav($("table"), parseInt($("#current_page").val()));
+
+    $("#spinner").hide();
+  });
+  
+  $("th.pagination").click( function() {    
+    changePage();
+  });
+  
   // convert the JSON into a CSV output
   $(".download").click( function(){
     var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
@@ -111,34 +142,29 @@
     reset_form_criteria('<%= HTML_CONFIG['unable_to_load_criteria_defaults'] %>');
   });
   
-  $("th").click( function() {
+  // Required by the pagination controls since rebuilding the nav tr would lose the above th.pagination click event
+  function changePage(){
     $("#spinner").show();
     
-    var id = $(this).attr('id').replace('th_', '');
-    
-    // Remove all of the existing lines from the search results
-    $("table").find('tr:gt(0)').remove();
+    // Get the paginated subset of json data and rebuild the table
+    buildResultsTable(paginate_json($.parseJSON($("#data").val()), parseInt($("#current_page").val())));
 
-    var json = $.parseJSON($("#data").val())
-    json.sort( function(x,y) {
-      return x[id].toString().localeCompare(y[id].toString());
-    });
-    
-    var json_txt = JSON.stringify(json);
-    $("#data").val(json_txt);
-    
-    buildResultsTable(json_txt);
-    
+    // Rebuild the pagination navigation
+    pagination_build_nav($("table"), parseInt($("#current_page").val()));
+
     $("#spinner").hide();
-  });
-  
+  }
+	
   function buildResultsTable(json){
     var i = 1;
-    $.each($.parseJSON(json), function(idx, pid) {
+		
+		$("table").find('tr:not(.page_nav):gt(0)').remove();
+		
+    $.each(json, function(idx, pid) {
       var dt = new Date(pid.modified_at);
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
   
-        $("table tr:last").after("<tr>" +
+      $("table tr:last").after("<tr>" +
                                 "<td>" + i + ")</td>" + 
                                 "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
                                 "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
@@ -149,6 +175,6 @@
                               "</tr>");
       i++;
     });
-		return i;
+    return i;
   }
 </script>

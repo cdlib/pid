@@ -32,31 +32,43 @@
 <script type="text/javascript">
   $("#spinner").hide();
   
-  // Add a line to the table for each item in the JSON
-  var i = buildResultsTable('<%= @json.gsub("'", '%27') %>')
+  // Parse the json
+  var json = $.parseJSON('<%= @json.gsub("'", '%27') %>');
+  $("#data").val('<%= @json.gsub("'", '%27') %>');
 
-  $("th").click( function() {
+  // Setup table pagination
+  paginate_init(<%= APP_CONFIG['search_results_limit'] %>, json.length);
+  
+  // Filter the json dataset for the current page
+  var json_subset = paginate_json(json, 1);
+  
+  // Add a line to the table for each item in the JSON
+  buildResultsTable(json_subset);
+  
+  // Build the pagination navigation line
+  pagination_build_nav($("table"), 1);
+  
+  
+  $("th:not(.pagination)").click( function() {
     $("#spinner").show();
     
-    var id = $(this).attr('id').replace('th_', '');
+    // Sort the entire json dataset
+    var sorted = sort_json_data($.parseJSON($("#data").val()), $(this).attr('id').replace('th_', ''));
     
-    // Remove all of the existing lines from the search results
-    $("table").find('tr:gt(0)').remove();
+    $("#data").val(JSON.stringify(sorted));
+    
+    // Get the paginated subset of json data and rebuild the table
+    buildResultsTable(paginate_json(sorted, parseInt($("#current_page").val())));
 
-    //Sort the JSON by the selected column
-    var json = $.parseJSON($("#data").val())
-    json.sort( function(x,y) {
-      return x[id].toString().localeCompare(y[id].toString());
-    });
-    
-    //Update the json stored in the hidden field for CSV download
-    var json_txt = JSON.stringify(json);
-    $("#data").val(json_txt);
-    
-    //Reconstruct the table
-    buildResultsTable(json_txt);
-    
+    // Rebuild the pagination navigation
+    pagination_build_nav($("table"), parseInt($("#current_page").val()));
+
     $("#spinner").hide();
+  });
+  
+  
+  $("th.pagination").click( function() {    
+    changePage();
   });
   
   // convert the JSON into a CSV output
@@ -76,9 +88,25 @@
     window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
   });
   
+  // Required by the pagination controls since rebuilding the nav tr would lose the above th.pagination click event
+  function changePage(){
+    $("#spinner").show();
+    
+    // Get the paginated subset of json data and rebuild the table
+    buildResultsTable(paginate_json($.parseJSON($("#data").val()), parseInt($("#current_page").val())));
+
+    // Rebuild the pagination navigation
+    pagination_build_nav($("table"), parseInt($("#current_page").val()));
+
+    $("#spinner").hide();
+  }
+  
   function buildResultsTable(json){
     var i = 1;
-    $.each($.parseJSON(json), function(idx, pid) {
+    
+    $("table").find('tr:gt(1):not(.page_nav)').remove();
+    
+    $.each(json, function(idx, pid) {
       var dt = new Date(pid.modified_at);
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
     
@@ -92,7 +120,7 @@
                             "</tr>");
       i++;
     });
-		return i;
+    return i;
   }
 
 </script>

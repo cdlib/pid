@@ -42,15 +42,15 @@
     <% unless @json == '' %>
       <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-			<img src="/spinner.gif" id="spinner" />
+      <img src="/spinner.gif" id="spinner" />
       <table>
         <tr><th />
-					<th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
-					<th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
-					<th id="th_username"><a href="#"><%= HTML_CONFIG['th_last_modified_by'] %></a></th>
+          <th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
+          <th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
+          <th id="th_username"><a href="#"><%= HTML_CONFIG['th_last_modified_by'] %></a></th>
           <th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_last_modified_on'] %></a></th>
-					<th id="th_deactivated"><a href="#"><%= HTML_CONFIG['th_active'] %></a></th>
-          <th><%= HTML_CONFIG['th_number_modifications'] %></th></tr>
+          <th id="th_deactivated"><a href="#"><%= HTML_CONFIG['th_active'] %></a></th>
+          <th id="th_versions"><a href="#"><%= HTML_CONFIG['th_number_modifications'] %></a></th></tr>
       </table>
     
       <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
@@ -64,35 +64,47 @@
     
 <script type="text/javascript">
   $("#spinner").hide();
-	
+  
+  // Parse the json
+  var json = $.parseJSON('<%= @json.gsub("'", '%27') %>');
+  $("#data").val('<%= @json.gsub("'", '%27') %>');
+
+  // Setup table pagination
+  paginate_init(<%= APP_CONFIG['search_results_limit'] %>, json.length);
+  
+  // Filter the json dataset for the current page
+  var json_subset = paginate_json(json, 1);
+  
   // Add a line to the table for each item in the JSON
-  var i = buildResultsTable('<%= @json.gsub("'", '%27') %>')
-	
-  $("th a").click( function() {
+  buildResultsTable(json_subset);
+  
+  // Build the pagination navigation line
+  pagination_build_nav($("table"), 1);
+  
+  
+  $("th:not(.pagination)").click( function() {
     $("#spinner").show();
     
-    var id = $(this).parent().attr('id').replace('th_', '');
+    // Sort the entire json dataset
+    var sorted = sort_json_data($.parseJSON($("#data").val()), $(this).attr('id').replace('th_', ''));
     
-    // Remove all of the existing lines from the search results
-    $("table").find('tr:gt(0)').remove();
+    $("#data").val(JSON.stringify(sorted));
+    
+    // Get the paginated subset of json data and rebuild the table
+    buildResultsTable(paginate_json(sorted, parseInt($("#current_page").val())));
 
-    //Sort the JSON by the selected column
-    var json = $.parseJSON($("#data").val())
-    json.sort( function(x,y) {
-      return x[id].toString().localeCompare(y[id].toString());
-    });
-    
-    //Update the json stored in the hidden field for CSV download
-    var json_txt = JSON.stringify(json);
-    $("#data").val(json_txt);
-    
-    //Reconstruct the table
-    buildResultsTable(json_txt);
-    
+    // Rebuild the pagination navigation
+    pagination_build_nav($("table"), parseInt($("#current_page").val()));
+
     $("#spinner").hide();
   });
-	
-	// convert the JSON into a CSV output
+  
+  
+  $("th.pagination").click( function() {    
+    changePage();
+  });
+  
+  // convert the JSON into a CSV output
   $(".download").click( function(){
     var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
                 '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
@@ -115,31 +127,47 @@
   $("#submit").click( function(){
     $("#spinner").show();
   });
-	
+  
   $("#reset").click( function() {
     event.preventDefault();
     reset_form_criteria('<%= HTML_CONFIG['unable_to_load_criteria_defaults'] %>');
   });
 
-	function buildResultsTable(json){
-		var i = 1;
-	  $.each($.parseJSON(json), function(idx, pid) {
+  // Required by the pagination controls since rebuilding the nav tr would lose the above th.pagination click event
+  function changePage(){
+    $("#spinner").show();
     
-	    var dt = new Date(pid.modified_at);
-	    var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
+    // Get the paginated subset of json data and rebuild the table
+    buildResultsTable(paginate_json($.parseJSON($("#data").val()), parseInt($("#current_page").val())));
+
+    // Rebuild the pagination navigation
+    pagination_build_nav($("table"), parseInt($("#current_page").val()));
+
+    $("#spinner").hide();
+  }
+
+  function buildResultsTable(json){
+    var i = 1;
     
-	    $("table tr:last").after("<tr>" +
-	                              "<td>" + i + ")</td>" + 
-	                              "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
-	                              "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
-	                                            ((pid.url.length > 70) ? pid.url.substring(0, 69) + " ..." : pid.url) + "</td>" +
-	                              "<td>" + pid.username + "</td>" +
-	                              "<td>" + modified + "</td>" +
-	                              "<td class=\"center\">" + (pid.deactivated ? "<span class=\"red bold\"><%= HTML_CONFIG['td_false'] %></span>" : "<%= HTML_CONFIG['td_true'] %>") + "</td>" +
-	                              "<td class=\"center\">" + pid.versions.length + "</td>" +
-	                            "</tr>");
-	    i++;
-	  });
-		return i;
-	}
+    $("table").find('tr:not(.page_nav):gt(0)').remove();
+    
+    $.each(json, function(idx, pid) {
+    
+      var dt = new Date(pid.modified_at);
+      var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
+    
+      $("table tr:last").after("<tr>" +
+                                "<td>" + i + ")</td>" + 
+                                "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
+                                "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
+                                              ((pid.url.length > 70) ? pid.url.substring(0, 69) + " ..." : pid.url) + "</td>" +
+                                "<td>" + pid.username + "</td>" +
+                                "<td>" + modified + "</td>" +
+                                "<td class=\"center\">" + (pid.deactivated ? "<span class=\"red bold\"><%= HTML_CONFIG['td_false'] %></span>" : "<%= HTML_CONFIG['td_true'] %>") + "</td>" +
+                                "<td class=\"center\">" + pid.versions.length + "</td>" +
+                              "</tr>");
+      i++;
+    });
+    return i;
+  }
 </script>

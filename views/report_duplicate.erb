@@ -1,8 +1,8 @@
 <section id="duplicate_report">
-	<h3><%= HTML_CONFIG['header_report_duplicate'] %></h3>
-	
-	<a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
-	
+  <h3><%= HTML_CONFIG['header_report_duplicate'] %></h3>
+  
+  <a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+  
   <% unless @json == '' %>
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
@@ -16,12 +16,12 @@
   <% else %>
     <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
   <% end %>
-	
-		
+  
+    
 </section>
 
 <section class="errors">
-	<%= @msg %>
+  <%= @msg %>
 </section>
 
 <script type="text/javascript">
@@ -29,47 +29,47 @@
   // Add a line to the table for each item in the JSON
   var i = 1;
   $.each($.parseJSON('<%= @json.gsub("'", '%27') %>'), function(url, pids) {
-    
-		col = ""
-		$.each(pids, function(idx, pid) {
-			col += '<a href="/link/' + pid + '" class="letterpress">' + pid + '</a>, '
-		});
-		
+      
+    col = ""
+    $.each(pids, function(idx, pid) {
+      col += '<a href="/link/' + pid + '" class="letterpress">' + pid + '</a>, '
+    });
+      
     $("table tr:last").after("<tr>" +
                               "<td>" + i + ")</td>" + 
                               "<td><a href=\"" + url + "\" target=\"_blank\" class=\"underline\" title=\"" + url + "\">" +
                                             ((url.length > 80) ? url.substring(0, 79) + " ..." : url) + "</td>" +
                               "<td>" + col + "</td>" +
-                            "</tr>");
+                             "</tr>");
     i++;
-  });
-
+   });
+  
   // convert the JSON into a CSV output
   $(".download").click( function(){
     var hdrs = '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
-								'<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,';
+                '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,';
     
-		var lines = '';
-		var max_pids = 1;
-		
+    var lines = '';
+    var max_pids = 1;
+    
     $.each($.parseJSON($("#data").val()), function(url, pids) {
-			lines += url + ',';
-			
-			if(pids.length > max_pids){
-				max_pids = pids.length;
-			}
-			
-			$.each(pids, function(idx, pid) {
-				lines += pid + ',';
-			});
-			
+      lines += url + ',';
+      
+      if(pids.length > max_pids){
+        max_pids = pids.length;
+      }
+      
+      $.each(pids, function(idx, pid) {
+        lines += pid + ',';
+      });
+      
       lines += '\r\n';
     });
     
-		for(i = 0; i < (max_pids - 1); i++){
-			hdrs += '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,';
-		}
-		
+    for(i = 0; i < (max_pids - 1); i++){
+      hdrs += '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,';
+    }
+    
     hdrs += '\r\n';
     
     window.open("data: text/csv;charset=utf-8," + encodeURIComponent(hdrs + lines));

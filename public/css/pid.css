@@ -212,10 +212,10 @@ form input[type=submit] {
 }
 
 #spinner {
-	position:					absolute;
-	
-	top:							-20px;
-	left:							320px;
+  position:          absolute;
+  
+  top:              -20px;
+  left:              320px;
 }
 
 ul {
@@ -225,7 +225,7 @@ ul {
 table { 
   clear:              both;
   border-spacing:     0;
-  width:              auto;
+  width:              100%;
   
   padding-top:        20px;
   
@@ -248,4 +248,15 @@ table td {
   padding:            3px 5px 6px 5px;
   
   border-bottom:      1pt solid #D8D8D8;
+}
+
+.pagination {
+  text-align:         right;
+  
+}
+.pagination a, .pagination span {
+  margin-right:        10px;
+}
+.pagination a {
+  text-decoration:    underline;
 }

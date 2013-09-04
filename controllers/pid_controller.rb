@@ -173,7 +173,7 @@ class PidApp < Sinatra::Application
     @params = get_search_defaults(params)
 
     # Limit the search results based on the value in the config
-    args = {:limit => APP_CONFIG['search_results_limit'].to_i}
+    args = {}
     
     # Set the search criteria based on the user's input
     args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
