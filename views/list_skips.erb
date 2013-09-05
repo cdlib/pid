@@ -1,0 +1,54 @@
+<section id="skips_list">
+  <h3><%= HTML_CONFIG['header_skip_check_list'] %></h3>
+  
+  <a href="/user/admin" class="letterpress right"><%= HTML_CONFIG['link_to_admin'] %></a>
+
+  <table>
+    <tr>
+      <th><%= HTML_CONFIG['th_domain'] %></th><th><%= HTML_CONFIG['th_group'] %></th><th><%= HTML_CONFIG['th_created_on'] %></th><th />
+    </tr>
+    <% @skips.each do |skip| %>
+      <tr>
+        <td><%= skip.domain %></td>
+        <td><%= skip.group %></td>
+        <td><%= skip.created_at.strftime('%m/%d/%Y') %></td>
+        <td><div class="not_ok icon">&nbsp;<input type="hidden" value="<%= skip.domain %>" /></div></td>
+      </tr>
+    <% end %>
+  </table>
+  
+  <h4><%= HTML_CONFIG['header_skip_check_add'] %></h4>
+  <form action="/skip" method="POST">
+    <label for="domain"><%= HTML_CONFIG['form_domain'] %></label>
+    <input type="text" id="domain" name="domain" style="width: 350px;" />
+    <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_add_skip_check'] %>" />
+  </form>
+</section>
+
+<section id="skips_errors">
+  <%= @msg %>
+</section>
+
+<script type="text/javascript">
+  $(".not_ok").click( function(e){
+    e.preventDefault();
+    
+    domain = $(this).children().first().val();
+    
+    $.ajax({
+      url:      '/skip',
+      type:     'delete',
+      data:     {'domain': domain}, 
+      success:  function(data) {
+        $("body").html(data);
+        $("#skips_errors").removeClass("errors");
+      },
+      error: function(data) {
+        $("body").html(data);
+        $("#skips_errors").addClass("errors");
+      },
+      complete: {}
+    });
+    
+  });
+</script>

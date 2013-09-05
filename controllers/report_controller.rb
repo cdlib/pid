@@ -51,7 +51,7 @@ class PidApp < Sinatra::Application
       # If the user manages groups show the pids for all of those groups
       elsif !Maintainer.all(:user => current_user).empty?
         Maintainer.all(:user => current_user).each do |maintainer| 
-          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+          (Pid.all(:deactivated => false) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
         end
           
       else
@@ -60,7 +60,7 @@ class PidApp < Sinatra::Application
       
       pids.each do |pid|
         
-        begin
+        begin          
           # Check the URLs for each of the PIDs
           case verify_url(pid.url).to_i
           when 300..399
@@ -83,6 +83,7 @@ class PidApp < Sinatra::Application
     @moved = moved.to_json
     @not_found = not_found.to_json
     @error = error.to_json
+    @skips = SkipCheck.all()
     
     erb :report_invalid
   end

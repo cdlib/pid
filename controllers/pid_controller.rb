@@ -257,8 +257,8 @@ class PidApp < Sinatra::Application
                            :host => request.ip})
         
               # Check to see if the PID's URL is valid, if not WARN the user
-              if verify_url(url) != 200
-                @msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', @pid.id) 
+              if verify_url(params[:url]) != 200
+                @msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', @pid.id.to_s) 
 
               else
                 @msg = MESSAGE_CONFIG['pid_update_success']

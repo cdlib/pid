@@ -31,11 +31,9 @@
               <li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
               <li class="grey">|</li>
               <li><a href="/link/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
-              <% if @super %>
+              <% if @super || is_group_maintainer? %>
                 <li class="grey">|</li>
-                <li><a href="/user/list"><%= HTML_CONFIG['nav_users'] %></a></li>
-                <li class="grey">|</li>
-                <li><a href="/group/list"><%= HTML_CONFIG['nav_groups'] %></a></li>
+                <li><a href="/user/admin"><%= HTML_CONFIG['nav_admin'] %></a></li>
               <% else %>
                 <li class="grey">|</li>
                 <li><a href="/user/list"><%= HTML_CONFIG['nav_user'] %></a></li>

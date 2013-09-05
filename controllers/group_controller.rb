@@ -73,7 +73,7 @@ class PidApp < Sinatra::Application
     redirect to('/not_found') if @group.nil?
     begin
       if @group.users.empty? && @group.maintainers.empty?
-        @group.delete
+        @group.destroy
       
         @msg = MESSAGE_CONFIG['group_delete_success']
       else

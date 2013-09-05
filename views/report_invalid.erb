@@ -45,6 +45,14 @@
     
   <% end %>
   
+	<h4><%= HTML_CONFIG['header_report_invalid_skipped'] %></h4>
+  <table id="skips_table">
+    <tr><th style="text-align: left;"><%= HTML_CONFIG['th_domain'] %></th></tr>
+		<% @skips.each do |skip| %>
+			<tr><td><%= skip.domain %></td></tr>
+		<% end %>
+  </table>
+	
 </section>
 
 <section class="errors">

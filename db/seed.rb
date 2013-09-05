@@ -9,8 +9,10 @@ debug = seed_config['debug_on']
 if seed_config['flush_tables']
   Pid.flush!
   Maintainer.flush!
+  Interested.flush!
   User.flush!
   Group.flush!
+  SkipCheck.flush!
 end
 
 # Load the CSV Files

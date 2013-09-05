@@ -1,5 +1,13 @@
 class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
+# Display the administration page
+# ---------------------------------------------------------------
+  get '/user/admin' do
+    @super = current_user.super
+    erb :show_admin
+  end
+    
+# ---------------------------------------------------------------
 # Display the login page
 # ---------------------------------------------------------------
   get '/user/login' do

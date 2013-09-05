@@ -81,3 +81,9 @@ batch_process_revise_wrong_group: 'PID #{?} does not belong to your group!'
 batch_process_revise_missing: 'PID #{?} does not exist!'
 
 reports_failure: 'There was a problem processing the report: '
+
+skip_success: 'The domain has been added to the list.'
+skip_delete: 'The domain has been deleted'
+skip_failure: 'Unable to add the specified domain!'
+skip_duplicate: 'The domain you specified is already in the system!'
+skip_not_authorized: "You cannot delete that domain because you do not maintain that user's group."

@@ -250,6 +250,15 @@ table td {
   border-bottom:      1pt solid #D8D8D8;
 }
 
+#skips_errors {
+  color:              #298A08; 
+  font-weight:         bold; 
+
+  text-align:          center;
+
+  width:              70%;
+}
+
 .pagination {
   text-align:         right;
   

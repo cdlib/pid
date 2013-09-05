@@ -3,10 +3,9 @@ nav_home: 'Home'
 nav_pid_search: 'Find PIDs'
 nav_pid_update: 'Edit PIDs'
 nav_pid_create: 'Mint PIDs'
-nav_user: 'User'
-nav_users: 'Users'
+nav_user: 'Profile'
+nav_admin: 'Administration'
 nav_reports: 'Reports'
-nav_groups: 'Groups'
 nav_logout: 'Logout'
 
 # Page/Section headers
@@ -31,20 +30,23 @@ header_pid_inactive: 'Inactive!'
 header_pid_register: 'Mint a new PID'
 header_pid_register_success: 'Successfully created the following PID(s)'
 header_pid_register_duplicate_url: 'The following PID(s) are already defined for the following URL(s)'
+header_skip_check_list: 'Domains that we cannot run link validation against'
+header_skip_check_add: 'Add a new domain'
+header_manage_maintainers: 'Users who can manage this group'
+header_manage_users: 'Users that belong to this group'
 header_reports: 'Reporting'
 header_report_inactive: 'Inactive reports'
 header_report_invalid: 'Invalid URLs'
 header_report_invalid_error: 'The following URLs are returning a server error'
 header_report_invalid_not_found: 'The following URLs are returning a not found message'
 header_report_invalid_moved: 'The following URLs are working but are redirected to another URL which may or may not be correct'
+header_report_invalid_skipped: 'The following domains cannot be scanned due to contractual agreements established with the hosting company'
 header_report_duplicate: 'Duplicate URLs'
 header_report_maintenance_criteria: 'PID maintenance report criteria'
 header_report_maintenance_results: 'PID maintenance report results'
 header_report_usage_criteria: 'PID maintenance report criteria'
 header_report_usage_results: 'PID maintenance report results'
-header_help: 'Help'
-header_manage_maintainers: 'Managers'
-header_manage_users: 'Users'
+header_admin: 'Administration'
 
 # Page based links to other pages
 link_to_login: 'Login'
@@ -56,6 +58,7 @@ link_to_group_list: 'Return to the group list'
 link_to_reports: 'Return to the report list'
 link_to_delete_group: 'Remove'
 link_to_add_user: 'Add'
+link_to_admin: 'Return to the administration page'
 
 # Form elements
 form_userid: 'User Id:'
@@ -89,6 +92,7 @@ form_description: 'Description:'
 form_maintainers: 'Managers:'
 form_users: 'Users:'
 form_add_user: 'Add:'
+form_domain: 'Domain'
 
 # Hints that appear next to the criteria on the search and stats report pages
 form_search_url_instruction: 'You may enter partial urls (e.g. google.com/)'
@@ -128,6 +132,8 @@ button_update_pid: 'Save'
 button_process_batch: 'Upload'
 button_csv_download: 'Download as CSV'
 button_save_group: 'Save'
+button_add_skip_check: 'Add'
+button_save_group: 'Save'
 
 # Table headings
 th_userid: 'User Id'
@@ -143,6 +149,7 @@ th_url: 'URL'
 th_modified_date: 'Updated'
 th_last_modified_on: 'Last Modified On'
 th_last_modified_by: 'Last Modified By'
+th_created_on: 'Created On'
 th_number_modifications: '# Times Modified'
 th_deactivated_by: 'Deactivated By'
 th_deactivated_on: 'Deactivated On'
@@ -154,6 +161,7 @@ th_group_name: 'Name'
 th_description: 'Description'
 th_users: '# of Users'
 th_maintainers: '# of Managers'
+th_domain: 'Domain'
 
 # True/False values in tables
 td_true: 'Yes'
@@ -171,18 +179,33 @@ not_found_text: 'The page you requested could not be found.'
 
 unauthorized_text:
   "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 
-  this is a mistake."	
+  this is a mistake."  
 
 search_text: 'This utility will only return 5,000 results at a time. If your search returned 5,000 PIDs, you should refine your criteria.'
+
+admin_text:
+  "Please select from the options below:
+  <ul>
+    <li><a href='/user/list' class='letterpress'>Users</a></li>
+    <li><a href='/skip' class='letterpress'>URL Validation Exceptions</a></li>
+  </ul>"
+
+admin_text_super:
+  "Please select from the options below:
+  <ul>
+    <li><a href='/group/list' class='letterpress'>Groups</a></li>
+    <li><a href='/user/list' class='letterpress'>Users</a></li>
+    <li><a href='/skip' class='letterpress'>URL Validation Exceptions</a></li>
+  </ul>"
 
 reports_text: 
   "Please select on of the following reports below:
   <ul>
     <li><a href='/report/inactive' class='letterpress'>Inactive PIDs</a></li>
     <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URL targets</a> (may take a while to run)</li>
-		<li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a> (may take a verrry long time to run)</li>
+    <li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a> (may take a verrry long time to run)</li>
     <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
-		<li><a href='/report/usage' class='letterpress'>PID usage statistics</a></li>
+    <li><a href='/report/usage' class='letterpress'>PID usage statistics</a></li>
   </ul>"
 
 help_text: 

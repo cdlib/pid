@@ -118,28 +118,34 @@ class PidApp < Sinatra::Application
       return User.get(session[:user])
     end
     
+    def is_group_maintainer?
+      return !Maintainer.first(:user => current_user).nil?
+    end
+    
 # ---------------------------------------------------------------------------------------------------
-# Ping the PID's target URL to see if its valid
-#     TODO: Determine whether or not we can do this. We may need to store a list of domains in the
-#           DB for companies/institutions that do not allow this 
-#
-#     SCP - not allowed by contract to check live URLs automatically
-#           for all journals. Will happen while loading seed data, editing in masse.
-# ---------------------------------------------------------------------------------------------------        
+# Process to verify that the url is a valid target
+# ---------------------------------------------------------------------------------------------------
     def verify_url(url)
-=begin      
-      #Test to make sure this a valid URL
-      uri = URI.parse(url)
-      req = Net::HTTP.new(uri.host, uri.port)
-      if uri.path.empty?
-        res = req.request_get(url)
-      else
-        res = req.request_head(uri.path) 
-      end
+      skip = false
+      
+      SkipCheck.all().each{ |it| skip = true if url.downcase.include?(it.domain.downcase) }
+      
+      if !skip
+            
+        #Test to make sure this a valid URL
+        uri = URI.parse(url)
+        req = Net::HTTP.new(uri.host, uri.port)
+        if uri.path.empty?
+          res = req.request_get(url)
+        else
+          res = req.request_head(uri.path) 
+        end
           
-      res.code.to_i  
-=end
-      200
+        res.code.to_i  
+      else
+        200
+      end
+      
     end
     
 # ---------------------------------------------------------------------------------------------------
