@@ -80,8 +80,8 @@ function reset_form_criteria(err_msg){
       $("#url").val('');
       $("#userid").val('');
 
-      $("#pid_low").val(defaults.pid_min);
-      $("#pid_high").val(defaults.pid_max);
+      $("#pid_low").val(defaults.pid_low);
+      $("#pid_high").val(defaults.pid_high);
 
       $("#created_low").val(defaults.created_low);
       $("#created_high").val(defaults.created_high);

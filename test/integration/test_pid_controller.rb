@@ -55,8 +55,8 @@ class PidManageApp < Test::Unit::TestCase
 # ---------------------------------------------------------------
   def test_post_search_not_found
     post '/user/login', { :login => @user.login, :password => @pwd }
-    post '/link/search', {:url => 'blah blah blah', :userid => '', :pid_low => 1, :pid_high => 100, :created_low => '2013-07-01', 
-                          :created_high => '2018-09-01', :modified_low => '2013-07-01', :modified_high => '2018-09-01', :active => ''}
+    post '/link/search', {:url => 'blah blah blah', :userid => '', :pid_low => '', :pid_high => '', :created_low => '', 
+                          :created_high => '', :modified_low => '', :modified_high => '', :active => ''}
     
     assert last_response.not_found?, 'Search returned records for an invalid url!'
     

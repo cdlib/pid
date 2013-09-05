@@ -18,6 +18,15 @@ class PidApp < Sinatra::Application
     @json = [].to_json
     @params = get_search_defaults({})
     
+    @params[:pid_low] = ""
+    @params[:pid_high] = ""
+    
+    @params[:created_low] = ""
+    @params[:created_high] = ""
+    
+    @params[:modified_low] = ""
+    @params[:modified_high] = ""
+    
     erb :search_pid
   end
   
@@ -191,14 +200,14 @@ class PidApp < Sinatra::Application
   
     args[:deactivated] = (@params[:active] == '0') ? true : false unless @params[:active].empty?
     
-    args[:id.gte] = @params[:pid_low]
-    args[:id.lte] = @params[:pid_high]
+    args[:id.gte] = @params[:pid_low] unless @params[:pid_low].empty?
+    args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
   
-    args[:modified_at.gte] = "#{@params[:modified_low]} 00:00:00"
-    args[:modified_at.lte] = "#{@params[:modified_high]} 23:59:59"
+    args[:modified_at.gte] = "#{@params[:modified_low]} 00:00:00" unless @params[:modified_low].empty?
+    args[:modified_at.lte] = "#{@params[:modified_high]} 23:59:59" unless @params[:modified_high].empty?
   
-    args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" 
-    args[:created_at.lte] = "#{@params[:created_high]} 23:59:59"
+    args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" unless @params[:created_low].empty?
+    args[:created_at.lte] = "#{@params[:created_high]} 23:59:59" unless @params[:created_high].empty?
     
     # Filter the results to the user's group unless the user is an admin
     if !Maintainer.all(:user => current_user).empty?

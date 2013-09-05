@@ -156,11 +156,14 @@ class PidApp < Sinatra::Application
     args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
     args[:username] = User.get(@params[:userid]).login unless @params[:userid].empty?
     
-    args[:modified_at.gte] = "#{@params[:modified_low]} 00:00:00"
-    args[:modified_at.lte] = "#{@params[:modified_high]} 23:59:59"
+    args[:id.gte] = @params[:pid_low] unless @params[:pid_low].empty?
+    args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
     
-    args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" 
-    args[:created_at.lte] = "#{@params[:created_high]} 23:59:59"
+    args[:modified_at.gte] = "#{@params[:modified_low]} 00:00:00" unless @params[:modified_low].empty?
+    args[:modified_at.lte] = "#{@params[:modified_high]} 23:59:59" unless @params[:modified_high].empty?
+    
+    args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" unless @params[:created_low].empty?
+    args[:created_at.lte] = "#{@params[:created_high]} 23:59:59" unless @params[:created_high].empty?
     
     # Filter the results to the user's group unless the user is an admin
     if !current_user.super

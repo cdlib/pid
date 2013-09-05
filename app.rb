@@ -175,27 +175,27 @@ class PidApp < Sinatra::Application
       args = {:group => current_user.group} unless current_user.super
       
       # Load the low and high values for the defaults
+
       if !Pid.first().nil?
-        defaults[:pid_min] = Pid.first(args, :order => [:id.asc]).id
-        defaults[:pid_max] = Pid.first(args, :order => [:id.desc]).id
-        defaults[:modified_low] = (Pid.first(args, :order => [:modified_at.desc]).modified_at - 181).strftime("%Y-%m-%d")
-        defaults[:modified_high] = Pid.first(args, :order => [:modified_at.desc]).modified_at.strftime("%Y-%m-%d")
-        defaults[:created_low] = (Pid.first(args, :order => [:created_at.desc]).created_at - 181).strftime("%Y-%m-%d")
-        defaults[:created_high] = Pid.first(args, :order => [:created_at.desc]).created_at.strftime("%Y-%m-%d")
+        args[:order] = [:id.asc]
+        params[:pid_min] = Pid.first(args).id
+        
+        args[:order] = [:id.desc]
+        params[:pid_max] = Pid.first(args).id
+        
+        args[:order] = [:modified_at.asc]
+        params[:modified_min] = Pid.first(args).modified_at.strftime("%m/%d/%Y")
+        
+        args[:order] = [:modified_at.desc]
+        params[:modified_max] = Pid.first(args).modified_at.strftime("%m/%d/%Y")
+        
+        args[:order] = [:created_at.asc]
+        params[:created_min] = Pid.first(args).created_at.strftime("%m/%d/%Y")
+        
+        args[:order] = [:created_at.desc]
+        params[:created_max] = Pid.first(args).created_at.strftime("%m/%d/%Y")
       end
-            
-      # If either of the PID range values that were passed in then use the default
-      params[:pid_low] = defaults[:pid_min] if (params[:pid_low].nil? ? true : params[:pid_low].empty?)
-      params[:pid_high] = defaults[:pid_max] if (params[:pid_high].nil? ? true : params[:pid_high].empty?)
-    
-      # If the date ranges that were passed in were empty then use the default
-      params[:created_low] = defaults[:created_low] if (params[:created_low].nil? ? true : params[:created_low].empty?)
-      params[:created_high] = defaults[:created_high] if (params[:created_high].nil? ? true : params[:created_high].empty?)
-      params[:modified_low] = defaults[:modified_low] if (params[:modified_low].nil? ? true : params[:modified_low].empty?)
-      params[:modified_high] = defaults[:modified_high] if (params[:modified_high].nil? ? true : params[:modified_high].empty?)
-      params[:accessed_low] = defaults[:accessed_low] if (params[:accessed_low].nil? ? true : params[:accessed_low].empty?)
-      params[:accessed_high] = defaults[:accessed_high] if (params[:accessed_high].nil? ? true : params[:accessed_high].empty?)
-      
+
       # If the PID high range is less than the low range, swap them 
       params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high].to_i < params[:pid_low].to_i
       

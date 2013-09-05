@@ -90,6 +90,11 @@ form_maintainers: 'Managers:'
 form_users: 'Users:'
 form_add_user: 'Add:'
 
+# Hints that appear next to the criteria on the search and stats report pages
+form_search_url_instruction: 'You may enter partial urls (e.g. google.com/)'
+form_search_between: 'between'
+form_search_and: 'and'
+
 # No matches to the search
 search_no_matches: 'No PIDs matched your search criteria!'
 unable_to_load_criteria_defaults: 'Unable to retrieve the defaults for the criteria'
