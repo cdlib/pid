@@ -16,15 +16,29 @@
       <input type="hidden" id="group" name="group" value="<%= @group.id %>" />
     <% end %>
   
+    <% if @interested.size > 0 %>
+      <label for="interested"><%= HTML_CONFIG['form_interested'] %></label>
+      <span class="form_informational">
+        <% @interested.each do |it| %>
+          <%= it.group_id %>,
+        <% end %>
+      </span>
+    <% end %>
+    
     <label><%= HTML_CONFIG['form_created_date'] %></label>
     <span class="form_informational"><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
     <label><%= HTML_CONFIG['form_modified_date'] %></label>
     <span class="form_informational"><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
     <label><%= HTML_CONFIG['form_modified_by'] %></label><span class="form_informational"><%= @pid.username %></span>
-		<label><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @pid.group.id %></span>
+    <label><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @pid.group.id %></span>
     <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= @pid.change_category %></span>
     <label for="active"><%= HTML_CONFIG['form_active'] %></label>
     <input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %>" />
+    
+    <% if @interested.size > 0 %>
+      <label>&nbsp;</label><span class="form_informational" style="width: 80%;"><%= HTML_CONFIG['edit_pid_interested_parties'] %></span>
+    <% end %>
+    
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_update_pid'] %>" />
   </form>
   

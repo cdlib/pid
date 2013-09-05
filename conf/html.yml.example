@@ -30,6 +30,7 @@ header_pid_history: 'History'
 header_pid_inactive: 'Inactive!'
 header_pid_register: 'Mint a new PID'
 header_pid_register_success: 'Successfully created the following PID(s)'
+header_pid_register_duplicate_url: 'The following PID(s) are already defined for the following URL(s)'
 header_reports: 'Reporting'
 header_report_inactive: 'Inactive reports'
 header_report_invalid: 'Invalid URLs'
@@ -102,6 +103,7 @@ batch_upload_failure: 'Unable to process the file you selected. Make sure its a 
 batch_failures: 'The following PID(s) could not be updated:'
 batch_mint_log: 'Successfully minted the following PID(s):'
 batch_revision_log: 'Successfully updated the following PID(s):'
+batch_duplicate_url_log: 'The following URL(s) are already in use by the following PID(s)'
 
 # Create multiple pids, some failed error message
 create_pids_some_errors:
@@ -186,13 +188,16 @@ help_text:
     <li>Etc.</li>
   </ul>"
 
+edit_pid_interested_parties: "The interested groups listed above will be notified of any changes you make to this PID."
+
 edit_pid_text:
   "Select the CSV file that contains your changes. The file should be in the following format (without headers!): <br /><br />
   &nbsp;&nbsp;PID Id, New URL, Change Category, Notes<br /><br />
   The PID Id column should only contain the PID's number, not the entire URL.<br />
   If you leave the PID Id blank, the system will attempt to mint a new PID.<br />
   If you would like to deactivate a PID, leave its URL blank.<br />
-  There is no limit to the number of PIDs you can update at one time."
+  There is no limit to the number of PIDs you can update at one time.<br /><br />
+  If any of the PIDs you are updating are used by other groups, they will be notified of the change via email."
 
 dead_pid_text:
   "The PID you are looking for is no longer active. Please contact so and so if you think that this is an error."

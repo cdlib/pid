@@ -59,8 +59,16 @@ pid_mint_dead_url: 'The URL for PID {?} is not active. The PID was created but y
 pid_mint_failure: 'Unable to create PID for URL {?}.'
 pid_mint_invalid_url: 'Invalid URL format: {?}'
 pid_mint_empty_url: 'You must provide a URL!'
-
+pid_duplicate_url: 'The URL you specified is already used by PID {?}'
 pid_revise_dead_url: 'The URL you specified is not active. Your change has been saved but please make sure you have the correct URL!'
+
+# Use {?} to have the system add the PID id in the subject
+notify_interested_subject: 'A PID you watch has been modified! (PID - {?})'
+# Use {?} to have the system add the show PID url in the message
+notify_interested_change: 'PID {?} has been modified:'
+# Use {?old?} to have the system add the old URL and {?new?} for the new URL into the message
+notify_interested_url_change: 'The URL has changed from {?old?} to {?new?}.'
+notify_interested_deactivation: 'The PID has been deactivated!'
 
 invalid_file_type: 'The file you upload must be in the CSV format!'
 no_file_selected: 'You must select a file to upload!'

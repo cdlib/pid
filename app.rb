@@ -149,12 +149,14 @@ class PidApp < Sinatra::Application
       shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
       ret = []
       
+      # Convert the string returned by Redis to an array
       pids = shorty.get(url)
       
       if !pids.nil?
-        if pids.size > 1
-          ret = pids
-        end
+        pids = pids.gsub(/[\[\]"]/, '').split(',')
+      
+        # Add the PID's id to the return array if its not the pid specified
+        pids.each { |it| ret << it unless it == pid } unless pids.empty?
       end
       
       ret

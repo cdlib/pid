@@ -23,11 +23,28 @@
     <% end %>
     
     <% if !@failures.empty? %>
-			<%= HTML_CONFIG['create_pids_some_errors'] %>
-			<% @failures.each do |failure| %>
-				<%= failure %>
-			<% end %>
+      <%= HTML_CONFIG['create_pids_some_errors'] %>
+      <% @failures.each do |failure| %>
+        <%= failure %>
+      <% end %>
     <% end %>
+</section>
+
+<section id="pid_duplicate_urls">
+  <% if !@interested.empty? %>
+    <h3><%= HTML_CONFIG['header_pid_register_duplicate_url'] %></h3>
+    
+    <table>
+        <tr><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th></tr>
+        <% @interested.each do |pid| %>
+          <tr>
+            <td><a href="/link/<%= pid.id %>" class="letterpress"><%= pid.id %></a></td>
+            <td><a href="<%= pid.url %>" class="underline" target="_blank"><%= pid.url %></a></td>
+          </tr>
+      <% end %>
+    </table>
+        
+  <% end %>
 </section>
 
 <section id="pid_new_results">

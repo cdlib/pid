@@ -1,56 +1,65 @@
 <div id="batch">
-	<section id="pid_edit">
-  	<h3><%= HTML_CONFIG['header_pid_edit'] %></h3>
+  <section id="pid_edit">
+    <h3><%= HTML_CONFIG['header_pid_edit'] %></h3>
   
-  	<article><%= HTML_CONFIG['edit_pid_text'] %></article>
+    <article><%= HTML_CONFIG['edit_pid_text'] %></article>
   
-  	<form id="batch_form" name="batch_form" action="/link/edit" method="post" enctype="multipart/form-data">
-    	<label>File:</label><input type="file" id="csv" name="csv" accept="csv" />
-    	<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_process_batch'] %>">
-    	<progress></progress>
-  	</form>
+    <form id="batch_form" name="batch_form" action="/link/edit" method="post" enctype="multipart/form-data">
+      <label>File:</label><input type="file" id="csv" name="csv" accept="csv" />
+      <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_process_batch'] %>">
+      <progress></progress>
+    </form>
   
-	</section>
+  </section>
 
-	<section class="errors">
-  	
-	</section>
+  <section class="errors">
+    
+  </section>
 
-	<section id="batch_results">
-  	<% if !@mints.empty? %>
-    	<h3><%= HTML_CONFIG['batch_mint_log'] %></h3>
+  <section id="batch_results">
+    <% if !@interested.empty? %>
+      <h3><%= HTML_CONFIG['batch_duplicate_url_log'] %></h3>
     
-    	<% @mints.each do |mint| %>
-      	<%= HTML_CONFIG['form_pid'] %><%= mint.id.to_s %> - <%= mint.url %><br />
-    	<% end %>
-    	<br />
-  	<% end %>
+      <% @interested.each do |pid| %>
+         <%= HTML_CONFIG['form_pid'] %><%= pid.url %> - <%= pid.id.to_s %><br />
+      <% end %>
+      <br />
+    <% end %>
+    
+    <% if !@mints.empty? %>
+      <h3><%= HTML_CONFIG['batch_mint_log'] %></h3>
+    
+      <% @mints.each do |mint| %>
+        <%= HTML_CONFIG['form_pid'] %><%= mint.id.to_s %> - <%= mint.url %><br />
+      <% end %>
+      <br />
+    <% end %>
   
-  	<% if !@revisions.empty? %>
-    	<h3><%= HTML_CONFIG['batch_revision_log'] %></h3>
+    <% if !@revisions.empty? %>
+      <h3><%= HTML_CONFIG['batch_revision_log'] %></h3>
     
-			<% @revisions.each do |revision| %>
-     		<%= HTML_CONFIG['form_pid'] %><%= revision.id.to_s %> - <%= (revision.deactivated ? 'Inactive' : 'Active') %> - <%= revision.url %><br />
-   			<% end %>
-  	<% end %>
-		
-		<% if !@failures.empty? %>
-			<h3><%= HTML_CONFIG['batch_failures'] %></h3>
-  		<% @failures.each do |failure| %>
-    		<%= failure %><br />
-  		<% end %>
-		<% end %>
-	</section>
+      <% @revisions.each do |revision| %>
+         <%= HTML_CONFIG['form_pid'] %><%= revision.id.to_s %> - <%= (revision.deactivated ? 'Inactive' : 'Active') %> - <%= revision.url %><br />
+         <% end %>
+    <% end %>
+    
+    <% if !@failures.empty? %>
+      <h3><%= HTML_CONFIG['batch_failures'] %></h3>
+      <% @failures.each do |failure| %>
+        <%= failure %><br />
+      <% end %>
+    <% end %>
+  </section>
 </div>
 
 <script type="text/javascript">
 
   $('progress').hide();
-	
-	$("#submit").click( function(event) {
-		$('progress').show();
-	});
-	
+  
+  $("#submit").click( function(event) {
+    $('progress').show();
+  });
+  
   function progressHandlingFunction(e){
     if(e.lengthComputable){
       $('progress').attr({value: e.loaded, max: e.total});

@@ -197,9 +197,19 @@ begin
     # Load the user specified in the CSV
     users = incoming.username.split(' ')
     user = nil
+    interested = []
     
     users.each do |usr|
-      user = User.first(:login => usr.downcase) if user.nil?
+      # If its the first user, make them the owner, all others become interested parties
+      if user.nil?
+        user = User.first(:login => usr.downcase) 
+      else
+        person = User.first(:login => usr.downcase)
+        group = (person.nil?) ? Group.first(:id => usr.downcase) : person.group
+        
+        # Only add the group if its not already the owner of the pid
+        interested << group unless group.nil? || group == user.group
+      end
     end
     
     # no user could be found so use the designated default user account
@@ -225,8 +235,12 @@ begin
         params[:notes] = 'Transferred from legacy system.' if params[:notes].nil?
       
         begin
-          Pid.mint(params)
+          new_pid = Pid.mint(params)
         
+          interested.each do |grp|
+            Interested.new(:group => grp, :pid => new_pid).save
+          end
+          
           i = i.next
         rescue Exception => e
           $stdout.puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"

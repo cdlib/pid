@@ -23,6 +23,7 @@ end
 class Pid
   include DataMapper::Resource
   has n, :pid_versions
+  has n, :interesteds, :required => false     # Groups with an interest in the PID but are not the maintainers
   belongs_to :group
   
   property :id, Serial, :key => true
