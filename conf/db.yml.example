@@ -1,7 +1,8 @@
+# Whether or not the Redis DB should rebuild itself when the app restarts
 rebuild_redis_on_startup: false
 
+# DB connection settings 
 db_adapter: 'mysql'
-
 db_host: 'server.domain.org'
 db_port: '3306'
 db_name: 'pid'

@@ -4,7 +4,6 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   get '/skip' do
     @skips = SkipCheck.all()
-    
     erb :list_skips
   end
   
@@ -12,22 +11,23 @@ class PidApp < Sinatra::Application
 # Add the specified domain
 # ---------------------------------------------------------------  
   post '/skip' do
-    begin
-      exists = false
+    exists = false
       
-      # If the domain specified is already a part of another skip check or another skip check contains the specified domain 
-      SkipCheck.all().each{ |it| exists = true if params[:domain].downcase.include?(it.domain) || it.domain.include?(params[:domain].downcase) }
+    # If the domain specified is already a part of another skip check or another skip check contains the specified domain 
+    SkipCheck.all().each do |it| 
+      exists = true if params[:domain].downcase.include?(it.domain) or it.domain.include?(params[:domain].downcase) 
+    end
 
-      if !exists
+    if !exists
+      begin
         SkipCheck.new(:domain => params[:domain].downcase, :created_at => Time.now, :group => current_user.group.id).save
-        
+          
         @msg = MESSAGE_CONFIG['skip_success']  
-      else
-        @msg = MESSAGE_CONFIG['skip_duplicate']
+      rescue Exception => e
+        @msg = MESSAGE_CONFIG['skip_failure']
       end
-      
-    rescue Exception => e
-      @msg = MESSAGE_CONFIG['skip_failure'] + e.message
+    else
+      @msg = MESSAGE_CONFIG['skip_duplicate']
     end
     
     @skips = SkipCheck.all()
@@ -44,29 +44,56 @@ class PidApp < Sinatra::Application
     if !skip.nil?
       
       # If the domain belongs to the current user's group or the current user maintains the group that the skip belongs to.
-      if skip.group == current_user.group || Maintainer.first(:user => current_user.login, :group => skip.group) || current_user.super
-        skip.destroy
-      
-        @msg = MESSAGE_CONFIG['skip_delete'] 
+      if skip.group == current_user.group or Maintainer.first(:user => current_user.login, :group => skip.group) or current_user.super
+        begin
+          skip.destroy
+          
+          @msg = MESSAGE_CONFIG['skip_delete'] 
+        rescue Exception => e
+          @msg = MESSAGE_CONFIG['skip_failure']
+        end
       else
         @msg = MESSAGE_CONFIG['skip_not_authorized'] 
       end
-    else
-      @msg = MESSAGE_CONFIG['skip_failure']
-    end
       
-    @skips = SkipCheck.all()
+      @skips = SkipCheck.all()
     
-    erb :list_skips
+      erb :list_skips
+    else
+      404
+    end
   end
   
 # --------------------------------------------------------------------------------------------------------------
-# Redirect to the login if the user isn't authenticated 
-# Redirect to the unauthorized page if the user is not a maintainer of a group
+
+
 # --------------------------------------------------------------------------------------------------------------
   before '/skip' do
-    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
-    erb :unauthorized if Maintainer.first(:user => current_user).nil? && !current_user.super
+    if request.xhr?
+      halt(401) unless logged_in?
+      MESSAGE_CONFIG['user_unauthorized'] unless  Maintainer.first(:user => current_user).nil? and !current_user.super
+    else
+      # Redirect to the login if the user isn't authenticated 
+      redirect '/user/login' unless logged_in?
+    
+      # Return an unauthorized message if the user is not a super admin
+      redirect '/unauthorized' unless  Maintainer.first(:user => current_user).nil? and !current_user.super
+    end
   end 
   
+  after '/skip' do
+    session[:msg] = nil
+  end
+  
+  not_found do
+    @msg = MESSAGE_CONFIG['not_found_skip_check']
+    
+    request.xhr? ? @msg : (erb :not_found)
+  end
+  
+  helpers do
+    #def skip
+    #  @skip ||= SkipCheck.first(:domain => params[:domain].downcase) or halt(404)
+    #end
+  end
 end

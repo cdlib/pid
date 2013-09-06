@@ -28,9 +28,14 @@
         $("#login_chk").attr('title', '');
         $("#login_chk").addClass("ok icon");
       },
-      error: function(data) {
-        $("#login_chk").attr('title', '<%= MESSAGE_CONFIG['invalid_login'] %>');
-        $("#login_chk").addClass("not_ok icon");
+      error: function(xhr) {
+        if(xhr.status == 401){
+          window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
+        }else{
+          $("#login_chk").attr('title', '<%= MESSAGE_CONFIG['invalid_login'] %>');
+          $("#login_chk").addClass("not_ok icon");
+          
+        }
       }
     });
   });

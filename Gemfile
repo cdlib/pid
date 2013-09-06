@@ -9,6 +9,7 @@ gem 'dm-transactions'
 gem 'dm-timestamps'
 gem 'redis'
 gem 'thin'
+gem 'pony'
 
 group :test do
   gem 'rack-test', :require => 'rack/test'

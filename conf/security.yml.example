@@ -1,15 +1,15 @@
-# Session secret - The system is expecting the name of an environment variable that stores the session secret
+# Session secret
 session_secret: 'secret_word'
 
 # Session expiration in seconds
 session_expires: 900
 
-# Default system administrator (the system will create the specified group if it does not exist)
-create_default_admin: false
+# Default system administrator (the system will create the specified group if specified and it does not already exist)
+create_default_admin: false  # Indicates whether or not the admin account gets created on startup
 default_group_id: 'ADM'
 default_group_name: 'Administrators'
-default_admin_login: 'admin'
-default_admin_password: 'password'
+default_admin_login: 'admin'           # CHANGE THIS!!!
+default_admin_password: 'password'     # CHANGE THIS!!!
 default_admin_name: 'Administrator'
 default_admin_email: 'admin@institution.org'
 
@@ -19,24 +19,17 @@ max_login_attempts: 5
 # The number of minutes after which an account will unlock automatically - leave blank to prevent accounts from auto-unlocking
 release_account_lock_after: 10
 
-# Indicate the identifiers that will be used to identify the user id and the reset_code in the password reset query string.
-password_reset_user_identifier: 'n'
-password_reset_user_key: 'c'
-
 # Specify the length in minutes that a password reset request will remain active. The time should allow for the user to receive their email
 # from the system with the link to their reset page
 password_reset_timeout: 15
 
 # Specify the password reset email parameters. The system will replace the following values if included in the body:
-#   #{name?}           <= user.name
-#   #{url?}            <= the URL to the user's reset page (You MUST include this one)
-#   #{affiliation?}    <= the user.affiliation
-#   #{group?}          <= the user.group.name
-#   #{timeframe}       <= the timeout specified above
-password_reset_email_from: 'brian.riley@ucop.edu'
-password_reset_email_cc: ''
-password_reset_email_bcc: ''
-password_reset_email_subject: 'UCOP PID Service - Password reset'
+#   {?name?}            <= user.name
+#   {?url?}             <= the URL to the user's reset page (You MUST include this one)
+#   {?affiliation?}     <= the user.affiliation
+#   {?group?}           <= the user.group.name
+#   {?timeframe?}       <= the timeout specified above
+password_reset_email_subject: 'System - Password reset'
 password_reset_email_body: 
   'Hello #{name?},
 	<br /><br />
@@ -47,6 +40,21 @@ password_reset_email_body:
 	<br /><br />
 	For your security, this reset request will expire in #{timeframe} minutes.'
 
+# Specify the accounts, subject, and message that should be sent to the administrators when an account gets locked
+#   The system will replace the following placeholders
+#      {?login?}         <= user's login id
+#      {?name?}          <= user's name
+#      {?email?}         <= user's email address
+#      {?ip?}            <= the ip address that generated the lockout
+account_lock_email_to: 'admin@domain.org'
+account_lock_email_subject: 'System - Account Lockout'
+account_lock_email_body: 
+  'The following account has been locked due to too many failed login attempts.
+  <br /><br />
+  Login: {?login?}<br />
+  Name: {?name?}<br />
+  Source IP: {?ip?}'
+	
 # The pages that the user should be sent to after the specified action completes successfully. E.g. go to the /link/index page after login
 target_after_login: '/link'
 target_after_logout: '/user/login'

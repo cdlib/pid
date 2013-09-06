@@ -203,7 +203,15 @@ class PidApp < Sinatra::Application
 # Verify that the user is logged in before allowing access to a report
 # ---------------------------------------------------------------
   before '/report/*' do
-    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
+    if request.xhr?
+      halt(401) unless logged_in?
+    else
+      # Redirect to the login if the user isn't authenticated 
+      redirect '/user/login' unless logged_in?
+    end
   end
 
+  after '/report/*' do
+    session[:msg] = nil
+  end
 end

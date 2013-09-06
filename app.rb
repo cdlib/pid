@@ -4,6 +4,7 @@
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
 require 'shortcake'
 require "net/http"
+require 'pony'
 
 class PidApp < Sinatra::Application
   $stdout.puts "loading configuration files"
@@ -111,6 +112,7 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------------------------------------------
     def logged_in?
       return true if session[:user]
+      session[:msg] = MESSAGE_CONFIG['session_expired']
       nil
     end
 
@@ -211,5 +213,27 @@ class PidApp < Sinatra::Application
       params
     end
   end
+  
+  def send_email(to, subject, body)
+
+    args = {:from => APP_CONFIG['email_sender_address'],
+              :to => to,
+              :subject => subject,
+              :body => body}
+
+    # If the app config file specifies that we should use smtp, add the smtp args
+    if APP_CONFIG['email_method'].downcase == 'smtp'
+      args[:via] = :smtp
+      args[:smtp] = {:host => APP_CONFIG['smtp_host'],
+                     :port => APP_CONFIG['smtp_port'],
+                     :user => APP_CONFIG['smtp_user'],
+                     :password => APP_CONFIG['smtp_pwd'],
+                     :auth => :plain,
+                     :domain => APP_CONFIG['smtp_domain']}
+    end
+
+    Pony.mail args
+  end
+  
 end
 

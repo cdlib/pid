@@ -44,15 +44,8 @@ class PidGroupApp < Test::Unit::TestCase
     # logged in as a non super admin should fail
     post '/user/login', { :login => @user.login, :password => @pwd }
     get "/group/list"
-    assert last_response.redirect?, "Did not redirect to login page!"
     assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
-    
-    
-    post '/user/login', { :login => @mgr.login, :password => @pwd }
-    get "/group/list"
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
-    
+    post '/user/logout'
   end
 
 # ---------------------------------------------------------------

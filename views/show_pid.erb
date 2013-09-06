@@ -92,8 +92,13 @@
           $("body").html(data);
           $(".errors").css('color', '#298A08');
         },
-        error: function(data) {
-          $("body").html(data);
+        error: function(xhr) {
+          if(xhr.status == 401){
+            window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
+          }else{
+            $(".errors").html(xhr.responseText);
+          }
+          
         },
         complete: {}
       });

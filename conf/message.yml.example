@@ -18,8 +18,9 @@ password_mismatch: 'The passwords you entered did not match!'
 login_already_exists: 'That user id is already in use!'
 
 # User controller messages
-user_password_reset_success: 'An email has been sent to your account. Please follow the instructions in the email to continue the password reset process.'
+user_password_reset_email: 'An email has been sent to your account. Please follow the instructions in the email to continue the password reset process.'
 user_password_reset_unauthorized: 'You do not have permission to reset this password.'
+user_password_reset_success: 'Your password has been reset.'
 user_password_reset_expired: 
   'Your password reset request has expired. For security reasons you have only #{?} minutes between 
   the time you request a reset and you follow the link to the reset form in the confirmation email.'

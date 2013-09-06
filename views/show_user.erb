@@ -74,9 +74,13 @@
           $("#login_chk").attr('title', '<%= MESSAGE_CONFIG["login_already_exists"] %>');
           $("#login_chk").addClass("not_ok icon");
         },
-        error: function(data) {
-          $("#login_chk").attr('title', '');
-          $("#login_chk").addClass("ok icon");
+        error: function(xhr) {
+          if(xhr.status == 401){
+            window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
+          }else{
+            $("#login_chk").attr('title', '');
+            $("#login_chk").addClass("ok icon");
+          }
         }
       });
     }
@@ -98,8 +102,12 @@
           $("body").html(data);
           $(".errors").css('color', '#298A08');
         },
-        error: function(data) {
-          $("body").html(data);
+        error: function(xhr) {
+          if(xhr.status == 401){
+            window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
+          }else{
+            $(".errors").html(xhr.responseText);
+          }
         },
         complete: {}
       });

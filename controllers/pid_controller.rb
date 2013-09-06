@@ -364,13 +364,26 @@ class PidApp < Sinatra::Application
 # Security checks
 # ---------------------------------------------------------------
   before '/link' do
-    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
+    if request.xhr?
+      halt(401) unless logged_in?
+    else
+      # Redirect to the login if the user isn't authenticated 
+      redirect '/user/login' unless logged_in?
+    end
   end
   
   before '/link/*' do
-    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
+    if request.xhr?
+      halt(401) unless logged_in?
+    else
+      # Redirect to the login if the user isn't authenticated 
+      redirect '/user/login' unless logged_in?
+    end
   end
   
+  after '/link/*' do
+    session[:msg] = nil
+  end
 
 private
   def notify_interested_parties(pid, new_url)
@@ -388,8 +401,15 @@ private
         body += "\n#{MESSAGE_CONFIG['notify_interested_deactivation']}" if new_url.nil?
     
         interested.each do |link|  
+          maintainers = Maintainer.all(:group => link.group)
+          recipients = []
+          
+          maintainers.each do |maintainer|
+            recipients << maintainer.user.email
+          end
+          
           # send an email 
-          # TODO: send an email
+          send_email(recipients.join(";"), subject, body)
         end
       end
     end

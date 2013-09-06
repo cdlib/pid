@@ -178,8 +178,20 @@ class PidApp < Sinatra::Application
 # Redirect to the unauthorized page if the user is not a super admin
 # --------------------------------------------------------------------------------------------------------------
   before '/group/*' do
-    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
-    redirect to('/unauthorized') unless current_user.super
+    if request.xhr?
+      halt(401) unless logged_in?
+      MESSAGE_CONFIG['user_unauthorized'] unless current_user.super
+    else
+      # Redirect to the login if the user isn't authenticated 
+      redirect '/user/login' unless logged_in?
+      
+      # Return an unauthorized message if the user is not a super admin or a maintainer
+      redirect '/unauthorized' unless !Maintainer.first(:user => current_user).nil? or current_user.super
+    end
+  end
+    
+  after '/group/*' do
+    session[:msg] = nil
   end
     
 private

@@ -11,12 +11,11 @@ class PidApp < Sinatra::Application
 # Display the login page
 # ---------------------------------------------------------------
   get '/user/login' do
-    
     # If the user is already logged in just redirect to the root
     if current_user.nil?
       @hide_nav = true
       
-      @msg = params[:msg]
+      @msg = session[:msg]
       @userid = params[:login]
       
       erb :login
@@ -66,16 +65,16 @@ class PidApp < Sinatra::Application
         @hide_nav = true
       
         # If the reset code matches the one stored on the User record and the timeout hasn't expired
-        if user.reset_code == params[:c] && SECURITY_CONFIG['reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
+        if user.reset_code == params[:c] && SECURITY_CONFIG['password_reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
           @n = params[:n]
           @c = params[:c]
           erb :reset_user  
         
         # Otherwise redirect to the forgot page so they can try again
         else
-          msg = MESSAGE_CONFIG['user_password_reset_expired'].gsub('#{?}', SECURITY_CONFIG['reset_timeout'].to_s)
+          session[:msg] = MESSAGE_CONFIG['user_password_reset_expired'].gsub('#{?}', SECURITY_CONFIG['password_reset_timeout'].to_s)
 
-          redirect '/user/forgot', {:msg => msg}
+          redirect '/user/forgot'
         end
       
       else
@@ -96,7 +95,7 @@ class PidApp < Sinatra::Application
       @hide_nav = true
       
       # If the reset code matches the one stored on the User record and the timeout hasn't expired
-      if user.reset_code == params[:c] && SECURITY_CONFIG['reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
+      if user.reset_code == params[:c] && SECURITY_CONFIG['password_reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
 
         #If the passwords match, reset the password, clear the reset key, and auto-login the user.
         if params[:password] == params[:confirm]
@@ -106,19 +105,21 @@ class PidApp < Sinatra::Application
           user.host = request.ip
           user.save
           
-          redirect '/user/login', {:login => user.login, :msg => MESSAGE_CONFIG['password_reset_success']}
+          session[:msg] = MESSAGE_CONFIG['user_password_reset_success']
+          
+          redirect '/user/login'
         else
           @msg = MESSAGE_CONFIG['password_mismatch']
         end
         
       # Otherwise redirect to the forgot page so they can try again
       else
-        msg = MESSAGE_CONFIG['user_password_reset_expired'].gsub('#{?}', SECURITY_CONFIG['reset_timeout'])
+        session[:msg] = MESSAGE_CONFIG['user_password_reset_expired'].gsub('#{?}', SECURITY_CONFIG['password_reset_timeout'])
 
-        redirect '/user/forgot', {:msg => msg}
+        redirect '/user/forgot'
       end
     else
-      @msg = MESSAGE_CONFIG['user_password_reset_unauthorized']
+      session[:msg] = MESSAGE_CONFIG['user_password_reset_unauthorized']
       401
       redirect to('/unauthorized')
     end
@@ -132,7 +133,7 @@ class PidApp < Sinatra::Application
   get '/user/forgot' do
     
     if !current_user
-      @msg = params[:msg]
+      @msg = session[:msg]
     
       erb :forgot_user
     else
@@ -153,12 +154,21 @@ class PidApp < Sinatra::Application
           user.reset_password()
           user.save
           
-          #TODO - Email the user a confirmation email containing their user id and new password
-          #email_reset_message(user.email, user.name, user.reset_key)
+          # Create the reset URL
+          url = "#{hostname}user/reset?n=#{user.id}&c=#{user.reset_code}"
           
-          @msg = MESSAGE_CONFIG['user_password_reset_success']
+          # Get the notification email settings
+          cc = SECURITY_CONFIG['password_reset_email_cc']
+          bc = SECURITY_CONFIG['password_reset_email_bcc']
+          subject = SECURITY_CONFIG['password_reset_email_subject']
+          body = SECURITY_CONFIG['password_reset_email_body'].gsub('{?name?}', user.name).gsub('{?url?}', url).gsub('{?affiliation?}', 
+                  user.affiliation.to_s).gsub('{?group?}', user.group.id).gsub('{?timeframe?}', SECURITY_CONFIG['password_reset_timeout'].to_s)
+          
+          send_email(user.email, subject, body)
+          
+          @msg = MESSAGE_CONFIG['user_password_reset_email']
         else
-          @msg = MESSAGE_CONFIG['invalid_login']
+          session[:msg] = MESSAGE_CONFIG['invalid_login']
           404
           redirect to('/not_found')
         end
@@ -361,6 +371,10 @@ class PidApp < Sinatra::Application
   end
   
   
+  get '/unauthorized' do
+    erb :unauthorized
+  end
+  
 # --------------------------------------------------------------------------------------------------------------
 # AJAX helper methods
 # --------------------------------------------------------------------------------------------------------------
@@ -372,13 +386,22 @@ class PidApp < Sinatra::Application
 # Redirect to the login if the user isn't authenticated for all but the login/logout/forgotten password/reset password pages
 # --------------------------------------------------------------------------------------------------------------
   before /^\/user\/(?!(forgot|reset|login|logout))/ do
-    redirect '/user/login', {:msg => MESSAGE_CONFIG['session_expired']} unless logged_in?
+    if request.xhr?
+      halt(401) unless logged_in?
+    else
+      # Redirect to the login if the user isn't authenticated 
+      redirect '/user/login' unless logged_in?
+    end
   end
   
   before '/*' do
     if !current_user.nil?
       @super = true if current_user.super
     end
+  end
+  
+  after '/user/*' do
+    session[:msg] = nil
   end
   
 # --------------------------------------------------------------------------------------------------------------
@@ -421,6 +444,15 @@ private
                   # If a lock timer was specified in the config, set the timer on the user's record
                   user.locked_timer = Time.now.to_i + (SECURITY_CONFIG['release_account_lock_after'].to_i * 60) if SECURITY_CONFIG['release_account_lock_after']
                   user.host = ip
+                  
+                  # Get the administrator notification email settings
+                  to = SECURITY_CONFIG['account_lock_email_to']
+                  cc = SECURITY_CONFIG['account_lock_email_cc']
+                  subject = SECURITY_CONFIG['account_lock_email_subject']
+                  body = SECURITY_CONFIG['account_lock_email_body'].gsub('{?login?}', user.login).gsub('{?name?}', user.name).gsub('{?email?}', 
+                        user.email).gsub('{?ip?}', ip)
+                  
+                  send_email(to, subject, body)
                   
                   msg = MESSAGE_CONFIG['account_locked']
                   msg = msg.gsub('${?}', SECURITY_CONFIG['release_account_lock_after'].to_s) if !SECURITY_CONFIG['release_account_lock_after'].nil?

@@ -173,8 +173,12 @@
         $(".errors").css('color', '#298A08');
         $(".errors").html(data);
       },
-      error: function(data) {
-        $(".errors").html(data);
+      error: function(xhr) {
+        if(xhr.status == 401){
+          window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
+        }else{
+          $(".errors").html(xhr.responseText);
+        }
       }
     });
   }
