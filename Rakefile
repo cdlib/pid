@@ -18,6 +18,12 @@ Rake::TestTask.new(:test_redis) do |t|
   t.test_files = FileList['lib/shortcake/test*.rb']
 end
 
+Rake::TestTask.new(:test_unit) do |t|
+  ENV['TESTOPTS'] ||= '-v' # default to verbose
+  t.libs << "test"
+  t.test_files = FileList['test/unit/test*.rb']
+end
+
 # Run all tests (e.g. app, client)
 task :test do [:test_redis, :test_app, :test_client].each { |t| Rake::Task[t].execute }; end
 task :default => :test

@@ -24,9 +24,11 @@ class PidApp < Sinatra::Application
           
         @msg = MESSAGE_CONFIG['skip_success']  
       rescue Exception => e
+        status 500
         @msg = MESSAGE_CONFIG['skip_failure']
       end
     else
+      status 500
       @msg = MESSAGE_CONFIG['skip_duplicate']
     end
     
@@ -42,17 +44,19 @@ class PidApp < Sinatra::Application
     skip = SkipCheck.first(:domain => params[:domain].downcase)
     
     if !skip.nil?
-      
+
       # If the domain belongs to the current user's group or the current user maintains the group that the skip belongs to.
-      if skip.group == current_user.group or Maintainer.first(:user => current_user.login, :group => skip.group) or current_user.super
+      if skip.group == current_user.group.id or !Maintainer.first(:user => current_user.login, :group => skip.group).nil? or current_user.super
         begin
           skip.destroy
           
           @msg = MESSAGE_CONFIG['skip_delete'] 
         rescue Exception => e
+          status 500
           @msg = MESSAGE_CONFIG['skip_failure']
         end
       else
+        status 401
         @msg = MESSAGE_CONFIG['skip_not_authorized'] 
       end
       
@@ -75,9 +79,9 @@ class PidApp < Sinatra::Application
     else
       # Redirect to the login if the user isn't authenticated 
       redirect '/user/login' unless logged_in?
-    
+
       # Return an unauthorized message if the user is not a super admin
-      redirect '/unauthorized' unless  Maintainer.first(:user => current_user).nil? and !current_user.super
+      redirect '/unauthorized' if Maintainer.first(:user => current_user).nil? and !current_user.super
     end
   end 
   
