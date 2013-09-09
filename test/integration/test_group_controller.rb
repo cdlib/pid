@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class PidGroupApp < Test::Unit::TestCase
+class TestGroupController < Test::Unit::TestCase
   include Rack::Test::Methods
 
   def app
@@ -31,84 +31,146 @@ class PidGroupApp < Test::Unit::TestCase
     Maintainer.new(:group => @group, :user => @mgr).save
   end
 
-# ---------------------------------------------------------------
-# Test security 
-# ---------------------------------------------------------------
-  # User is not logged in (HTTP: 302 to /user/login)
-  def test_get_group_list_not_logged_in
-    # not logged in
-    get "/group/list"
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
-    
-    # logged in as a non super admin should fail
+  def test_get_list
+    security_check("/group/list", "get", nil)
+
+    # logged in as a maintainer, so the list should not load!
     post '/user/login', { :login => @user.login, :password => @pwd }
     get "/group/list"
     assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
     post '/user/logout'
-  end
 
-# ---------------------------------------------------------------
-# Test page loads
-# ---------------------------------------------------------------
-  def test_get_group_list
     post '/user/login', { :login => @adm.login, :password => @pwd }
-    
     get "/group/list"
     assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_group_list']), 'Did not get to the group list page!'
   end
-  
-  def test_get_group
+
+  def test_get_new
+    security_check("/group/new", "get", nil)
+
+    # logged in as a maintainer should fail, maintainers cannot create groups!
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    get "/group/new"
+    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
+    post '/user/logout'
+
     post '/user/login', { :login => @adm.login, :password => @pwd }
-    
+    get "/group/new"
+    assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_group_create']), 'Did not get to the new group page!'
+  end
+
+  def test_get_group
+    security_check("/group/#{@group.id}", "get", nil)
+
+    # logged in as a maintainer so it should fail
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    get "/group/#{@group.id}"
+    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
+    post '/user/logout'
+
+    post '/user/login', { :login => @adm.login, :password => @pwd }
     get "/group/#{@group.id}"
     assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_group_view']), 'Did not get to the group page!'
   end
-  
-# ---------------------------------------------------------------
-# Test update 
-# ---------------------------------------------------------------
+
   def test_put_group
-    # bad data
-    
-    # good data
+    security_check("/group/#{@group.id}", "put", {:name => 'Updated Name', :description => 'Testing changes'})
+
+    # logged in as a maintainer, so it should fail
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    put "/group/#{@group.id}", {:name => 'Updated Name', :description => 'Testing changes'}
+    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
+    post '/user/logout'
+
+    # logged in as a super admin
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    put "/group/#{@group.id}", {:name => 'Updated Name 2', :description => 'Testing changes again'}
+    assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_group_view']), 'Did not get to the group page!'
+    assert_equal 'Updated Name 2', Group.first(:id => @group.id).name, 'The changes were not saved!'
   end
 
-# ---------------------------------------------------------------
-# Test delete group
-# ---------------------------------------------------------------
+  def test_post_group
+    security_check("/group/new", "post", {:id => 'TEST', :name => 'Updated Name', :description => 'Testing changes'})
+
+    # logged in as a maintainer, so it should fail
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    post "/group/new", {:id => 'TEST', :name => 'Updated Name', :description => 'Testing changes'}
+    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
+    post '/user/logout'
+
+    # logged in as a super admin
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    post "/group/new", {:id => 'TEST', :name => 'Updated Name', :description => 'Testing changes'}
+    assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
+    assert !Group.first(:id => 'TEST').nil?, 'The changes were not saved!'
+  end
+
   def test_delete_group
-    # with existing users/managers
+    security_check("/group/delete", "delete", {:id => @group.id})
+
+    # logged in as a maintainer, so it should fail
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    delete "/group/delete", {:id => @group.id}
+    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
+    post '/user/logout'
+
+    # logged in as a super admin
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    delete "/group/delete/UNKNOWN"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_not_found']), 'Was able to delete a non-existent group!'
+
+    delete "/group/delete/#{@group.id}"
+    assert_equal 409, last_response.status, "Was able to delete the group when it had associated users/maintainers! #{@group.id}"
     
-    # without users/managers
+    Group.new(:id => 'TEST', :name => 'Test Group', :description => 'testing').save
+    delete "/group/delete/TEST"
+    assert last_response.ok?, 'Unable to delete the group!'
+    assert Group.first(:id => @group.id).nil?, 'The changes were not saved!'
   end
 
-# ---------------------------------------------------------------
-# Test manage maintainers and users
-# ---------------------------------------------------------------
-  def test_group_add_manager
-    # duplicate manager
-    
-    # good data
+  def test_add_user_to_group
+
   end
-  
-  def test_group_add_user
-    # duplicate user
-    
-    # good data
+
+  def test_remove_user_from_group
+
   end
-  
-  def test_remove_manager
-    # missing manager
-    
-    # good data
+
+  def test_add_maintainer_to_group
+
   end
-  
-  def test_remove_user
-    # missing user
+
+  def test_remove_maintainer_from_group
+
+  end
+
+  def security_check(page, method, args)
+
+    def invoke_page(method, page, args)     
+      if method == "post"
+        post page, args
+      elsif method == "put"
+        put page, args
+      elsif method == "delete"
+        delete page, args
+      else
+        get page 
+      end
+    end
     
-    # good data
+    # not logged in
+    invoke_page(method, page, args)
+    assert last_response.redirect?, "Did not redirect to login page!"
+    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
+    
+    # logged in as a non super admin or group maintainer should fail
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    invoke_page(method, page, args)
+    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
+    post '/user/logout'
   end
 end

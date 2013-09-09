@@ -32,7 +32,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   put '/group/:id' do
     @group = Group.get(params[:id])
-    
+
     redirect to('/not_found') if @group.nil?
 
     begin
@@ -40,6 +40,7 @@ class PidApp < Sinatra::Application
       
       @msg = MESSAGE_CONFIG['group_update_success']
     rescue Exception => e
+      status 500
       @msg = MESSAGE_CONFIG['group_update_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
@@ -69,20 +70,29 @@ class PidApp < Sinatra::Application
 # Delete the specified group (All users and maintainers must be detached before deleting)
 # --------------------------------------------------------------------------------------------------------------
   delete '/group/:id' do
-    @group = Group.get(params[:id])
-    redirect to('/not_found') if @group.nil?
+    @group = Group.first(params[:id])
+
+    halt(404) if @group.nil?
+
+puts "group: #{@group.inspect}"
+
     begin
       if @group.users.empty? && @group.maintainers.empty?
         @group.destroy
       
         @msg = MESSAGE_CONFIG['group_delete_success']
       else
+        status 409
         @msg = MESSAGE_CONFIG['group_delete_has_children']
       end
     rescue Exception => e
+      status 500
       @msg = MESSAGE_CONFIG['group_delete_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
+
+    @associations = get_users_and_maintainer_lists(@group)
+
     erb :show_group
   end
 
@@ -157,7 +167,7 @@ class PidApp < Sinatra::Application
   delete '/group/:group/user/:user' do
     group = Group.get(params[:group])
     @msg = ""
-    
+
     redirect to('/not_found') if group.nil?
     
     begin      
@@ -192,6 +202,12 @@ class PidApp < Sinatra::Application
     
   after '/group/*' do
     session[:msg] = nil
+  end
+
+  not_found do
+    #TODO: move this to the MESSAGE_CONFIG file.
+    session[:msg] = "That group could not be found!"
+    erb :not_found
   end
     
 private

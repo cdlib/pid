@@ -50,12 +50,14 @@ class TestSkipController < Test::Unit::TestCase
     post '/user/login', {:login => @mgr.login, :password => @pwd}
     get '/skip'
     assert last_response.ok?, 'Unable to access the Skip Check page as a manager!'
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_skip_check_list']), 'Did not get the skip check list page!'
     post '/user/logout'
 
     # logged in as a super admin
     post '/user/login', {:login => @adm.login, :password => @pwd}
     get '/skip'
     assert last_response.ok?, 'Unable to access the Skip Check page as a super admin!'
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_skip_check_list']), 'Did not get the skip check list page!'
     post '/user/logout'
   end
 
