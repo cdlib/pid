@@ -99,7 +99,7 @@ class TestSkipController < Test::Unit::TestCase
     assert last_response.ok?, "Unable to delete the Skip Check as a manager! #{last_response.status}"
     # attempt to delete another group's skip check
     delete "/skip", {:domain => 'www.google.com'}
-    assert_equal 401, last_response.status, 'Was able to delete another groups skip check!'
+    assert_equal 403, last_response.status, 'Was able to delete another groups skip check!'
     post '/user/logout'
 
     # logged in as a super admin

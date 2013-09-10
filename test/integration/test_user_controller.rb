@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class PidUserApp < Test::Unit::TestCase
+class TestUserController < Test::Unit::TestCase
   include Rack::Test::Methods
 
   def app
@@ -31,9 +31,103 @@ class PidUserApp < Test::Unit::TestCase
     Maintainer.new(:group => @group, :user => @mgr).save
   end
 
+# -----------------------------------------------------------------------------------------------
+  def test_get_login
+    get "/user/login"
+    assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_login']), 'Did not get to the login page!'
+    
+    # Should redirect to main page when already logged in
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    get "/user/login"
+    assert last_response.redirect?, "Was not redirected to the main page #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Did not get redirected to the main page!"
+  end
+  
+# -----------------------------------------------------------------------------------------------
+  def test_get_logout
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    get "/user/logout"
+    assert last_response.redirect?, "Did not receive a 302 status code, got a #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_logout']), "Did not get redirected to the correct page!"
+  end
+
+# -----------------------------------------------------------------------------------------------
+  def test_get_list
+    security_check_administrator("/user/list", "get", nil, false)
+
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    get "/user/list"
+    assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_user_list']), 'Did not get to the user list page!'
+  end
+
+# -----------------------------------------------------------------------------------------------
+  def test_get_admin
+    security_check_administrator("/user/admin", "get", nil, false)
+
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    get "/user/admin"
+    assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_admin']), 'Did not get to the administration page!'
+  end
+
+# -----------------------------------------------------------------------------------------------
+  def test_get_forgot_password
+    get '/user/forgot'
+    assert last_response.ok?, "Unable to load the forgotten password page!"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_forgotten_password']), 'Did not get to the administration page!'
+    
+    # Should redirect to main page when already logged in
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    get "/user/forgot"
+    assert last_response.redirect?, "Was not redirected to the main page #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Did not get redirected to the main page!"
+  end
+
+# -----------------------------------------------------------------------------------------------
+  def test_get_reset_password
+    # Try the reset page with no params
+    get '/user/reset'
+    assert last_response.redirect?, "Was not redirected to the forgot password page when passing no params!"
+    assert_equal last_response.location, 'http://example.org/user/forgot', 'Did not get to the forgotten password page!'
+    
+    # Try the reset page with bogus params
+    get '/user/reset?n=1&c123456'
+    assert last_response.redirect?, "Was not redirected to the forgot password page when passing bad params!"
+    assert_equal last_response.location, 'http://example.org/user/forgot', 'Did not get to the forgotten password page!'
+    
+    # Try the reset page when expired 
+    post '/user/forgot', {:reset => true, :login => @user.login}
+    @user = User.get(@user.id)
+    @user.reset_timer = Time.now + (240 * 60)
+    @user.save
+    
+    get "/user/reset?n=#{@user.id}&c=#{@user.reset_code}"
+    assert last_response.redirect?, "We were expecting a redirect but got a #{last_response.status}"
+    assert_equal last_response.location, 'http://example.org/user/forgot', 'Did not get to the forgotten password page!'
+    
+    # Try reset page with valid values
+    post '/user/forgot', {:reset => true, :login => @user.login}
+    @user = User.get(@user.id)
+    
+    get "/user/reset?n=#{@user.id}&c=#{@user.reset_code}"
+    assert last_response.ok?, "Unable to load the reset password page! Got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_reset_password']), 'Did not get to the reset password page!'
+    
+    # Should redirect to main page when already logged in
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    get "/user/reset"
+    assert last_response.redirect?, "Was not redirected to the main page #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Did not get redirected to the main page!"
+  end
+  
+  
+
 # ---------------------------------------------------------------
 # Test secure section: get '/user/:name'
 # ---------------------------------------------------------------
+=begin
   # User is not logged in (HTTP: 302 to /user/login)
   def test_get_user_not_logged_in
     get "/user/#{@user.id}"
@@ -313,5 +407,6 @@ class PidUserApp < Test::Unit::TestCase
     
     assert last_response.ok?, "Unable to update user profile when logged in as admin!"
   end
+=end
 
 end

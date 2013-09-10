@@ -19,10 +19,9 @@ class PidApp < Sinatra::Application
 # Find the specified group
 # --------------------------------------------------------------------------------------------------------------
   get '/group/:id' do
-    @group = Group.get(params[:id])
-    
+    @group = Group.first(:id => params[:id])
     halt(404) if @group.nil?
-
+    
     @associations = get_users_and_maintainer_lists(@group)
     
     erb :show_group
@@ -32,10 +31,9 @@ class PidApp < Sinatra::Application
 # Update the specified group with the values provided
 # --------------------------------------------------------------------------------------------------------------
   put '/group/:id' do
-    @group = Group.get(params[:id])
-
+    @group = Group.first(:id => params[:id])
     halt(404) if @group.nil?
-
+    
     begin
       @group.update(:name => params[:name], :description => params[:description], :host => request.ip)
       
@@ -56,11 +54,12 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   post '/group/:id' do
     begin
-      if Group.first(:id => params[:id]).nil?
+      if Group.get(params[:id]).nil?
         Group.new(:id => params[:id],
                   :name => params[:name],
                   :description => params[:description],
                   :host => request.ip).save
+                  
         @group = Group.first(params[:id])
       
         @msg = MESSAGE_CONFIG['group_create_success']
@@ -82,9 +81,8 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   delete '/group/:id' do
     @group = Group.first(:id => params[:id])
-
     halt(404) if @group.nil?
-
+    
     begin
       if @group.users.empty? && @group.maintainers.empty?
         @group.destroy
@@ -109,14 +107,13 @@ class PidApp < Sinatra::Application
 # Add the specified user as a maintainer of the specified group
 # --------------------------------------------------------------------------------------------------------------  
   post '/group/:group/maintainer/:user' do
-    group = Group.get(params[:group])
-    user = User.get(params[:user])
+    @group = Group.first(:id => params[:group])
+    @user = User.first(:id => params[:user])
+    halt(404) if @group.nil? or @user.nil?
     
-    halt(404) if group.nil? or user.nil?
-
     begin
-      if Maintainer.first(:group => group, :user => user).nil?
-        Maintainer.new(:group => group, :user => User.get(params[:user])).save
+      if Maintainer.first(:group => @group, :user => @user).nil?
+        Maintainer.new(:group => @group, :user => @user).save
       
         @msg = MESSAGE_CONFIG['group_add_maintainer_success']
       else
@@ -136,18 +133,17 @@ class PidApp < Sinatra::Application
 # Remove the specified user from the list of Maintainers for the specified group
 # --------------------------------------------------------------------------------------------------------------
   delete '/group/:group/maintainer/:user' do 
-    group = Group.get(params[:group])
-    user = User.get(params[:user])
+    @group = Group.first(:id => params[:group])
+    @user = User.first(:id => params[:user])
+    halt(404) if @group.nil? or @user.nil?
     
-    halt(404) if group.nil? or user.nil?
-
     begin
       # Prevent the user from removing themselves as a maintainer!
-      if current_user == user and !current_user.super
+      if current_user == @user and !current_user.super
         status 409
         @msg = MESSAGE_CONFIG['group_remove_maintainer_self']
       else
-        maintainer = Maintainer.first(:group => group, :user => user)
+        maintainer = Maintainer.first(:group => @group, :user => @user)
       
         if !maintainer.nil?
           maintainer.destroy
@@ -171,15 +167,14 @@ class PidApp < Sinatra::Application
 # Add the specified user to the specified group
 # --------------------------------------------------------------------------------------------------------------
   post '/group/:group/user/:user' do
-    group = Group.get(params[:group])
-    user = User.get(params[:user])
+    @group = Group.first(:id => params[:group])
+    @user = User.first(:id => params[:user])
+    halt(404) if @group.nil? or @user.nil?
     
-    halt(404) if group.nil? or user.nil?
-
     begin
-      if !group.users.include?(user)
-        group.users << user
-        group.save
+      if !@group.users.include?(@user)
+        @group.users << @user
+        @group.save
         
         @msg = MESSAGE_CONFIG['group_add_user_success']
       else
@@ -199,15 +194,14 @@ class PidApp < Sinatra::Application
 # Remove the specified user from the specified group
 # --------------------------------------------------------------------------------------------------------------
   delete '/group/:group/user/:user' do
-    group = Group.get(params[:group])
-    user = User.get(params[:user])
+    @group = Group.first(:id => params[:group])
+    @user = User.first(:id => params[:user])
+    halt(404) if @group.nil? or @user.nil?
     
-    halt(404) if group.nil? or user.nil?
-
     begin
-      if group.users.include?(user)
-        group.users.delete(user)
-        group.save
+      if @group.users.include?(@user)
+        @group.users.delete(@user)
+        @group.save
         
         @msg = MESSAGE_CONFIG['group_remove_user_success']
       else
@@ -228,15 +222,15 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   # Only super admins can create/delete groups nor can they load the group list or new group pages!
   before '/group/*' do
-    redirect '/user/login' unless logged_in?
+    halt(401) unless logged_in?
 
     # If the user is not a maintainer/manager of a group
     if Maintainer.first(:user => current_user).nil?
       # Throw an unauthorized error if the user is a super admin
-      halt(401) if !current_user.super 
+      halt(403) if !current_user.super 
     else
       # Throw an unauthorized error if the user is a super admin or a maintainer has access to the page
-      halt(401) unless maintainer_has_access(request.request_method, request.path_info) or current_user.super
+      halt(403) unless maintainer_has_access(request.request_method, request.path_info) or current_user.super
     end
   end
 
@@ -254,13 +248,17 @@ class PidApp < Sinatra::Application
 
 # --------------------------------------------------------------------------------------------------------------
   error 401 do
+    erb :login
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+  error 403 do
     @msg = MESSAGE_CONFIG['group_unauthorized']
     @msg if request.xhr?
     erb :unauthorized unless request.xhr?
   end
 
 # --------------------------------------------------------------------------------------------------------------
-    
 private
   def get_users_and_maintainer_lists(group)
     ret = {:users => [], :maintainers => [], :available_users => [], :available_maintainers => []}

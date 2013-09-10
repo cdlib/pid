@@ -33,7 +33,7 @@ Capybara.javascript_driver = :poltergeist
     # logged in as a non super admin or group maintainer should fail
     post '/user/login', { :login => @user.login, :password => @pwd }
     invoke_page(method, page, args)
-    assert_equal 401, last_response.status, "Was expecting a 401 because the user should not have access to #{method} to #{page}!"
+    assert_equal 403, last_response.status, "Was expecting a 403 because the user should not have access to #{method} to #{page}!"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page when trying to #{method} to #{page}! #{last_response.body}"
     post '/user/logout'
     
@@ -41,7 +41,7 @@ Capybara.javascript_driver = :poltergeist
     if test_maintainer
       post '/user/login', { :login => @mgr.login, :password => @pwd }
       invoke_page(method, page, args)
-      assert_equal 401, last_response.status, "Was expecting a 401 because the user should not have access to #{method} to #{page}!"
+      assert_equal 403, last_response.status, "Was expecting a 403 because the user should not have access to #{method} to #{page}!"
       assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
       post '/user/logout'
     end
@@ -50,8 +50,8 @@ Capybara.javascript_driver = :poltergeist
   def security_check_basic(page, method, args)
     # not logged in
     invoke_page(method, page, args)
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
+    assert_equal 401, last_response.status, "Did not receive a 401 when not logged in! Got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_login']), "Was not sent to the login page!"
   end
   
   def invoke_page(method, page, args)     

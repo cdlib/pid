@@ -4,6 +4,9 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
   get '/user/admin' do
     @super = current_user.super
+    
+    halt(403) unless @super or !Maintainer.first(:user => current_user).nil?
+    
     erb :show_admin
   end
     
@@ -58,7 +61,7 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
   get '/user/reset' do
     
-    if !current_user
+    if current_user.nil?
       user = User.get(params[:n])
       
       if user && params[:c]
@@ -89,21 +92,21 @@ class PidApp < Sinatra::Application
 # Process the reset password page
 # ---------------------------------------------------------------
   post '/user/reset' do
-    user = User.get(params[:n])
+    usr = User.get(params[:n])
     
-    if user && params[:c] && !current_user
+    if usr && params[:c] && !current_user
       @hide_nav = true
       
       # If the reset code matches the one stored on the User record and the timeout hasn't expired
-      if user.reset_code == params[:c] && SECURITY_CONFIG['password_reset_timeout'].to_i >= ((Time.now.to_i - user.reset_timer).abs / 60)
+      if usr.reset_code == params[:c] && SECURITY_CONFIG['password_reset_timeout'].to_i >= ((Time.now.to_i - usr.reset_timer).abs / 60)
 
         #If the passwords match, reset the password, clear the reset key, and auto-login the user.
         if params[:password] == params[:confirm]
-          user.password = params[:password]
-          user.reset_timer = nil
-          user.reset_code = nil
-          user.host = request.ip
-          user.save
+          usr.password = params[:password]
+          usr.reset_timer = nil
+          usr.reset_code = nil
+          usr.host = request.ip
+          usr.save
           
           session[:msg] = MESSAGE_CONFIG['user_password_reset_success']
           
@@ -119,9 +122,7 @@ class PidApp < Sinatra::Application
         redirect '/user/forgot'
       end
     else
-      session[:msg] = MESSAGE_CONFIG['user_password_reset_unauthorized']
-      401
-      redirect to('/unauthorized')
+      halt(403)
     end
     
     erb :reset_user
@@ -131,12 +132,11 @@ class PidApp < Sinatra::Application
 # Display the forgot my user id / password page
 # ---------------------------------------------------------------  
   get '/user/forgot' do
-    
-    if !current_user
+    if current_user.nil?
       @msg = session[:msg]
     
       erb :forgot_user
-    else
+    else      
       redirect SECURITY_CONFIG['target_after_login']
     end
   end
@@ -149,28 +149,26 @@ class PidApp < Sinatra::Application
     if !params['reset'].nil? && !current_user
       
       if !params['login'].empty?
-        user = User.first(:login => params['login'])
-        if !user.nil?
-          user.reset_password()
-          user.save
+        usr = User.first(:login => params['login'])
+        if !usr.nil?
+          usr.reset_password()
+          usr.save
           
           # Create the reset URL
-          url = "#{hostname}user/reset?n=#{user.id}&c=#{user.reset_code}"
+          url = "#{hostname}user/reset?n=#{usr.id}&c=#{usr.reset_code}"
           
           # Get the notification email settings
           cc = SECURITY_CONFIG['password_reset_email_cc']
           bc = SECURITY_CONFIG['password_reset_email_bcc']
           subject = SECURITY_CONFIG['password_reset_email_subject']
-          body = SECURITY_CONFIG['password_reset_email_body'].gsub('{?name?}', user.name).gsub('{?url?}', url).gsub('{?affiliation?}', 
-                  user.affiliation.to_s).gsub('{?group?}', user.group.id).gsub('{?timeframe?}', SECURITY_CONFIG['password_reset_timeout'].to_s)
+          body = SECURITY_CONFIG['password_reset_email_body'].gsub('{?name?}', usr.name).gsub('{?url?}', url).gsub('{?affiliation?}', 
+                  usr.affiliation.to_s).gsub('{?group?}', usr.group.id).gsub('{?timeframe?}', SECURITY_CONFIG['password_reset_timeout'].to_s)
           
-          send_email(user.email, subject, body)
+          send_email(usr.email, subject, body)
           
           @msg = MESSAGE_CONFIG['user_password_reset_email']
         else
-          session[:msg] = MESSAGE_CONFIG['invalid_login']
-          404
-          redirect to('/not_found')
+          halt(404)
         end
       else
         @msg = MESSAGE_CONFIG['no_login']
@@ -178,7 +176,6 @@ class PidApp < Sinatra::Application
       end
     end
 
-    @hide_nav = true
     erb :forgot_user
   end
 
@@ -188,34 +185,30 @@ class PidApp < Sinatra::Application
   get '/user/list' do
     user = current_user
     
-    if !user.nil?
-      # If the current user manages the group or is an admin
-      if !user.group.maintainers.first(:user => user).nil? || user.super
-        @users = (user.super) ? User.all() : User.all(:group => user.group)
-        @super = user.super
+    # If the current user manages the group or is an admin
+    if !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
+      @users = (current_user.super) ? User.all() : User.all(:group => current_user.group)
+      @super = current_user.super
         
-        @maintainers = {}
-        Maintainer.all.each do |maintainer| 
-          # If this isn't the user's main group and the user is a maintainer of the group, add its users          
-          if maintainer.user == user && maintainer.group != user.group && !user.super            
-            User.all(:group => maintainer.group).each{ |user| @users << user }
-          end
-          
-          if !@maintainers[maintainer.user.id].nil?
-            @maintainers[maintainer.user.id] += ", "
-          end
-          @maintainers[maintainer.user.id] = @maintainers[maintainer.user.id].to_s + maintainer.group.id 
+      @maintainers = {}
+      Maintainer.all.each do |maintainer| 
+        # If this isn't the user's main group and the user is a maintainer of the group, add its users          
+        if maintainer.user == user && maintainer.group != current_user.group && !current_user.super            
+          User.all(:group => maintainer.group).each{ |user| @users << user }
         end
-        
-        # Sort the user list by login
-        @users.sort_by{ |x,y| x.login <=> y.login unless x.nil? || y.nil? }
-        
-        erb :list_users
-      else
-        redirect "/user/#{session[:user]}"
+          
+        if !@maintainers[maintainer.user.id].nil?
+          @maintainers[maintainer.user.id] += ", "
+        end
+        @maintainers[maintainer.user.id] = @maintainers[maintainer.user.id].to_s + maintainer.group.id 
       end
+        
+      # Sort the user list by login
+      @users.sort_by{ |x,y| x.login <=> y.login unless x.nil? || y.nil? }
+        
+      erb :list_users
     else
-      redirect '/user/login'
+      halt(403)
     end
   end
   
@@ -225,20 +218,15 @@ class PidApp < Sinatra::Application
   get '/user/register' do
     user = current_user
     
-    if !user.nil?
-      # If the user is a maintainer of their group or an admin
-      if !user.group.maintainers.first(:user => user).nil? || user.super
-        @groups = Group.all if user.super
-        @params = {:group => user.group.id}
-        @super = user.super
+    # If the user is a maintainer of their group or an admin
+    if !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
+      @groups = Group.all if current_user.super
+      @params = {:group => current_user.group.id}
+      @super = current_user.super
         
-        erb :new_user
-      else
-        401
-        redirect to('/unauthorized')
-      end
+      erb :new_user
     else
-      redirect '/user/login'
+      halt(403)
     end
   end
 
@@ -246,72 +234,62 @@ class PidApp < Sinatra::Application
 # Process the registration page. If the current user is an admin or a maintainer of their group.
 # --------------------------------------------------------------------------------------------------------------  
   post '/user/register' do
-    @msg = MESSAGE_CONFIG['user_register_failure']
-    user = current_user
-    
-    if !user.nil?
-      #If the user is a maintainer of their group or is an admin
-      if !user.group.maintainers.first(:user => user).nil? || user.super
+    #If the user is a maintainer of their group or is an admin
+    if !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
       
-        #If the 2 passwords match
-        if params[:password] == params[:confirm]
+      #If the 2 passwords match
+      if params[:password] == params[:confirm]
         
-          begin
-            new_user = User.new(:login => params[:login], :email => params[:email], :password => params[:password], :host => request.ip,
-                                :name => params[:name], :affiliation => params[:affiliation], :group => Group.get(params[:group]))
-            new_user.save
+        begin
+          new_user = User.new(:login => params[:login], 
+                              :email => params[:email], 
+                              :password => params[:password], 
+                              :host => request.ip,
+                              :name => params[:name], 
+                              :affiliation => params[:affiliation], 
+                              :group => group.nil? ? current_user.group : group )
+          new_user.save
         
-            @msg = MESSAGE_CONFIG['user_register_success']
-            params = {} # Clear the params so the user can do another registration
+          @user = new_user
+          
+          @msg = MESSAGE_CONFIG['user_register_success']
+          params = {} # Clear the params so the user can do another registration
         
-          rescue DataMapper::SaveFailureError => e
-            500
-          end
-                          
-        else # passwords were specified but they do not match
+        rescue DataMapper::SaveFailureError => e
           500
-          @msg = MESSAGE_CONFIG['password_mismatch']
+          @msg = MESSAGE_CONFIG['user_register_failure']
         end
-      else  # The current user is not a group mainyainer or a super admin
-        401
-        redirect to('/unauthorized')
+                          
+      else # passwords were specified but they do not match
+        @msg = MESSAGE_CONFIG['password_mismatch']
       end
-    
-      @super = user.super
-      @groups = Group.all if user.super
-      @group = user.group.id
-      @params = (params) ? params : {}
-    
-      erb :new_user
-      
-    else  # The user is not logged in!
-      redirect '/user/login'
+    else  # The current user is not a group mainyainer or a super admin
+      halt(403)
     end
+    
+    @super = user.super
+    @groups = Group.all if user.super
+    @params = (params) ? params : {}
+    
+    erb :new_user  
   end
   
 # --------------------------------------------------------------------------------------------------------------
 # Load the user's profile IF the current user is viewing their own record OR they are the group's maintainer OR an admin
 # --------------------------------------------------------------------------------------------------------------
   get '/user/:id' do
-    user = User.get(params[:id])
-    curr_user = current_user
+    @user = User.first(:id => params[:user])
+    halt(404) if @user.nil?
     
-    if !curr_user.nil?
-      if !user.nil? 
-        # If the current user is trying to retrieve their own record or the current user manages the group 
-        if user == curr_user || !curr_user.group.maintainers.first(:user => curr_user).nil? || curr_user.super
+    if !current_user.nil?
+      # If the current user is trying to retrieve their own record or the current user manages the group 
+      if @user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
         
-          @user = user
-          @groups = (curr_user.super) ? Group.all : (!curr_user.group.maintainers.first(:user => curr_user).nil?) ? [curr_user.group] : nil          
+        @groups = (current_user.super) ? Group.all : (!current_user.group.maintainers.first(:user => current_user).nil?) ? [current_user.group] : nil          
         
-          erb :show_user
-        else
-          401
-          redirect to('/unauthorized')
-        end
+        erb :show_user
       else
-        404
-        redirect to('/not_found')
+        halt(401)
       end
     else
       redirect '/user/login'
@@ -322,58 +300,48 @@ class PidApp < Sinatra::Application
 # Edit the user's profile IF the current user is viewing their own record OR they are the group's maintainer OR an admin
 # --------------------------------------------------------------------------------------------------------------
   put '/user/:id' do
-    @msg = MESSAGE_CONFIG['user_update_failure'] 
-    curr_user = current_user
+    @user = User.first(:id => params[:id])
+    halt(404) if  @user.nil?
     
-    user = User.get(params[:id])
-    group = Group.get(params[:group])
-
+    @msg = MESSAGE_CONFIG['user_update_failure'] 
+    
     #If the user is changing their own record or they are a maintainer of their group or is an admin
-    if user == curr_user || !curr_user.group.maintainers.first(:user => curr_user).nil? || curr_user.super
+    if @user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
 
       begin        
         # Assign the input values to the user
-        if user.update(:login => (!params[:login].nil?) ? params[:login].downcase.strip : user.login,
-                      :name => (!params[:name].nil?) ? params[:name].strip : user.login,
-                      :email => (!params[:email].nil?) ? params[:email].downcase.strip : user.login,
-                      :affiliation => (!params[:affiliation].nil?) ? params[:affiliation].strip : user.login,
+        if @user.update(:login => (!params[:login].nil?) ? params[:login].downcase.strip : @user.login,
+                      :name => (!params[:name].nil?) ? params[:name].strip : @user.name,
+                      :email => (!params[:email].nil?) ? params[:email].downcase.strip : @user.email,
+                      :affiliation => (!params[:affiliation].nil?) ? params[:affiliation].strip : @user.affiliation,
                       :active => (params[:active] == 'on'),
                       :locked => (params[:locked] == 'on'),
-                      :group => (!group.nil?) ? group : curr_user.group,
+                      :group => (!group.nil?) ? Group.first(:id => params[:group]) : current_user.group,
                       :host => request.ip)
         
           # If a password change was entered, update the user's password
-          user.update(:password => params[:password].strip) if !params[:password].empty? && params[:password] == params[:confirm]
+          @user.update(:password => params[:password].strip) if !params[:password].empty? && params[:password] == params[:confirm]
           
           @msg = MESSAGE_CONFIG['user_update_success']   
         end
         
-      rescue DataMapper::UpdateConflictError => uce
-        500
-        @msg += '<br /><br />' + user.errors.join('<br />')
       rescue Exception => e
         500
-        @msg += "<br /><br />#{e.message}"
+        @msg = MESSAGE_CONFIG['user_update_failure']
+        @msg += "<br /><br />#{e.message}" if current_user.super
+        @msg += '<br /><br />' + @user.errors.join('<br />') if current_user.super
       end
 
     else  # The user is not a group maintainer or super admin and they're trying to access another user's account
-      @msg = MESSAGE_CONFIG['user_unauthorized']
-      user = curr_user.clone  # switch over to the current user to prevent the requested user's info from showing!
-      401
-      redirect to('/unauthorized')
+      halt(403)
     end
     
-    @user = user
-    @groups = (curr_user.super) ? Group.all : (!curr_user.group.maintainers.first(:user => curr_user).nil?) ? [curr_user.group] : nil
-    @super = curr_user.super
+    @groups = (current_user.super) ? Group.all : (!current_user.group.maintainers.first(:user => current_user).nil?) ? [current_user.group] : nil
+    @super = current_user.super
 
     erb :show_user
   end
   
-  
-  get '/unauthorized' do
-    erb :unauthorized
-  end
   
 # --------------------------------------------------------------------------------------------------------------
 # AJAX helper methods
@@ -383,26 +351,44 @@ class PidApp < Sinatra::Application
   end
 
 # --------------------------------------------------------------------------------------------------------------
-# Redirect to the login if the user isn't authenticated for all but the login/logout/forgotten password/reset password pages
+# Page filters
 # --------------------------------------------------------------------------------------------------------------
+  # Only super admins can create/delete groups nor can they load the group list or new group pages!
   before /^\/user\/(?!(forgot|reset|login|logout))/ do
-    if request.xhr?
-      halt(401) unless logged_in?
-    else
-      # Redirect to the login if the user isn't authenticated 
-      redirect '/user/login' unless logged_in?
-    end
+    halt(401) unless logged_in?
   end
-  
+
+# --------------------------------------------------------------------------------------------------------------
   before '/*' do
     if !current_user.nil?
       @super = true if current_user.super
     end
   end
   
-  after '/user/*' do
+# --------------------------------------------------------------------------------------------------------------
+  after '/group/*' do
     session[:msg] = nil
   end
+
+# --------------------------------------------------------------------------------------------------------------
+  not_found do
+    @msg = MESSAGE_CONFIG['user_not_found']
+    @msg if request.xhr?
+    erb :not_found unless request.xhr?
+  end
+
+# --------------------------------------------------------------------------------------------------------------
+  error 401 do
+    erb :login
+  end
+
+# --------------------------------------------------------------------------------------------------------------
+  error 403 do
+    @msg = MESSAGE_CONFIG['user_unauthorized']
+    @msg if request.xhr?
+    erb :unauthorized unless request.xhr?
+  end
+
   
 # --------------------------------------------------------------------------------------------------------------
 # Process the login
@@ -417,40 +403,40 @@ private
     
     if !login.empty?
       if !password.empty?
-        user = User.authenticate(login, password)
+        usr = User.authenticate(login, password)
         
-        if !user.nil?
-          session[:user] = user.id
+        if !usr.nil?
+          session[:user] = usr.id
 
           # reset the failed login attempts counter
-          user.failed_login_attempts = 0
-          user.last_login = Time.now
-          user.save
+          usr.failed_login_attempts = 0
+          usr.last_login = Time.now
+          usr.save
       
-          msg = MESSAGE_CONFIG['login'].gsub('#{?}', user.name)
+          msg = MESSAGE_CONFIG['login'].gsub('#{?}', usr.name)
           
         # The authentication failed
         else
-          user = User.first(:login => login)
+          usr = User.first(:login => login)
           
           # First check to see if the user's exists and if their account is inactive or locked
-          if !user.nil?
-            if user.active
-              if !user.locked
+          if !usr.nil?
+            if usr.active
+              if !usr.locked
                 
                 # if the login attempts exceed the limit defined in the config file, lock the account
-                if user.failed_login_attempts.next >= SECURITY_CONFIG['max_login_attempts'].to_i
-                  user.locked = true
+                if usr.failed_login_attempts.next >= SECURITY_CONFIG['max_login_attempts'].to_i
+                  usr.locked = true
                   # If a lock timer was specified in the config, set the timer on the user's record
-                  user.locked_timer = Time.now.to_i + (SECURITY_CONFIG['release_account_lock_after'].to_i * 60) if SECURITY_CONFIG['release_account_lock_after']
-                  user.host = ip
+                  usr.locked_timer = Time.now.to_i + (SECURITY_CONFIG['release_account_lock_after'].to_i * 60) if SECURITY_CONFIG['release_account_lock_after']
+                  usr.host = ip
                   
                   # Get the administrator notification email settings
                   to = SECURITY_CONFIG['account_lock_email_to']
                   cc = SECURITY_CONFIG['account_lock_email_cc']
                   subject = SECURITY_CONFIG['account_lock_email_subject']
-                  body = SECURITY_CONFIG['account_lock_email_body'].gsub('{?login?}', user.login).gsub('{?name?}', user.name).gsub('{?email?}', 
-                        user.email).gsub('{?ip?}', ip)
+                  body = SECURITY_CONFIG['account_lock_email_body'].gsub('{?login?}', usr.login).gsub('{?name?}', usr.name).gsub('{?email?}', 
+                        usr.email).gsub('{?ip?}', ip)
                   
                   send_email(to, subject, body)
                   
@@ -459,14 +445,14 @@ private
 
                 else
                   # increment the failed login attempts counter
-                  user.failed_login_attempts = user.failed_login_attempts.next
+                  user.failed_login_attempts = usr.failed_login_attempts.next
                 
-                  if user.failed_login_attempts >= (SECURITY_CONFIG['max_login_attempts'].to_i - 2)
-                    msg = MESSAGE_CONFIG['failed_login_close_to_lockout'].gsub('#{?}', (SECURITY_CONFIG['max_login_attempts'].to_i - user.failed_login_attempts).to_s)
+                  if usr.failed_login_attempts >= (SECURITY_CONFIG['max_login_attempts'].to_i - 2)
+                    msg = MESSAGE_CONFIG['failed_login_close_to_lockout'].gsub('#{?}', (SECURITY_CONFIG['max_login_attempts'].to_i - usr.failed_login_attempts).to_s)
                   end
                 end
           
-                user.save
+                usr.save
               else #locked
                 msg = MESSAGE_CONFIG['account_locked']
                 msg = msg.gsub('${?}', SECURITY_CONFIG['release_account_lock_after'].to_s) if !SECURITY_CONFIG['release_account_lock_after'].nil?
@@ -486,7 +472,7 @@ private
       msg = MESSAGE_CONFIG['no_login']
     end
     
-    {:user => user, :message => msg}
+    {:user => usr, :message => msg}
   end
   
 end
