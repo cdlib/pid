@@ -1,4 +1,15 @@
 <section id="new_group">
   <h3><%= HTML_CONFIG['header_group_create'] %></h3>
 
+  <section class="errors">
+    <%= "#{@msg}<br /><br />" %>
+
+    <% if !@group.nil? %>
+      <% if @group.errors %>
+        <% @group.errors.full_messages.each do | message | %>
+          <%= message %></br>
+        <% end %>
+      <% end %>
+    <% end %>  
+  </section>
 </section>

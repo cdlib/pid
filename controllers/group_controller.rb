@@ -11,6 +11,7 @@ class PidApp < Sinatra::Application
 # Display the create group page
 # --------------------------------------------------------------------------------------------------------------
   get '/group/new' do
+    @group = Group.new
     erb :new_group
   end
     
@@ -20,7 +21,7 @@ class PidApp < Sinatra::Application
   get '/group/:id' do
     @group = Group.get(params[:id])
     
-    redirect to('/not_found') if @group.nil?
+    halt(404) if @group.nil?
 
     @associations = get_users_and_maintainer_lists(@group)
     
@@ -33,7 +34,7 @@ class PidApp < Sinatra::Application
   put '/group/:id' do
     @group = Group.get(params[:id])
 
-    redirect to('/not_found') if @group.nil?
+    halt(404) if @group.nil?
 
     begin
       @group.update(:name => params[:name], :description => params[:description], :host => request.ip)
@@ -55,14 +56,24 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   post '/group/:id' do
     begin
-      params[:host] = request.ip
-      Group.new(params).save
+      if Group.first(:id => params[:id]).nil?
+        Group.new(:id => params[:id],
+                  :name => params[:name],
+                  :description => params[:description],
+                  :host => request.ip).save
+        @group = Group.first(params[:id])
       
-      @msg = MESSAGE_CONFIG['group_create_success']
+        @msg = MESSAGE_CONFIG['group_create_success']
+      else
+        status 409
+        @msg = MESSAGE_CONFIG['group_create_duplicate']
+      end
     rescue Exception => e
+      status 500
       @msg = MESSAGE_CONFIG['group_create_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
+    
     erb :new_group
   end
     
@@ -70,11 +81,9 @@ class PidApp < Sinatra::Application
 # Delete the specified group (All users and maintainers must be detached before deleting)
 # --------------------------------------------------------------------------------------------------------------
   delete '/group/:id' do
-    @group = Group.first(params[:id])
+    @group = Group.first(:id => params[:id])
 
     halt(404) if @group.nil?
-
-puts "group: #{@group.inspect}"
 
     begin
       if @group.users.empty? && @group.maintainers.empty?
@@ -91,9 +100,9 @@ puts "group: #{@group.inspect}"
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
 
-    @associations = get_users_and_maintainer_lists(@group)
-
-    erb :show_group
+    @groups = Group.all
+    
+    erb :list_groups
   end
 
 # --------------------------------------------------------------------------------------------------------------
@@ -101,42 +110,61 @@ puts "group: #{@group.inspect}"
 # --------------------------------------------------------------------------------------------------------------  
   post '/group/:group/maintainer/:user' do
     group = Group.get(params[:group])
-    @msg = ""
+    user = User.get(params[:user])
     
-    redirect to('/not_found') if group.nil?
+    halt(404) if group.nil? or user.nil?
 
     begin
-      Maintainer.new(:group => group, :user => User.get(params[:user])).save
+      if Maintainer.first(:group => group, :user => user).nil?
+        Maintainer.new(:group => group, :user => User.get(params[:user])).save
       
-      @msg = MESSAGE_CONFIG['group_add_maintainer_success']
+        @msg = MESSAGE_CONFIG['group_add_maintainer_success']
+      else
+        status 409
+        @msg = MESSAGE_CONFIG['group_add_maintainer_duplicate']
+      end
     rescue Exception => e
+      status 500
       @msg = MESSAGE_CONFIG['group_add_maintainer_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
     
-    erb @msg, :layout => false
+    @msg
   end
 
 # --------------------------------------------------------------------------------------------------------------
 # Remove the specified user from the list of Maintainers for the specified group
 # --------------------------------------------------------------------------------------------------------------
-  delete '/group/:group/maintainer/:user' do    
+  delete '/group/:group/maintainer/:user' do 
     group = Group.get(params[:group])
-    @msg = ""
+    user = User.get(params[:user])
     
-    redirect to('/not_found') if group.nil?
+    halt(404) if group.nil? or user.nil?
 
     begin
-      maintainer = Maintainer.first(:group => group, :user => User.get(params[:user]))
-      maintainer.destroy
+      # Prevent the user from removing themselves as a maintainer!
+      if current_user == user and !current_user.super
+        status 409
+        @msg = MESSAGE_CONFIG['group_remove_maintainer_self']
+      else
+        maintainer = Maintainer.first(:group => group, :user => user)
       
-      @msg = MESSAGE_CONFIG['group_remove_maintainer_success']
+        if !maintainer.nil?
+          maintainer.destroy
+        
+          @msg = MESSAGE_CONFIG['group_remove_maintainer_success']
+        else
+          status 409
+          @msg = MESSAGE_CONFIG['group_remove_maintainer_missing']
+        end
+      end
     rescue Exception => e
+      status 500
       @msg = MESSAGE_CONFIG['group_remove_maintainer_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
     
-    erb @msg, :layout => false
+    @msg
   end
   
 # --------------------------------------------------------------------------------------------------------------
@@ -144,21 +172,27 @@ puts "group: #{@group.inspect}"
 # --------------------------------------------------------------------------------------------------------------
   post '/group/:group/user/:user' do
     group = Group.get(params[:group])
-    @msg = ""
+    user = User.get(params[:user])
     
-    redirect to('/not_found') if group.nil?
-    
+    halt(404) if group.nil? or user.nil?
+
     begin
-      group.users << User.get(params[:user])
-      group.save
-      
-      @msg = MESSAGE_CONFIG['group_add_user_success']
+      if !group.users.include?(user)
+        group.users << user
+        group.save
+        
+        @msg = MESSAGE_CONFIG['group_add_user_success']
+      else
+        status 409
+        @msg = MESSAGE_CONFIG['group_add_user_duplicate']
+      end
     rescue Exception => e
+      status 500
       @msg = MESSAGE_CONFIG['group_add_user_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
     
-    erb @msg, :layout => false
+    @msg
   end
   
 # --------------------------------------------------------------------------------------------------------------
@@ -166,49 +200,66 @@ puts "group: #{@group.inspect}"
 # --------------------------------------------------------------------------------------------------------------
   delete '/group/:group/user/:user' do
     group = Group.get(params[:group])
-    @msg = ""
-
-    redirect to('/not_found') if group.nil?
+    user = User.get(params[:user])
     
-    begin      
-      group.users.delete(User.get(params[:user]))
-      group.save
-      
-      @msg = MESSAGE_CONFIG['group_remove_user_success']
+    halt(404) if group.nil? or user.nil?
+
+    begin
+      if group.users.include?(user)
+        group.users.delete(user)
+        group.save
+        
+        @msg = MESSAGE_CONFIG['group_remove_user_success']
+      else
+        status 409
+        @msg = MESSAGE_CONFIG['group_remove_user_missing']
+      end
     rescue Exception => e
+      status 500
       @msg = MESSAGE_CONFIG['group_remove_user_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
     
-    erb @msg, :layout => false
+    @msg
   end
   
 # --------------------------------------------------------------------------------------------------------------
-# Redirect to the login if the user isn't authenticated 
-# Redirect to the unauthorized page if the user is not a super admin
+# Page filters
 # --------------------------------------------------------------------------------------------------------------
+  # Only super admins can create/delete groups nor can they load the group list or new group pages!
   before '/group/*' do
-    if request.xhr?
-      halt(401) unless logged_in?
-      MESSAGE_CONFIG['user_unauthorized'] unless current_user.super
+    redirect '/user/login' unless logged_in?
+
+    # If the user is not a maintainer/manager of a group
+    if Maintainer.first(:user => current_user).nil?
+      # Throw an unauthorized error if the user is a super admin
+      halt(401) if !current_user.super 
     else
-      # Redirect to the login if the user isn't authenticated 
-      redirect '/user/login' unless logged_in?
-      
-      # Return an unauthorized message if the user is not a super admin or a maintainer
-      redirect '/unauthorized' unless !Maintainer.first(:user => current_user).nil? or current_user.super
+      # Throw an unauthorized error if the user is a super admin or a maintainer has access to the page
+      halt(401) unless maintainer_has_access(request.request_method, request.path_info) or current_user.super
     end
   end
-    
+
+# --------------------------------------------------------------------------------------------------------------
   after '/group/*' do
     session[:msg] = nil
   end
 
+# --------------------------------------------------------------------------------------------------------------
   not_found do
-    #TODO: move this to the MESSAGE_CONFIG file.
-    session[:msg] = "That group could not be found!"
-    erb :not_found
+    @msg = MESSAGE_CONFIG['group_not_found']
+    @msg if request.xhr?
+    erb :not_found unless request.xhr?
   end
+
+# --------------------------------------------------------------------------------------------------------------
+  error 401 do
+    @msg = MESSAGE_CONFIG['group_unauthorized']
+    @msg if request.xhr?
+    erb :unauthorized unless request.xhr?
+  end
+
+# --------------------------------------------------------------------------------------------------------------
     
 private
   def get_users_and_maintainer_lists(group)
@@ -222,6 +273,18 @@ private
       User.all.each{ |user| ret[:available_maintainers] << user unless ret[:maintainers].include?(user) }
     end
     
+    ret
+  end
+
+  def maintainer_has_access(method, target)
+    ret = true
+    # If they are trying to delete or post a group (and not add or delete a maintainer/user)
+    ret = false if ['delete', 'post'].include?(request.request_method.downcase) and 
+                    (!request.path_info.include?('/maintainer/') and !request.path_info.include?('/user/'))
+     
+    # If they are trying to get the group list or new group page
+    ret = false if request.request_method.downcase == 'get' and
+                    ['/group/list', '/group/new'].include?(request.path_info.downcase)               
     ret
   end
 
