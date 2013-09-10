@@ -35,17 +35,8 @@ class TestSkipController < Test::Unit::TestCase
 # Test page get 
 # ---------------------------------------------------------------
   def test_get_skip
-    # not logged in
-    get "/skip"
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
+    security_check_administrator("/skip", "get", nil, false)
     
-    # logged in as a non super admin or Maintainer should fail
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    get "/skip"
-    assert_equal 'http://example.org/unauthorized', last_response.location, "Was not sent to the unauthorized page! user: #{@user.inspect}" 
-    post '/user/logout'
-
     # logged in as a Manager/Maintainer
     post '/user/login', {:login => @mgr.login, :password => @pwd}
     get '/skip'
@@ -65,18 +56,8 @@ class TestSkipController < Test::Unit::TestCase
 # Test page post
 # ---------------------------------------------------------------
   def test_post_skip
-    # not logged in
-    post "/skip", {:domain => 'www.google.com'}
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
+    security_check_administrator("/skip", "post", {:domain => 'www.google.com'}, false)
     
-    # logged in as a non super admin or Maintainer should fail
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    # attempt to create a new skip check when not a maintainer or super admin
-    post "/skip", {:domain => 'www.google.com'}
-    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
-    post '/user/logout'
-
     # logged in as a Manager/Maintainer
     post '/user/login', {:login => @mgr.login, :password => @pwd}
     # create a new skip check
@@ -109,17 +90,7 @@ class TestSkipController < Test::Unit::TestCase
     grp.save
     SkipCheck.new(:domain => 'www.google.com', :created_at => Time.now, :group => grp.id).save
 
-    # not logged in
-    get "/skip"
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
-    
-    # logged in as a non super admin or Maintainer should fail
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    # attempt to delete a skip check when not a group maintainer or super admin
-    delete "/skip", {:domain => 'www.yahoo.com'}
-    assert_equal 'http://example.org/unauthorized', last_response.location, 'Was not sent to the unauthorized page!' 
-    post '/user/logout'
+    security_check_administrator("/skip", "delete", {:domain => 'www.google.com'}, false)
 
     # logged in as a Manager/Maintainer
     post '/user/login', {:login => @mgr.login, :password => @pwd}

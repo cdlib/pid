@@ -35,7 +35,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_get_list
-    security_check("/group/list", "get", nil, true)
+    security_check_administrator("/group/list", "get", nil, true)
 
     post '/user/login', { :login => @adm.login, :password => @pwd }
     get "/group/list"
@@ -45,7 +45,7 @@ class TestGroupController < Test::Unit::TestCase
   
 # --------------------------------------------------------------------------------------------------------------
   def test_get_new
-    security_check("/group/new", "get", nil, true)
+    security_check_administrator("/group/new", "get", nil, true)
 
     post '/user/login', { :login => @adm.login, :password => @pwd }
     get "/group/new"
@@ -55,7 +55,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_get_group
-    security_check("/group/#{@group.id}", "get", nil, false)
+    security_check_administrator("/group/#{@group.id}", "get", nil, false)
 
     # Maintainer should be able to view their own group
     post '/user/login', { :login => @mgr.login, :password => @pwd }
@@ -72,7 +72,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_put_group
-    security_check("/group/#{@group.id}", "put", {:name => 'Updated Name', :description => 'Testing changes'}, false)
+    security_check_administrator("/group/#{@group.id}", "put", {:name => 'Updated Name', :description => 'Testing changes'}, false)
 
     # Maintainer should be able to edit their own group
     post '/user/login', { :login => @mgr.login, :password => @pwd }
@@ -92,7 +92,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_post_group
-    security_check("/group/new", "post", {:id => 'TEST', :name => 'Updated Name', :description => 'Testing changes'}, true)
+    security_check_administrator("/group/new", "post", {:id => 'TEST', :name => 'Updated Name', :description => 'Testing changes'}, true)
 
     # logged in as a super admin
     post '/user/login', { :login => @adm.login, :password => @pwd }
@@ -103,7 +103,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_delete_group
-    security_check("/group/delete", "delete", {:id => @group.id}, true)
+    security_check_administrator("/group/delete", "delete", {:id => @group.id}, true)
 
     # logged in as a super admin
     post '/user/login', { :login => @adm.login, :password => @pwd }
@@ -121,7 +121,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_add_user_to_group
-    security_check("/group/#{@group.id}/user/#{@adm.id}", "post", nil, false)
+    security_check_administrator("/group/#{@group.id}/user/#{@adm.id}", "post", nil, false)
 
     # logged in as a maintainer
     post '/user/login', { :login => @mgr.login, :password => @pwd }
@@ -143,7 +143,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_remove_user_from_group
-    security_check("/group/#{@group.id}/user/#{@adm.id}", "delete", nil, false)
+    security_check_administrator("/group/#{@group.id}/user/#{@adm.id}", "delete", nil, false)
 
     # logged in as a maintainer
     post '/user/login', { :login => @mgr.login, :password => @pwd }
@@ -165,7 +165,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_add_maintainer_to_group
-    security_check("/group/#{@group.id}/maintainer/#{@adm.id}", "post", nil, false)
+    security_check_administrator("/group/#{@group.id}/maintainer/#{@adm.id}", "post", nil, false)
 
     # logged in as a maintainer
     post '/user/login', { :login => @mgr.login, :password => @pwd }
@@ -187,7 +187,7 @@ class TestGroupController < Test::Unit::TestCase
 
 # --------------------------------------------------------------------------------------------------------------
   def test_remove_maintainer_from_group
-    security_check("/group/#{@group.id}/maintainer/#{@adm.id}", "delete", nil, false)
+    security_check_administrator("/group/#{@group.id}/maintainer/#{@adm.id}", "delete", nil, false)
 
     Maintainer.new(:group => @group, :user => @adm).save
     
@@ -212,40 +212,4 @@ class TestGroupController < Test::Unit::TestCase
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['group_remove_maintainer_success']), 'Did not receive the success message!' 
   end
 
-# --------------------------------------------------------------------------------------------------------------
-  def security_check(page, method, args, test_maintainer)
-
-    def invoke_page(method, page, args)     
-      if method == "post"
-        post page, args
-      elsif method == "put"
-        put page, args
-      elsif method == "delete"
-        delete page, args
-      else
-        get page 
-      end
-    end
-    
-    # not logged in
-    invoke_page(method, page, args)
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
-    
-    # logged in as a non super admin or group maintainer should fail
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    invoke_page(method, page, args)
-    assert_equal 401, last_response.status, "Was expecting a 401 because the user should not have access to #{method} to #{page}!"
-    assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page when trying to #{method} to #{page}! #{last_response.body}"
-    post '/user/logout'
-    
-    # if the maintainer should be tested as well
-    if test_maintainer
-      post '/user/login', { :login => @mgr.login, :password => @pwd }
-      invoke_page(method, page, args)
-      assert_equal 401, last_response.status, "Was expecting a 401 because the user should not have access to #{method} to #{page}!"
-      assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
-      post '/user/logout'
-    end
-  end
 end

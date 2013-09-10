@@ -57,7 +57,6 @@ class PidApp < Sinatra::Application
         end
       else
         status 401
-        @msg = MESSAGE_CONFIG['skip_not_authorized'] 
       end
       
       @skips = SkipCheck.all()
@@ -73,27 +72,31 @@ class PidApp < Sinatra::Application
 
 # --------------------------------------------------------------------------------------------------------------
   before '/skip' do
-    if request.xhr?
-      halt(401) unless logged_in?
-      MESSAGE_CONFIG['user_unauthorized'] unless  Maintainer.first(:user => current_user).nil? and !current_user.super
-    else
-      # Redirect to the login if the user isn't authenticated 
-      redirect '/user/login' unless logged_in?
+    redirect '/user/login' unless logged_in?
 
-      # Return an unauthorized message if the user is not a super admin
-      redirect '/unauthorized' if Maintainer.first(:user => current_user).nil? and !current_user.super
-    end
+    # If the user is not a maintainer/manager of a group
+    halt(401) if Maintainer.first(:user => current_user).nil? and !current_user.super
   end 
   
-  after '/skip' do
+# --------------------------------------------------------------------------------------------------------------
+  after '/group/*' do
     session[:msg] = nil
   end
-  
+
+# --------------------------------------------------------------------------------------------------------------
   not_found do
-    @msg = MESSAGE_CONFIG['not_found_skip_check']
-    
-    request.xhr? ? @msg : (erb :not_found)
+    @msg = MESSAGE_CONFIG['skip_not_found']
+    @msg if request.xhr?
+    erb :not_found unless request.xhr?
   end
+
+# --------------------------------------------------------------------------------------------------------------
+  error 401 do
+    @msg = MESSAGE_CONFIG['skip_unauthorized']
+    @msg if request.xhr?
+    erb :unauthorized unless request.xhr?
+  end
+    
   
   helpers do
     #def skip

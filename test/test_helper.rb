@@ -22,3 +22,46 @@ Capybara.configure do |config|
 end
 
 Capybara.javascript_driver = :poltergeist
+
+
+# --------------------------------------------------------------------------------------------------------------
+# Helper methods for controller security checks
+# --------------------------------------------------------------------------------------------------------------
+  def security_check_administrator(page, method, args, test_maintainer)
+    security_check_basic(page, method, args)
+    
+    # logged in as a non super admin or group maintainer should fail
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    invoke_page(method, page, args)
+    assert_equal 401, last_response.status, "Was expecting a 401 because the user should not have access to #{method} to #{page}!"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page when trying to #{method} to #{page}! #{last_response.body}"
+    post '/user/logout'
+    
+    # if the maintainer should be tested as well
+    if test_maintainer
+      post '/user/login', { :login => @mgr.login, :password => @pwd }
+      invoke_page(method, page, args)
+      assert_equal 401, last_response.status, "Was expecting a 401 because the user should not have access to #{method} to #{page}!"
+      assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
+      post '/user/logout'
+    end
+  end
+  
+  def security_check_basic(page, method, args)
+    # not logged in
+    invoke_page(method, page, args)
+    assert last_response.redirect?, "Did not redirect to login page!"
+    assert_equal 'http://example.org/user/login', last_response.location, 'Was not sent to the login page!' 
+  end
+  
+  def invoke_page(method, page, args)     
+    if method == "post"
+      post page, args
+    elsif method == "put"
+      put page, args
+    elsif method == "delete"
+      delete page, args
+    else
+      get page 
+    end
+  end
