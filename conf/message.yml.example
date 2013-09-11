@@ -58,8 +58,10 @@ group_not_found: 'That group could not be found!'
 group_unauthorized: 'You do not have permission to manage that group!'
 
 # PID controller messages
+pid_search_not_found: 'Your criteria returned no results!'
 pid_update_success: 'Your changes have been saved.'
 pid_update_failure: 'Unable to save your changes.'
+pid_update_invalid_url: 'Invalid URL format'
 pid_unauthorized: 'You do not have permission to modify this PID!'
 pid_not_found: 'That PID could not be found!'
 

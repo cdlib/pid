@@ -8,6 +8,7 @@ class PidApp < Sinatra::Application
     @failures = {}
     @successes = []
     @interested = []
+    @dead_urls = []
     erb :new_pid
   end
   
@@ -38,15 +39,9 @@ class PidApp < Sinatra::Application
     @mints = [] 
     @revisions = []
     @interested = []
+    @dead_urls = []
     
     erb :edit_pid
-  end
-  
-# ---------------------------------------------------------------
-# Display the reports page
-# ---------------------------------------------------------------  
-  get '/link/report' do
-    erb :reports
   end
 
 # ---------------------------------------------------------------
@@ -54,12 +49,15 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------  
   get '/link/:id' do
     @pid = Pid.get(params[:id])
-    user = current_user
     
     if @pid
-      if user.group == @pid.group || !Maintainer.first(:group => @pid.group, :user => user).nil? || user.super
-        @groups = Group.all if user.super
-        @group = user.group
+      # If the user's group owns the PID, the user is a super admin, 
+      #      the user is a maintainer of the PID's group, or the user's group is an Interested Party
+      if current_user.group == @pid.group || current_user.super || 
+                                  !Maintainer.first(:group => @pid.group, :user => current_user).nil? ||
+                                  !Interested.first(:group => current_user.group, :pid => @pid).nil?
+        @groups = Group.all if current_user.super
+        @group = current_user.group
 
         @interested = Interested.all(:pid => @pid)
 
@@ -69,11 +67,11 @@ class PidApp < Sinatra::Application
           erb :show_pid
         end
 
-      else
-        401
+      else        
+        halt(403)
       end
     else
-      404
+      halt(404)
     end
   end
   
@@ -217,10 +215,16 @@ class PidApp < Sinatra::Application
       
       results = Pid.all(args)
     end
+
+    Interested.all(:group => current_user.group).each do |interest|
+      results << interest.pid
+    end
+
+puts args.inspect
       
     @json = results.to_json
       
-    status 404 if results.empty?
+    @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
     
     erb :search_pid
   end
@@ -234,7 +238,9 @@ class PidApp < Sinatra::Application
     @msg = "blah"
     
     if @pid
+      # User can only edit their own PIDs, PIDs of groups they maintain, or if they are a super admin
       if @pid.group == user.group || !Maintainer.first(:group => @pid.group, :user => user).nil? || user.super
+        
         # Don't save if nothing has changed!
         if @pid.url != params[:url] || @pid.group.id != params[:group] || (@pid.deactivated != ((params[:active] == "on") ? false : true))
             
@@ -243,25 +249,36 @@ class PidApp < Sinatra::Application
             
             # If there is already a PID out there using the specified url
             if !dups.empty?
+              # Set the user's group as an Interested Party
+              existing = Pid.get(dups[0])
+              Interested.new(:pid => existing, :group => current_user.group).save if Interested.first(:pid => existing, :group => current_user.group).nil?
+              
               @msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}link/#{dups[0]}'>#{dups[0]}</a>")
             
             else
               notify_interested_parties(@pid, params[:url]) if (@pid.url != params[:url] || params[:active] != "on")
             
-              @pid.revise({:url => params[:url], 
-                           :deactivated => (params[:active] == "on") ? false : true,
-                           :group =>  params[:group],
-                           :username => user.login,
-                           :modified_at => Time.now,
-                           :dead_pid_url => DEAD_PID_URL,
-                           :host => request.ip})
+              url = params[:url]
+              # Strip off the last slash, the REGEX 
+              url = url[0..(url.size())] if url[url.size() -1] == '/'
+              
+              if url =~ URI_REGEX
+                @pid.revise({:url => params[:url], 
+                             :deactivated => (params[:active] == "on") ? false : true,
+                             :group =>  (params[:group].nil?) ? @pid.group : params[:group],
+                             :username => user.login,
+                             :modified_at => Time.now,
+                             :dead_pid_url => DEAD_PID_URL,
+                             :host => request.ip})
         
-              # Check to see if the PID's URL is valid, if not WARN the user
-              if verify_url(params[:url]) != 200
-                @msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', @pid.id.to_s) 
-
+                # Check to see if the PID's URL is valid, if not WARN the user
+                if verify_url(params[:url]) != 200
+                  @msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', @pid.id.to_s) 
+                else
+                  @msg = MESSAGE_CONFIG['pid_update_success']
+                end
               else
-                @msg = MESSAGE_CONFIG['pid_update_success']
+                @msg = MESSAGE_CONFIG['pid_update_invalid_url']
               end
             end
           rescue Exception => e
@@ -282,12 +299,10 @@ class PidApp < Sinatra::Application
 
         # User is not authorized to modify this PID!
       else
-        401
-        @msg = MESSAGE_CONFIG['pid_unauthorized']
+        halt(403)
       end
     else
-      @msg = MESSAGE_CONFIG['pid_not_found']
-      404
+      halt(404)
     end
   end
   
@@ -298,6 +313,7 @@ class PidApp < Sinatra::Application
     fatal = false
     @successes = []
     @interested = []
+    @dead_urls = []
     @failures = {}
     
     params[:new_urls].lines do |line|
@@ -305,7 +321,10 @@ class PidApp < Sinatra::Application
       change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
       notes = MESSAGE_CONFIG['pid_mint_default_note'].gsub('{?ip?}', request.ip).gsub('{?}', url) if request.referrer != "#{hostname}link/new"
       
+      # Strip off the line breaks from the form
       url = line.strip.gsub("\r\n", '').gsub("\n", '')
+      # Strip off the last slash, the REGEX 
+      url = url[0..(url.size())] if url[url.size() -1] == '/'
       
       unless url.empty?
         if url =~ URI_REGEX
@@ -314,7 +333,14 @@ class PidApp < Sinatra::Application
           
           if !dups.empty?            
             existing = Pid.get(dups[0])
-            Interested.new(:pid => existing, :group => current_user.group).save if Interested.first(:pid => existing, :group => current_user.group).nil?
+            
+            # If the Interested Party does not already exist
+            if Interested.first(:pid => existing, :group => current_user.group).nil?
+              interested = Interested.new(:pid => existing, :group => current_user.group)
+              
+              # Don't save the Interested record if the user's group already owns the PID!!!
+              interested.save if existing.group != current_user.group
+            end
             
             @interested << existing
           
@@ -328,10 +354,13 @@ class PidApp < Sinatra::Application
                              :change_category => change_category,
                              :notes => notes,
                              :host => request.ip)
-              @successes << pid
-          
+                             
               # Check to see if the PID's URL is valid, if not WARN the user
-              @failures[line.strip] = MESSAGE_CONFIG['pid_mint_dead_url'].gsub('{?}', pid.id.to_s) if verify_url(url) != 200
+              if verify_url(url) != 200
+                @dead_urls << pid
+              else
+                @successes << pid
+              end
 
             rescue Exception => e
               fatal = true 
@@ -349,41 +378,56 @@ class PidApp < Sinatra::Application
       
     end
     
-    if fatal                      # If any 500s were returned we should flag it with a 500
+    fatal = true if @failures.count > 0 and (@successes.count + @interested.count + @dead_urls.count) <= 0
+    
+    if fatal
       response.status = 500
-    elsif @failures.count - (@successes.count + @interested.count) > 0     # If we had at least one failure return a 400 (inactive URLs are in here so check against success count!)
-      response.status = 400
+#    elsif @failures.count - (@successes.count + @interested.count) > 0     # If we had at least one failure return a 400 (inactive URLs are in here so check against success count!)
+    elsif @failures.count > 0 
+      response.status = 206
     else                          # We had no failures 302 (per PURL spec for success minting)
-      response.status = 302
+      response.status = 200
     end
     
     erb :new_pid
   end
 
-# ---------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------
 # Security checks
-# ---------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------
   before '/link' do
-    if request.xhr?
-      halt(401) unless logged_in?
-    else
-      # Redirect to the login if the user isn't authenticated 
-      redirect '/user/login' unless logged_in?
-    end
+    halt(401) unless logged_in?
   end
   
+# --------------------------------------------------------------------------------------------------------------
   before '/link/*' do
-    if request.xhr?
-      halt(401) unless logged_in?
-    else
-      # Redirect to the login if the user isn't authenticated 
-      redirect '/user/login' unless logged_in?
-    end
+    halt(401) unless logged_in?
   end
   
+# --------------------------------------------------------------------------------------------------------------
   after '/link/*' do
     session[:msg] = nil
   end
+
+# --------------------------------------------------------------------------------------------------------------
+  not_found do
+    @msg = MESSAGE_CONFIG['pid_not_found']
+    @msg if request.xhr?
+    erb :not_found unless request.xhr?
+  end
+
+# --------------------------------------------------------------------------------------------------------------
+  error 401 do
+    erb :login
+  end
+
+# --------------------------------------------------------------------------------------------------------------
+  error 403 do
+    @msg = MESSAGE_CONFIG['pid_unauthorized']
+    @msg if request.xhr?
+    erb :unauthorized unless request.xhr?
+  end
+
 
 private
   def notify_interested_parties(pid, new_url)

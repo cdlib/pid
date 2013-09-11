@@ -112,6 +112,7 @@ class PidApp < Sinatra::Application
           
           redirect '/user/login'
         else
+          status 409
           @msg = MESSAGE_CONFIG['password_mismatch']
         end
         
@@ -216,14 +217,13 @@ class PidApp < Sinatra::Application
 # Load the registration page. If the current user is an admin or a maintainer of their group.
 # --------------------------------------------------------------------------------------------------------------  
   get '/user/register' do
-    user = current_user
     
     # If the user is a maintainer of their group or an admin
     if !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
       @groups = Group.all if current_user.super
       @params = {:group => current_user.group.id}
       @super = current_user.super
-        
+
       erb :new_user
     else
       halt(403)
@@ -247,7 +247,7 @@ class PidApp < Sinatra::Application
                               :host => request.ip,
                               :name => params[:name], 
                               :affiliation => params[:affiliation], 
-                              :group => group.nil? ? current_user.group : group )
+                              :group => params[:group].nil? ? current_user.group : params[:group] )
           new_user.save
         
           @user = new_user
@@ -267,8 +267,8 @@ class PidApp < Sinatra::Application
       halt(403)
     end
     
-    @super = user.super
-    @groups = Group.all if user.super
+    @super = current_user.super
+    @groups = Group.all if current_user.super
     @params = (params) ? params : {}
     
     erb :new_user  
@@ -278,7 +278,7 @@ class PidApp < Sinatra::Application
 # Load the user's profile IF the current user is viewing their own record OR they are the group's maintainer OR an admin
 # --------------------------------------------------------------------------------------------------------------
   get '/user/:id' do
-    @user = User.first(:id => params[:user])
+    @user = User.first(:id => params[:id])
     halt(404) if @user.nil?
     
     if !current_user.nil?
@@ -289,7 +289,7 @@ class PidApp < Sinatra::Application
         
         erb :show_user
       else
-        halt(401)
+        halt(403)
       end
     else
       redirect '/user/login'
@@ -316,11 +316,11 @@ class PidApp < Sinatra::Application
                       :affiliation => (!params[:affiliation].nil?) ? params[:affiliation].strip : @user.affiliation,
                       :active => (params[:active] == 'on'),
                       :locked => (params[:locked] == 'on'),
-                      :group => (!group.nil?) ? Group.first(:id => params[:group]) : current_user.group,
+                      :group => (params[:group]) ? Group.first(:id => params[:group]) : current_user.group,
                       :host => request.ip)
         
           # If a password change was entered, update the user's password
-          @user.update(:password => params[:password].strip) if !params[:password].empty? && params[:password] == params[:confirm]
+          @user.update(:password => params[:password].strip) if !params[:password].nil? && params[:password] == params[:confirm]
           
           @msg = MESSAGE_CONFIG['user_update_success']   
         end
@@ -329,7 +329,7 @@ class PidApp < Sinatra::Application
         500
         @msg = MESSAGE_CONFIG['user_update_failure']
         @msg += "<br /><br />#{e.message}" if current_user.super
-        @msg += '<br /><br />' + @user.errors.join('<br />') if current_user.super
+        @msg += '<br /><br />' + @user.errors.inspect if current_user.super
       end
 
     else  # The user is not a group maintainer or super admin and they're trying to access another user's account

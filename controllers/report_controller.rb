@@ -1,6 +1,14 @@
 require 'json'
 
 class PidApp < Sinatra::Application
+  
+# ---------------------------------------------------------------
+# Display the reports page
+# ---------------------------------------------------------------  
+  get '/report' do
+    erb :reports
+  end
+    
 # ---------------------------------------------------------------
 # Get the list of inactive PIDs
 # ---------------------------------------------------------------
@@ -203,6 +211,15 @@ class PidApp < Sinatra::Application
 # Verify that the user is logged in before allowing access to a report
 # ---------------------------------------------------------------
   before '/report/*' do
+    if request.xhr?
+      halt(401) unless logged_in?
+    else
+      # Redirect to the login if the user isn't authenticated 
+      redirect '/user/login' unless logged_in?
+    end
+  end
+  
+  before '/report' do
     if request.xhr?
       halt(401) unless logged_in?
     else

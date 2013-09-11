@@ -10,7 +10,7 @@
     <select id="userid" name="userid">
     <option value=""></option>
       <% params[:users].each do |user| %>
-        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name %> (<%= user.login %>)</option>
+        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name.gsub("'", "&apos;") %> (<%= user.login %>)</option>
       <% end %>
     </select>
 		
@@ -168,15 +168,15 @@
       var dt = new Date(pid.modified_at);
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
   
-      $("table tr:last").after("<tr>" +
-                                "<td>" + i + ")</td>" + 
-                                "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
-                                "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
-                                            ((pid.url.length > 70) ? pid.url.substring(0, 69) + " ..." : pid.url) + "</td>" +
-                                "<td>" + pid.username + "</td>" +
-                                "<td>" + modified + "</td>" +
-                                "<td class=\"center\">" + (pid.deactivated ? "<span class=\"red bold\"><%= HTML_CONFIG['td_false'] %></span>" : "<%= HTML_CONFIG['td_true'] %>") + "</td>" +
-                              "</tr>");
+      $("table tr:last").after('<tr class="result_row">' +
+                                '<td>' + i + ')</td>' + 
+                                '<td><a href="/link/' + pid.id + '" class="letterpress">' + pid.id + '</a></td>' +
+                                '<td><a href="' + pid.url + '" target="_blank" class="underline" title="' + pid.url + '">' +
+                                            ((pid.url.length > 70) ? pid.url.substring(0, 69) + ' ...' : pid.url) + '</a></td>' +
+                                '<td>' + pid.username + '</td>' +
+                                '<td>' + modified + '</td>' +
+                                '<td class="center">' + (pid.deactivated ? '<span class="red bold"><%= HTML_CONFIG["td_false"] %></span>' : '<%= HTML_CONFIG["td_true"] %>') + '</td>' +
+                              '</tr>');
       i++;
     });
     return i;

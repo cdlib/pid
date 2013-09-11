@@ -39,7 +39,6 @@ class TestUserController < Test::Unit::TestCase
     
     # Should redirect to main page when already logged in
     post '/user/login', { :login => @adm.login, :password => @pwd }
-    get "/user/login"
     assert last_response.redirect?, "Was not redirected to the main page #{last_response.status}"
     assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Did not get redirected to the main page!"
   end
@@ -70,6 +69,54 @@ class TestUserController < Test::Unit::TestCase
     get "/user/admin"
     assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_admin']), 'Did not get to the administration page!'
+  end
+
+# -----------------------------------------------------------------------------------------------
+  def test_get_register
+    security_check_administrator("/user/register", "get", nil, false)
+
+    # Maintainer/Manager can load the register page
+    post '/user/login', { :login => @mgr.login, :password => @pwd }
+    get "/user/register"
+    assert last_response.ok?, "Maintainer did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_user_register']), 'The Maintainer did not get to the create new user page!'
+    get '/user/logout'
+    
+    # super admin
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    get "/user/register"
+    assert last_response.ok?, "Admin did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_user_register']), 'The admin did not get to the create new user page!'
+  end
+  
+# -----------------------------------------------------------------------------------------------
+  def test_get_user
+    security_check_basic("/user/#{@user.id}", "get", nil)
+
+    # User can view their own profile
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    get "/user/#{@user.id}"
+    assert last_response.ok?, "User did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_user_view']), 'User could not view their own profile!'
+    
+    # User cannot view another's profile!
+    get "/user/#{@mgr.id}"
+    assert_equal 403, last_response.status, "Was expecting a 403 because the user should not have access to another user's profile!"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
+    get '/user/logout'
+    
+    # Maintainer/Manager can view one of their user's profiles
+    post '/user/login', { :login => @mgr.login, :password => @pwd }
+    get "/user/#{@user.id}"
+    assert last_response.ok?, "Manager did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_user_view']), 'Could not view the user profile as a Manager!'
+    get '/user/logout'
+    
+    # Super admin can view any profile
+    post '/user/login', { :login => @adm.login, :password => @pwd }
+    get "/user/#{@user.id}"
+    assert last_response.ok?, "Admin did not receive a 200 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_user_view']), 'Could not view the user profile as an Admin!'
   end
 
 # -----------------------------------------------------------------------------------------------
@@ -122,291 +169,111 @@ class TestUserController < Test::Unit::TestCase
     assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Did not get redirected to the main page!"
   end
   
-  
-
-# ---------------------------------------------------------------
-# Test secure section: get '/user/:name'
-# ---------------------------------------------------------------
-=begin
-  # User is not logged in (HTTP: 302 to /user/login)
-  def test_get_user_not_logged_in
-    get "/user/#{@user.id}"
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location  
-  end
-  
-  # Logged in and has appropriate credentials but requested user does not exist (HTTP: 404)
-  def test_get_user_missing
-    post '/user/login', { :login => @mgr.login, :password => @pwd }
-    get '/user/999999'
-    assert_equal 'http://example.org/not_found', last_response.location, 
-            "Was able to find a non-existent user #{last_response.status} - #{last_response.location}"
-  end
-  
-  # Logged in and user has permission to view their own record (HTTP: 200)
-  def test_get_user_self
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    get "/user/#{@user.id}"
-    assert last_response.ok?, (last_response.status == 302) ? "Unable to login!" : "Did not find user's own record!"
-  end
-
-  # Logged in and user has permission to view other users within their group (HTTP: 200)
-  def test_get_user_authorized
-    post '/user/login', { :login => @mgr.login, :password => @pwd }
-    get "/user/#{@user.id}"
-    assert last_response.ok?, (last_response.status == 302) ? "Unable to login!" : "Was unable to access user record!"
+# -----------------------------------------------------------------------------------------------
+  def test_post_login
+    security_check_basic("/link", "get", nil)
     
-    get '/user/logout'
+    post '/user/login', { :login => @user.login, :password => @pwd }
+    assert last_response.redirect?, "User not redirected to the main page #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "User did not get redirected to the main page!"
+    get "/user/logout"
+    
+    post '/user/login', { :login => @mgr.login, :password => @pwd }
+    assert last_response.redirect?, "Maintainer/Manager not redirected to the main page #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Maintainer/Manager did not get redirected to the main page!"
+    get "/user/logout"
     
     post '/user/login', { :login => @adm.login, :password => @pwd }
-    get "/user/#{@user.id}"
-    assert last_response.ok?, (last_response.status == 302) ? "Unable to login!" : "Was unable to access user record as an admin!"
-  end
-  
-  # Logged in but user does not have permission to view other users (HTTP: 401)
-  def test_get_user_unauthorized
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    get "/user/#{@mgr.id}"
-    assert_equal 'http://example.org/unauthorized', last_response.location, 
-            "Was allowed to access a user record without being authorized #{last_response.status} - #{last_response.location}"
+    assert last_response.redirect?, "Admin not redirected to the main page #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Admin did not get redirected to the main page!"
+    get "/user/logout"
   end
 
-# ---------------------------------------------------------------
-# Test secure section: get '/user/list'
-# ---------------------------------------------------------------
-  # User is not logged in (HTTP: 302 to /user/login)
-  def test_get_user_list_not_logged_in
-    get '/user/list'
-    assert last_response.redirect?, "Did not redirect to login page!"
-    assert_equal 'http://example.org/user/login', last_response.location 
-  end
-  
-  # Logged in but user does not have permission to get user list (HTTP: 401)
-  def test_get_user_list_unauthorized
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    get '/user/list'
-    assert last_response.redirect?, 'We were not redirected!'
-    assert_equal "http://example.org/user/#{@user.id}", last_response.location
-  end
-  
-  # Logged in and has permission to view user list (HTTP: 200)
-  def test_get_user_list_authorized
-    post '/user/login', { :login => @mgr.login, :password => @pwd }
-    get '/user/list'
-    assert last_response.ok?, (last_response.status == 302) ? "Unable to login!" : "Was unable to access the group's user list!"
-    
-    get '/user/logout'
-    
-    post '/user/login', { :login => @adm.login, :password => @pwd }
-    get '/user/list'
-    assert last_response.ok?, (last_response.status == 302) ? "Unable to login!" : "Was unable to access the user list as an admin!"
-  end
-  
-# ---------------------------------------------------------------------------------------------------------------------------
-# Test public sections: GET '/user/login', get '/user/logout', get '/user/forgot', get '/user/register', get '/user/reset'
-# ---------------------------------------------------------------------------------------------------------------------------
-  # load the user login page (HTTP: 200)
-  def test_get_user_login
-    get '/user/login'
-    assert_equal 200, last_response.status
-  end
-
-  # load the login page when already authorized (HTTP: 302 to /link)
-  def test_get_user_login_authorized
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    get '/user/login'
-    assert last_response.redirect?, "Didn't redirect to the root when already logged in!"
-    assert_equal 'http://example.org/link', last_response.location
-  end
-  
-  # User logout page (HTTP: 302 to /user/login)
-  def test_get_user_logout
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    get '/user/logout'
-    assert last_response.redirect?, "Didn't redirect to the login page after logout!"
-    assert_equal 'http://example.org/user/login', last_response.location
-  end
-  
-  # User forgotten password page (HTTP: 200)
-  def test_get_user_forgot_password
-    get '/user/forgot'
-    assert last_response.ok?, "Unable to load the forgotten password page!"
-  end
-  
-  # User reset password page (HTTP: 200)
-  def test_get_user_reset_password
-    post '/user/forgot', {:reset => true, :login => @user.login}
-
-    @user = User.get(@user.id)
-    
-    get "/user/reset?n=#{@user.id}&c=#{@user.reset_code}"
-    assert last_response.ok?, "Unable to load the reset password page!"
-  end
-  
-  # User reset password page with expired reset code (HTTP: 302 to /user/forgot)
-  def test_get_user_reset_password_expired
-    post '/user/forgot', {:reset => true, :login => @user.login}
-    
-    @user = User.get(@user.id)
-    @user.reset_timer = Time.now + (240 * 60)
-    @user.save
-    
-    get "/user/reset?n=#{@user.id}&c=#{@user.reset_code}"
-    assert last_response.redirect?, "We were expecting a redirect but got a #{last_response.status}"
-    assert_equal 'http://example.org/user/forgot', last_response.location, 'Did not redirect to forgotten password page!'
-  end
-  
-  # User reset password page without query parameters (HTTP: 401)
-  def test_get_user_reset_password_no_params
-    get "/user/reset?n=1"
-    assert_equal 'http://example.org/user/forgot', last_response.location, 
-            "We were not redirected to the forgotten password page #{last_response.status} - #{last_response.location}"
-  end
-
-# ---------------------------------------------------------------
-# Test secure section: get '/user/register'
-# ---------------------------------------------------------------  
-  # User register page - unauthenticated (HTTP: 200)
-  def test_get_user_register_not_logged_in
-    get '/user/register'
-    assert last_response.redirect?, "We were expecting a redirect but got a #{last_response.status}"
-    assert_equal 'http://example.org/user/login', last_response.location, 'Did not redirect to the login page!'
-  end
-  
-  # User register page - authenticated but without group manager permissions (HTTP: 401)
-  def test_get_user_register_unauthorized
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    get "/user/register"
-    assert_equal 'http://example.org/unauthorized', last_response.location, 
-            "Was allowed to register a user record without being authorized #{last_response.status} - #{last_response.location}"
-  end
-  
-  # User register page - authenticated and a group manager (HTTP: 200)
-  def test_get_user_register_authorized
-    post '/user/login', { :login => @mgr.login, :password => @pwd }
-    get "/user/register"
-    assert last_response.ok?, 'We were not able to access the registration page as a group maintainer!'
-    
-    get '/user/logout'
-    
-    post '/user/login', { :login => @adm.login, :password => @pwd }
-    get "/user/register"
-    assert last_response.ok?, 'We were not able to access the registration page as an admin!'
-  end
-  
-# -------------------------------------------------------------------------------------------------------
-# Test public sections: POST '/user/login', '/user/forgot', '/user/register'
-# -------------------------------------------------------------------------------------------------------
-  # User login page (HTTP: 302 to /link)
-  def test_post_user_login
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    assert_equal 302, last_response.status
-    assert_equal 'http://example.org/link', last_response.location
-  end
-
-  # User login failure (HTTP: 500)
-  def test_post_user_login_bad_data
-    post '/user/login', { :login => @user.login, :password => "bad password" }
-    #TODO - This should probably be a 500 or maybe check for error message in body
-    assert last_response.ok?  
-  end
-  
-  # User forgotten password page with missing email (HTTP: 500)
-  def test_post_user_forgot_password_bad_data
+# -----------------------------------------------------------------------------------------------
+  def test_post_forgot_password
     post '/user/forgot', {:reset => true, :login => 'Noone'}
-    assert_equal 'http://example.org/not_found', last_response.location, 
-            "Was allowed to request a password reset for a non-existent user #{last_response.status} - #{last_response.location}"
-  end
-  
-  # User forgotten password page (HTTP: 200)
-  def test_post_user_forgot_password
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_not_found']), "Was allowed to request a password reset for a non-existent user"
+            
     post '/user/forgot', {:reset => true, :login => @user.login}
-    assert last_response.ok?, 'Could not find user by their user id!'
+    assert last_response.ok?, 'Could not set the users password reset timer!'
+    assert !@user.reload.reset_code.nil?, "The user's reset timer was not set!"
   end
-  
-  # Register new user - missing data (HTTP: 500)
-  def test_post_user_register_bad_data
-    post '/user/login', { :login => @adm.login, :password => @pwd }
-    post '/user/register', { :login => @user.login, :password => 'another secret', 
-                             :email => @user.email, :group_id => @group.id }
-    #TODO - This should probably be a 500 or maybe check for error message in body
-    assert last_response.ok?
-  end
-  
-  # Register new user when unauthenticated (HTTP: 200)
-  def test_post_user_register_not_logged_in
-    post '/user/register', { :login => 'new_user', :name => 'New User', :password => 'another secret', 
-                             :email => 'test@test.org', :group_id => @group.id }
-    assert last_response.redirect?, 'Was expecting to get redirected to the login page!'
-    assert_equal 'http://example.org/user/login', last_response.location
-  end
-  
-  # Register new user when authenticated but not a group manager (HTTP: 401)
-  def test_post_user_register_unauthorized
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    post '/user/register', { :login => 'new_user', :name => 'New User', :password => 'another secret', 
-                             :email => 'test@test.org', :group_id => @group.id }
-    assert_equal 'http://example.org/unauthorized', last_response.location, 
-            "Was allowed to register a user record without being authorized #{last_response.status} - #{last_response.location}"
-  end
-  
-  # Register new user when authenticated as group admin (HTTP: 200)
-  def test_post_user_register_authorized
-    post '/user/login', { :login => @mgr.login, :password => @pwd }
-    post '/user/register', { :login => 'new_user', :name => 'New User', :password => 'another secret', 
-                             :email => 'test@test.org', :group_id => @group.id }
-    assert last_response.ok?, 'Was unable to register a user even logged in as a group maintainer!'
     
-    get '/user/logout'
+# -----------------------------------------------------------------------------------------------
+  def test_post_reset_password
+    # Password and confirmation mismatch
+    post '/user/forgot', {:reset => true, :login => @user.login}
+    @user.reload
+    post "/user/reset?n=#{@user.id}&c=#{@user.reset_code}", {:password => 'testing', :confirm => 'blah'}
+    assert_equal 409, last_response.status, "Expected a 409 but got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['password_mismatch']), 'Was able to reset the password with mismatching passwords!'
     
-    post '/user/login', { :login => @adm.login, :password => @pwd }
-    post '/user/register', { :login => 'new_usertwo', :name => 'New User 2', :password => 'another secret', 
-                             :email => 'test2@test.org', :group_id => @group.id }
-    assert last_response.ok?, 'Was unable to register a user even logged in as an admin!'
-  end
-  
-# -------------------------------------------------------------------------------------------------------
-# Test edit user: PUT '/user/:name'
-# -------------------------------------------------------------------------------------------------------
-  # Edit current user's info (HTTP: 200)
-  def test_put_user_self
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    put "/user/#{@user.id}", { :name => 'Something Different' }
+    # Successful reset
+    post '/user/forgot', {:reset => true, :login => @user.login}
+    @user.reload
+    post "/user/reset?n=#{@user.id}&c=#{@user.reset_code}", {:password => 'testing', :confirm => 'testing'}
+    assert last_response.redirect?, "Unable to reset the password! Got a #{last_response.status}"
+    assert_equal 'http://example.org/user/login', last_response.location, "Did not reset the password!"
     
-    assert last_response.ok?, 'Unable to update own user profile!'
+    # Make sure the new password works
+    post '/user/login', { :login => @user.login, :password => 'testing' }
+    assert last_response.redirect?, "Was not redirected to the main page #{last_response.status}"
+    assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Did not get redirected to the main page!"
   end
 
-  # Edit user when not logged in (HTTP: 302 to /user/login)
-  def test_put_user_not_logged_in
-    put "/user/#{@user.id}", { :name => 'Something Different' }
+# -----------------------------------------------------------------------------------------------
+  def test_put_user
+    security_check_basic("/user/#{@user.id}", "post", nil)
     
-    assert last_response.redirect?, 'Was expecting to get redirected to the login page!'
-    assert_equal 'http://example.org/user/login', last_response.location
-  end
-  
-  # Edit other user's info when authenticated but not a group manager (HTTP: 401)
-  def test_put_user_other_unauthorized
-    post '/user/login', { :login => @user.login, :password => @pwd }
-    put "/user/#{@mgr.id}", { :name => 'Something Different', :email => @mgr.email }
+    # As a user updating their own record
+    post '/user/login', {:login => @user.login, :password => @pwd}
+    put "/user/#{@user.id}", {:name => 'Updated my name'}
+    assert last_response.ok?, "User was unable to update their own profile!"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "User did not receive the success message!"
     
-    assert_equal 'http://example.org/unauthorized', last_response.location, 
-            "Was allowed to update a user record without being authorized #{last_response.status} - #{last_response.location}"
-  end
-  
-  # Edit other user's info when authenticated and as a group manager (HTTP: 200)
-  def test_put_user_other
-    post '/user/login', { :login => @mgr.login, :password => @pwd }
-    put "/user/#{@user.id}", { :name => 'Something Different' }
-    
-    assert last_response.ok?, "Unable to update user profile when logged in as maintainer!"
-    
+    # As a user updating another's record - should fail!
+    put "/user/#{@mgr.id}", {:name => 'Updated another users name'}
+    assert_equal 403, last_response.status, "Was expecting a 403 because the user cannot update another user's profile!"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
     get '/user/logout'
     
-    post '/user/login', { :login => @adm.login, :password => @pwd }
-    put "/user/#{@user.id}", { :name => 'Something Else' }
+    # As a manager updating one of their users
+    post '/user/login', {:login => @mgr.login, :password => @pwd}
+    put "/user/#{@user.id}", {:name => 'Updated user name'}
+    assert last_response.ok?, "Unable to update a user as a Manager/Maintainer!"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "Maintainer did not receive the success message!"
+    get '/user/logout'
     
-    assert last_response.ok?, "Unable to update user profile when logged in as admin!"
+    # As a manager updating one of their users
+    post '/user/login', {:login => @adm.login, :password => @pwd}
+    put "/user/#{@user.id}", {:name => 'Updated user name'}
+    assert last_response.ok?, "Unable to update a user as a Admin!"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "Admin did not receive the success message!"
+    get '/user/logout'
   end
-=end
+  
+# -----------------------------------------------------------------------------------------------
+  def test_post_register
+    args = {:login => 'blahblah', :name => 'Blah Blah', :email => 'blah@tester.org', :password => @pwd, :confirm => @pwd}
+    
+    security_check_administrator("/user/register", "post", args, false)
+    
+    # As a manager
+    post '/user/login', {:login => @mgr.login, :password => @pwd}
+    post '/user/register', args
+    assert last_response.ok?, 'Unable to register a new user as a Manager/Maintainer!'
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_register_success']), "Maintainer did not receive the success message!"
+    get '/user/logout'
+    
+    # test the new account
+    assert !User.first(:login => 'blahblah').nil?, 'The user was not created!'
+    assert_equal @mgr.group, User.first(:login => 'blahblah').group, "The users group is not the same as the managers!"
+    
+    # As a super admin
+    post '/user/login', {:login => @adm.login, :password => @pwd}
+    post '/user/register', {:login => 'tester', :name => 'Tester', :email => 'tester@here.org', :password => @pwd, :confirm => @pwd}
+    assert last_response.ok?, 'Unable to register a new user as a Admin!'
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_register_success']), 'Admin did not receive the success message!'
+  end
 
 end

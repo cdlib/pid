@@ -11,7 +11,7 @@
     <div id="main">
       <header>
         <img src="/logo.gif" width="198" height="71" border="0" 
-              alt="<%= APP_CONFIG['organization_name'] %>" title="<%= APP_CONFIG['organization_name'] %>">
+              alt="<%= APP_CONFIG['organization_name'] %>" title="<%= APP_CONFIG['organization_name'] %>" />
               
         <h2 style="display: inline; margin-left: 45px; vertical-align: 20px;"><%= APP_CONFIG['application_name'] %></h2>
       </header>
@@ -30,7 +30,7 @@
               <li class="grey">|</li>
               <li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
               <li class="grey">|</li>
-              <li><a href="/link/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
+              <li><a href="/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
               <% if @super || is_group_maintainer? %>
                 <li class="grey">|</li>
                 <li><a href="/user/admin"><%= HTML_CONFIG['nav_admin'] %></a></li>
