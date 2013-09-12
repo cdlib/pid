@@ -135,6 +135,7 @@ class PidApp < Sinatra::Application
   get '/user/forgot' do
     if current_user.nil?
       @msg = session[:msg]
+      @hide_nav = true
     
       erb :forgot_user
     else      
@@ -177,6 +178,7 @@ class PidApp < Sinatra::Application
       end
     end
 
+    @hide_nav = true
     erb :forgot_user
   end
 
@@ -248,7 +250,7 @@ class PidApp < Sinatra::Application
                               :host => request.ip,
                               :name => params[:name], 
                               :affiliation => params[:affiliation], 
-                              :group => params[:group].nil? ? current_user.group : params[:group] )
+                              :group => params[:group].nil? ? current_user.group : Group.first(:id => params[:group]) )
           new_user.save
         
           @user = new_user
@@ -447,7 +449,7 @@ private
 
                 else
                   # increment the failed login attempts counter
-                  user.failed_login_attempts = usr.failed_login_attempts.next
+                  usr.failed_login_attempts = usr.failed_login_attempts.next
                 
                   if usr.failed_login_attempts >= (SECURITY_CONFIG['max_login_attempts'].to_i - 2)
                     msg = MESSAGE_CONFIG['failed_login_close_to_lockout'].gsub('#{?}', (SECURITY_CONFIG['max_login_attempts'].to_i - usr.failed_login_attempts).to_s)

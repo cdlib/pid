@@ -56,14 +56,15 @@ class PidApp < Sinatra::Application
           @msg = MESSAGE_CONFIG['skip_failure']
         end
       else
-        status 403
+        halt(403)
       end
       
       @skips = SkipCheck.all()
     
-      erb :list_skips
+      @msg if request.xhr?
+      erb :list_skips unless request.xhr?
     else
-      404
+      halt(404)
     end
   end
   
@@ -98,7 +99,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   error 403 do
     @msg = MESSAGE_CONFIG['skip_unauthorized']
-    @msg if request.xhr?
+    response.body = @msg if request.xhr?
     erb :unauthorized unless request.xhr?
   end
   

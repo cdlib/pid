@@ -184,7 +184,7 @@ class PidApp < Sinatra::Application
       
       # Load the low and high values for the defaults
 
-      if !Pid.first().nil?
+      if !Pid.first(args).nil?
         args[:order] = [:id.asc]
         params[:pid_min] = Pid.first(args).id
         

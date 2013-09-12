@@ -132,6 +132,12 @@ form input, form select, form a, form textarea, form span.form_informational, sp
   
   margin-bottom:       10px;
   width:              200px;
+	
+	text-align:						left;
+}
+form span.form_informational a {
+	position:						  static;
+	float:								none;
 }
 form label { 
   position:            relative;

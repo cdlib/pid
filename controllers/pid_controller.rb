@@ -62,6 +62,10 @@ class PidApp < Sinatra::Application
         @group = current_user.group
 
         @interested = Interested.all(:pid => @pid)
+        
+        @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
+        @owner = Maintainer.first(:group => @pid.group)
+        @owner = User.first(:login => @pid.username)
 
         if params[:ajax] == "true"
           erb :edit_pid_form, :layout => false
@@ -97,19 +101,22 @@ class PidApp < Sinatra::Application
     @revisions = []
     @interested = []
     
-    if !params[:csv].empty?
+    if !params[:csv].nil?
       if params[:csv][:type] == 'text/csv'
 
         begin
           # Loop through the items in the CSV
           CSV.foreach(params[:csv][:tempfile], :field_size_limit => APP_CONFIG['max_upload_csv_size']) do |row| 
             id, url, cat, note = row
-            
-            dups = hasDuplicate(url, id)
+
+            dups = url.nil? ? [] : hasDuplicate(url, id)
             
             # If the url is already being used by another PID, add it to the interested array
             if !dups.empty?
-              @interested << Pid.get(dups[0])
+              existing = Pid.get(dups[0])
+              Interested.new(:pid => existing, :group => current_user.group).save if Interested.first(:pid => existing, :group => current_user.group).nil?
+              
+              @interested << existing
               
             # Otherwise go ahead and mint/revise the PID
             else
@@ -118,15 +125,23 @@ class PidApp < Sinatra::Application
                 # Make sure the URL is not missing
                 if !url.nil?
                   begin
-                    pid = Pid.mint(:url => url, 
-                                   :username => current_user.login,
-                                   :group => current_user.group,
-                                   :change_category => cat,
-                                   :notes => note)
+              
+                    # Only mint if the URL is valid
+                    if url =~ URI_REGEX
+                      
+                      pid = Pid.mint(:url => url, 
+                                     :username => current_user.login,
+                                     :group => current_user.group,
+                                     :change_category => cat,
+                                     :notes => note)
 
-                    @mints << pid
+                      @mints << pid
+                    else
+                      @failures << "#{MESSAGE_CONFIG['batch_process_mint_invalid'].gsub('{?}', url)}"
+                    end
+                    
                   rescue Exception => e
-                    @failures << "#{MESSAGE_CONFIG['batch_process_mint_failure'].gsub('{?}', id)} #{e.message}"
+                    @failures << "#{MESSAGE_CONFIG['batch_process_mint_failure'].gsub('{?}', url.to_s)}"
                   end
                 else
                   @failures << MESSAGE_CONFIG['batch_process_mint_inactive']
@@ -142,18 +157,25 @@ class PidApp < Sinatra::Application
                   if pid.group == current_user.group || !Maintainer.first(:group => pid.group, :user => current_user).nil? || current_user.super
                     begin 
                     
-                      notify_interested_parties(pid, url) if (pid.url != url || url.nil?)
-                    
-                      pid.revise({:url => url.nil? ? pid.url : url, 
-                                  :change_category => cat,
-                                  :notes => note,
-                                  :deactivated => url.nil? ? true : false,
-                                  :group =>  current_user.group,
-                                  :username => current_user.login,
-                                  :modified_at => Time.now,
-                                  :dead_pid_url => DEAD_PID_URL})
+                      # If the URL is nil or valid
+                      if url =~ URI_REGEX or url.nil?
+                        
+                        notify_interested_parties(pid, url) if (pid.url != url || url.nil?)
+
+                        pid.revise({:url => url.nil? ? pid.url : url, 
+                                    :change_category => cat,
+                                    :notes => note,
+                                    :deactivated => url.nil? ? true : false,
+                                    :group =>  current_user.group,
+                                    :username => current_user.login,
+                                    :modified_at => Time.now,
+                                    :dead_pid_url => DEAD_PID_URL})
                              
-                      @revisions << Pid.get(pid.id)
+                        @revisions << Pid.get(pid.id)
+                      
+                      else
+                        @failures << "#{MESSAGE_CONFIG['batch_process_revise_invalid'].gsub('{?}', id)}"
+                      end
                     rescue Exception => e
                       @failures << "#{MESSAGE_CONFIG['batch_process_revise_failure'].gsub('{?}', id)} - #{e.message}"
                     end
@@ -317,6 +339,9 @@ class PidApp < Sinatra::Application
         @group = user.group
           
         @interested = Interested.all(:pid => @pid)
+        
+        @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
+        @owner = Maintainer.first(:group => @pid.group)
           
         #reload the pid before we pass it to the erb
         @pid = Pid.get(params[:id])

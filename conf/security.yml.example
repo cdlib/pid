@@ -49,11 +49,10 @@ password_reset_email_body:
 account_lock_email_to: 'admin@domain.org'
 account_lock_email_subject: 'System - Account Lockout'
 account_lock_email_body: 
-  'The following account has been locked due to too many failed login attempts.
-  <br /><br />
-  Login: {?login?}<br />
-  Name: {?name?}<br />
-  Source IP: {?ip?}'
+  "The following account has been locked due to too many failed login attempts.\n\n
+  Login: {?login?}\n
+  Name: {?name?}\n
+  Source IP: {?ip?}"
 	
 # The pages that the user should be sent to after the specified action completes successfully. E.g. go to the /link/index page after login
 target_after_login: '/link'

@@ -93,6 +93,7 @@ class TestPidController < Test::Unit::TestCase
     get "/link/#{pid.id}"
     assert last_response.ok?, "Interested user did not receive a 200 status code trying to view a PID they are an Interested party for, got a #{last_response.status}"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_pid_view']), "Interested user could not get to the Interested PID's page!"
+    assert !last_response.body.include?('<input type="submit"'), "The user was able to see the submit button but they don't own the PID!"
     
     # Make sure a non-existent PID throws a 404
     get "/link/99999999"
@@ -102,7 +103,66 @@ class TestPidController < Test::Unit::TestCase
   
 # -----------------------------------------------------------------------------------------------
   def test_post_batch
+    post '/user/login', {:login => @user.login, :password => @pwd}
     
+    Pid.mint(:url => 'http://news.yahoo.com', :username => @user.login, :change_category => 'Test', :group => @group)
+    Pid.mint(:url => 'http://sports.yahoo.com', :username => @user.login, :change_category => 'Test', :group => @group)
+    Pid.mint(:url => 'http://weather.yahoo.com', :username => @user.login, :change_category => 'Test', :group => @group)
+    
+    # No file specified
+    post '/link/edit', {:csv => nil}
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['no_file_selected']), 'Was able to submit with no file specified!'
+    
+    # Non CSV file
+    post '/link/edit', {:csv => Rack::Test::UploadedFile.new('public/js/pid.js', 'text/csv')}
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_failure']), 'Was able to submit a CSV file!!'
+
+    # Create the test CSV file
+    File.open('test/pid_batch_test.csv', 'w+') do |file|
+      file.write(",http://www.wikipedia.com,Batch,Testing\n" +
+                 ",http://finance.yahoo.com,Batch,Testing\n" +
+                 ",www.badurl.org,Batch,Testing\n,,Batch,Testing\n" + 
+                 ",http://www.gizmodo.com,Batch,Testing\n" +
+                 "2,http://www.adho.org,Batch,Testing\n" + 
+                 "3,http://www.haithitrust.com,Batch,Testing\n" +
+                 "1,http://www.nola.com',Batch,Testing\n" + 
+                 "9999999,http://www.nowhere.com',Batch,Testing\n" + # non-existent
+                 "#{Pid.first(:url => 'http://weather.yahoo.com').id},,Batch,Testing\n" +  # deactivate
+                 "#{Pid.first(:url => 'http://news.yahoo.com').id},http:yahoo.com,Batch,Testing\n" +  # edit bad url
+                 "#{Pid.first(:url => 'http://sports.yahoo.com').id},http://cdlib.org,Batch,Testing")  # edit to duplicate
+    end
+    
+    post '/link/edit', {:csv => Rack::Test::UploadedFile.new('test/pid_batch_test.csv', 'text/csv')}
+    
+    # 2 mints
+    assert last_response.body.include?(PidApp::HTML_CONFIG['batch_mint_log']), 'Did not get a successful Mint section!'
+    
+    # 2 edits
+    assert last_response.body.include?(PidApp::HTML_CONFIG['batch_revision_log']), "Did not get a successful Revision section!"
+    
+    # Check for new Interested Party on 
+    assert last_response.body.include?(PidApp::HTML_CONFIG['batch_duplicate_url_log']), 'Did not get a Interested Parties section!'
+    assert !Interested.first(:group => @group, :pid => Pid.first(:url => 'http://www.gizmodo.com')).nil?, "Did not find a new Interested Party for Gizmodo!"
+    assert !Interested.first(:group => @group, :pid => Pid.first(:url => 'http://cdlib.org')).nil?, 'Did not find a new Interested Party for CDLib!'
+    
+    # Verify deactivated
+    assert Pid.first(:url => 'http://weather.yahoo.com').deactivated, "Expected to see a deactivated PID!"
+
+    # Failures
+    assert last_response.body.include?(PidApp::HTML_CONFIG['batch_failures']), 'Did not get a failures section!'
+
+    # non-existent PID
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', '9999999')), "Did not receive a non-existent PID message! #{last_response.body}"
+
+    # 1 Can't mint without a url
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_mint_inactive']), 'Did not receive a mint inactive error message'
+    
+    # 1 unauthorized
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_revise_wrong_group'].gsub('{?}', '1')), 'Did not receive an unauthorized message'
+    
+    # 2 bad urls
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_mint_invalid'].gsub('{?}', 'www.badurl.org')), "Did not receive a mint error!  #{last_response.body}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_revise_invalid'].gsub('{?}', "#{Pid.first(:url => 'http://news.yahoo.com').id}")), 'Did not receive a revision error!'
   end
   
 # -----------------------------------------------------------------------------------------------

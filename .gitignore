@@ -1,5 +1,6 @@
 .bundle
 *.db
+*.csv
 *.rdb
 *.log
 *.lock

@@ -13,7 +13,7 @@
   </section>
 
   <section class="errors">
-    
+    <%= @msg %>
   </section>
 
   <section id="batch_results">
@@ -21,7 +21,7 @@
       <h3><%= HTML_CONFIG['batch_duplicate_url_log'] %></h3>
     
       <% @interested.each do |pid| %>
-         <%= HTML_CONFIG['form_pid'] %><%= pid.url %> - <%= pid.id.to_s %><br />
+         <%= pid.url %> - <%= HTML_CONFIG['form_pid'] %> <%= pid.id.to_s %><br />
       <% end %>
       <br />
     <% end %>

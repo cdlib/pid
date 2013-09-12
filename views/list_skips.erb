@@ -42,10 +42,11 @@
       success:  function(data) {
         $("body").html(data);
       },
-      error: function(xhr) {
+      error: function(xhr, status, error) {
         if(xhr.status == 401){
           window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
         }else{
+alert(xhr.responseText);
           $("#errors").html(xhr.responseText);
         }
       },
