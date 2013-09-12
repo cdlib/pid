@@ -1,118 +1,118 @@
 # Navigation bar links
+nav_admin: 'Administration'
 nav_home: 'Home'
+nav_logout: 'Logout'
 nav_pid_search: 'Find PIDs'
 nav_pid_update: 'Edit PIDs'
 nav_pid_create: 'Mint PIDs'
-nav_user: 'Profile'
-nav_admin: 'Administration'
 nav_reports: 'Reports'
-nav_logout: 'Logout'
+nav_user: 'Profile'
 
 # Page/Section headers
-header_index: 'Home'
-header_login: 'Login'
+header_admin: 'Administration'
 header_forgotten_password: 'Forgot my password'
-header_reset_password: 'Reset your password'
-header_user_list: 'Users'
-header_user_view: 'User profile'
-header_user_register: 'New user registration'
+header_group_create: 'New group'
 header_group_list: 'Groups'
 header_group_view: 'Group profile'
-header_group_create: 'New group'
+header_index: 'Home'
+header_login: 'Login'
+header_manage_maintainers: 'Users who can manage this group'
+header_manage_users: 'Users that belong to this group'
 header_not_found: 'The page you requested could not be found'
-header_unauthorized: 'You do not permission to do that'
-header_search_criteria: 'Search criteria'
-header_search_results: 'Search results'
-header_pid_view: 'PID:'
 header_pid_edit: 'Update PIDs'
 header_pid_history: 'History'
 header_pid_inactive: 'Inactive!'
 header_pid_register: 'Mint a new PID'
-header_pid_register_success: 'Successfully created the following PID(s)'
+header_pid_register_dead_url: 'The following PID(s) were created but the point to a dead URL (does not return an HTTP 200 status code)!'
 header_pid_register_duplicate_url: 'The following PID(s) are already defined for the following URL(s)'
-header_skip_check_list: 'Domains that we cannot run link validation against'
-header_skip_check_add: 'Add a new domain'
-header_manage_maintainers: 'Users who can manage this group'
-header_manage_users: 'Users that belong to this group'
+header_pid_register_success: 'Successfully created the following PID(s)'
+header_pid_view: 'PID:'
 header_reports: 'Reporting'
+header_report_duplicate: 'Duplicate URLs'
 header_report_inactive: 'Inactive reports'
 header_report_invalid: 'Invalid URLs'
 header_report_invalid_error: 'The following URLs are returning a server error'
-header_report_invalid_not_found: 'The following URLs are returning a not found message'
 header_report_invalid_moved: 'The following URLs are working but are redirected to another URL which may or may not be correct'
+header_report_invalid_not_found: 'The following URLs are returning a not found message'
 header_report_invalid_skipped: 'The following domains cannot be scanned due to contractual agreements established with the hosting company'
-header_report_duplicate: 'Duplicate URLs'
 header_report_maintenance_criteria: 'PID maintenance report criteria'
 header_report_maintenance_results: 'PID maintenance report results'
-header_report_usage_criteria: 'PID maintenance report criteria'
-header_report_usage_results: 'PID maintenance report results'
-header_admin: 'Administration'
+header_reset_password: 'Reset your password'
+header_search_criteria: 'Search criteria'
+header_search_results: 'Search results'
+header_skip_check_add: 'Add a new domain'
+header_skip_check_list: 'Domains that we cannot run link validation against'
+header_unauthorized: 'You do not permission to do that'
+header_user_list: 'Users'
+header_user_register: 'New user registration'
+header_user_view: 'User profile'
 
 # Page based links to other pages
-link_to_login: 'Login'
-link_to_forgotten_password: 'I forgot my password'
-link_to_register_user: 'Register a new user'
-link_to_user_list: 'Return to the user list'
-link_to_create_group: 'Create a new group'
-link_to_group_list: 'Return to the group list'
-link_to_reports: 'Return to the report list'
-link_to_delete_group: 'Remove'
-link_to_add_user: 'Add'
 link_to_admin: 'Return to the administration page'
+link_to_create_group: 'Create a new group'
+link_to_delete_group: 'Delete'
+link_to_forgotten_password: 'I forgot my password'
+link_to_group_list: 'Return to the group list'
+link_to_login: 'Login'
+link_to_register_user: 'Register a new user'
+link_to_reports: 'Return to the report list'
+link_to_user_list: 'Return to the user list'
 
 # Form elements
-form_userid: 'User Id:'
-form_password: 'Password:'
-form_new_password: 'New Password:'
-form_confirm_password: 'Confirm:'
-form_group: 'Group:'
-form_group_maintainer: 'Can maintain group?'
 form_active: 'Is Active?'
-form_locked: 'Is Locked?'
-form_affiliation: 'Affiliation:'
-form_name: 'Full Name:'
-form_email: 'Email:'
+form_activity_date_range: 'Activity Date Range:'
 form_admin: 'Is system admin?'
-form_url: 'URL:'
-form_pid: 'PID:'
-form_pid_range: 'PID Range:'
+form_affiliation: 'Affiliation:'
+form_change_category: 'Change Category:'
+form_confirm_password: 'Confirm:'
+form_created_by: 'Created by:'
 form_created_date: 'Created Date:'
 form_created_date_range: 'Created Date Range:'
-form_created_by: 'Created by:'
+form_description: 'Description:'
+form_domain: 'Domain'
+form_email: 'Email:'
+form_group: 'Group:'
+form_group_maintainer: 'Can maintain group?'
+form_group_name: 'Name:'
+form_groupid: 'Group Id:'
+form_interested: 'Interested Groups:'
+form_locked: 'Is Locked?'
+form_maintainers: 'Managers:'
+form_modified_by: 'Last Modified by:'
 form_modified_date: 'Last Modified:'
 form_modified_date_range: 'Last Modified Range:'
-form_modified_by: 'Last Modified by:'
-form_change_category: 'Change Category:'
+form_name: 'Full Name:'
+form_new_password: 'New Password:'
 form_old_url: 'Old URL:'
+form_password: 'Password:'
+form_pid: 'PID:'
+form_pid_range: 'PID Range:'
+form_url: 'URL:'
 form_urls: 'URL(s):'
-form_activity_date_range: 'Activity Date Range:'
-form_groupid: 'Group Id:'
-form_group_name: 'Name:'
-form_description: 'Description:'
-form_maintainers: 'Managers:'
+form_userid: 'User Id:'
 form_users: 'Users:'
-form_add_user: 'Add:'
-form_domain: 'Domain'
 
 # Hints that appear next to the criteria on the search and stats report pages
-form_search_url_instruction: 'You may enter partial urls (e.g. google.com/)'
-form_search_between: 'between'
 form_search_and: 'and'
+form_search_between: 'between'
+form_search_url_instruction: 'You may enter partial urls (e.g. google.com/)'
 
 # No matches to the search
 search_no_matches: 'No PIDs matched your search criteria!'
 unable_to_load_criteria_defaults: 'Unable to retrieve the defaults for the criteria'
 
+# Report errors
 report_no_activity: 'No PIDs found.'
 
 # Create pid textarea tooltip
 create_pids_tooltip: 'One URL per line. Each URL should include the protocol (e.g. http://)'
 
-batch_upload_failure: 'Unable to process the file you selected. Make sure its a CSV file!'
+# Batch processing
+batch_duplicate_url_log: 'The following URL(s) are already in use by the following PID(s)'
 batch_failures: 'The following PID(s) could not be updated:'
 batch_mint_log: 'Successfully minted the following PID(s):'
 batch_revision_log: 'Successfully updated the following PID(s):'
-batch_duplicate_url_log: 'The following URL(s) are already in use by the following PID(s)'
+batch_upload_failure: 'Unable to process the file you selected. Make sure its a CSV file!'
 
 # Create multiple pids, some failed error message
 create_pids_some_errors:
@@ -121,100 +121,69 @@ create_pids_some_errors:
   resubmitting the form."
 
 # Buttons
-button_login: 'Login'
-button_forgotten_password: 'Reset my password'
-button_reset_password: 'Save'
-button_save_user: 'Save'
-button_register_user: 'Save'
-button_search: 'Search'
-button_reset: 'Reset'
-button_update_pid: 'Save'
-button_process_batch: 'Upload'
-button_csv_download: 'Download as CSV'
-button_save_group: 'Save'
 button_add_skip_check: 'Add'
+button_csv_download: 'Download as CSV'
+button_forgotten_password: 'Reset my password'
+button_login: 'Login'
+button_process_batch: 'Upload'
+button_register_user: 'Save'
+button_reset: 'Reset'
+button_reset_password: 'Save'
 button_save_group: 'Save'
+button_save_user: 'Save'
+button_search: 'Search'
+button_update_pid: 'Save'
 
 # Table headings
-th_userid: 'User Id'
-th_name: 'Full Name'
-th_email: 'Email'
-th_group: 'Group'
-th_maintainer: 'Group Admin?'
 th_active: 'Active?'
-th_locked: 'Locked?'
 th_affiliation: 'Affiliation'
-th_pid: 'PID'
-th_url: 'URL'
-th_modified_date: 'Updated'
-th_last_modified_on: 'Last Modified On'
-th_last_modified_by: 'Last Modified By'
+th_change_category: 'Change Category'
 th_created_on: 'Created On'
-th_number_modifications: '# Times Modified'
 th_deactivated_by: 'Deactivated By'
 th_deactivated_on: 'Deactivated On'
-th_duplicate_pids: 'Duplicate PIDs'
-th_change_category: 'Change Category'
-th_notes: 'Notes'
-th_groupid: 'Group Id'
-th_group_name: 'Name'
 th_description: 'Description'
-th_users: '# of Users'
-th_maintainers: '# of Managers'
 th_domain: 'Domain'
+th_duplicate_pids: 'Duplicate PIDs'
+th_email: 'Email'
+th_group: 'Group'
+th_group_name: 'Name'
+th_groupid: 'Group Id'
+th_last_modified_by: 'Last Modified By'
+th_last_modified_on: 'Last Modified On'
+th_locked: 'Locked?'
+th_maintainer: 'Manager For'
+th_maintainers: '# of Managers'
+th_modified_date: 'Updated'
+th_name: 'Full Name'
+th_notes: 'Notes'
+th_number_modifications: '# Times Modified'
+th_pid: 'PID'
+th_url: 'URL'
+th_userid: 'User Id'
+th_users: '# of Users'
 
 # True/False values in tables
-td_true: 'Yes'
 td_false: 'No'
+td_true: 'Yes'
 
 # Make sure that you do not use tab characters in the text values below. It will cause the parser to crash
-index_text: 
-  "This resolution service allows UC Libraries to create a persistent identifier (PID) for any URL they choose.
-  The <a href='http://www.cdlib.org/services/collections/scp/'>Shared Cataloging Program (SCP)</a> creates and 
-  maintains PIDs for CDL-licensed content, open access resources, California state government documents, and 
-  other URLs.<br /><br />This service uses a modified version of OCLC's PURL software. For more information on 
-  PURLs and the PURL software, see PURL <a href='http://purl.oclc.org/docs/index.html'>Frequently Asked Questions</a>."
-
-not_found_text: 'The page you requested could not be found.'
-
-unauthorized_text:
-  "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 
-  this is a mistake."  
-
-search_text: 'This utility will only return 5,000 results at a time. If your search returned 5,000 PIDs, you should refine your criteria.'
-
 admin_text:
   "Please select from the options below:
   <ul>
-    <li><a href='/user/list' class='letterpress'>Users</a></li>
-    <li><a href='/skip' class='letterpress'>URL Validation Exceptions</a></li>
+    <li><a href='/user/list' class='letterpress'>Edit Users</a></li>
+    <li><a href='/skip' class='letterpress'>Update URL Validation Exceptions</a></li>
   </ul>"
 
 admin_text_super:
   "Please select from the options below:
   <ul>
-    <li><a href='/group/list' class='letterpress'>Groups</a></li>
-    <li><a href='/user/list' class='letterpress'>Users</a></li>
-    <li><a href='/skip' class='letterpress'>URL Validation Exceptions</a></li>
+    <li><a href='/group/list' class='letterpress'>Edit Groups</a></li>
+    <li><a href='/user/list' class='letterpress'>Edit Users</a></li>
+    <li><a href='/skip' class='letterpress'>Update URL Validation Exceptions</a></li>
   </ul>"
 
-reports_text: 
-  "Please select on of the following reports below:
-  <ul>
-    <li><a href='/report/inactive' class='letterpress'>Inactive PIDs</a></li>
-    <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URL targets</a> (may take a while to run)</li>
-    <li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a> (may take a verrry long time to run)</li>
-    <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
-    <li><a href='/report/usage' class='letterpress'>PID usage statistics</a></li>
-  </ul>"
-
-help_text: 
-  "This is where the user will be able to go for an FAQ and other help/contact info.
-  <ul>
-    <li>FAQ</li>
-    <li>What is a PID?</li>
-    <li>Etc.</li>
-  </ul>"
+dead_pid_text:
+  "The PID you are looking for is no longer active. Please contact so and so if you think that this is an error."
 
 edit_pid_interested_parties: "The interested groups listed above will be notified of any changes you make to this PID."
 
@@ -227,8 +196,25 @@ edit_pid_text:
   There is no limit to the number of PIDs you can update at one time.<br /><br />
   If any of the PIDs you are updating are used by other groups, they will be notified of the change via email."
 
-dead_pid_text:
-  "The PID you are looking for is no longer active. Please contact so and so if you think that this is an error."
-
 error_text:
   "Oops, something went wrong! Please use your browser's back button and try that again."
+
+index_text: 
+  "Hello World!"
+
+not_found_text: 'The page you requested could not be found.'
+  
+reports_text: 
+  "Please select on of the following reports below:
+  <ul>
+    <li><a href='/report/inactive' class='letterpress'>Inactive PIDs</a></li>
+    <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URL targets</a> (may take a while to run)</li>
+    <li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a> (may take a verrry long time to run)</li>
+    <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
+  </ul>"
+
+search_text: 'This utility will only return 5,000 results at a time. If your search returned 5,000 PIDs, you should refine your criteria.'
+
+unauthorized_text:
+  "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 
+  this is a mistake."  
