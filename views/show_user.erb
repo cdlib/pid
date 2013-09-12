@@ -16,7 +16,7 @@
           <% end %>
         </select>
       <% else %>
-        <input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
+        <input type="text" id="group" name="group" readonly="true" value="<%= @user.group.id %>" />
       <% end %>
 
       <label for="active"><%= HTML_CONFIG['form_active'] %></label>

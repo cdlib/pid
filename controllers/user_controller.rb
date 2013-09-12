@@ -223,7 +223,8 @@ class PidApp < Sinatra::Application
       @groups = Group.all if current_user.super
       @params = {:group => current_user.group.id}
       @super = current_user.super
-
+      @user = User.new
+      
       erb :new_user
     else
       halt(403)
@@ -279,6 +280,9 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   get '/user/:id' do
     @user = User.first(:id => params[:id])
+
+puts "got #{@user.id}, group: #{@user.group.name}"
+
     halt(404) if @user.nil?
     
     if !current_user.nil?

@@ -256,13 +256,13 @@ puts args.inspect
               @msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}link/#{dups[0]}'>#{dups[0]}</a>")
             
             else
-              notify_interested_parties(@pid, params[:url]) if (@pid.url != params[:url] || params[:active] != "on")
-            
               url = params[:url]
               # Strip off the last slash, the REGEX 
               url = url[0..(url.size())] if url[url.size() -1] == '/'
               
               if url =~ URI_REGEX
+                notify_interested_parties(@pid, params[:url]) if (@pid.url != params[:url] || params[:active] != "on")
+                
                 @pid.revise({:url => params[:url], 
                              :deactivated => (params[:active] == "on") ? false : true,
                              :group =>  (params[:group].nil?) ? @pid.group : params[:group],
@@ -440,7 +440,7 @@ private
 
         subject = MESSAGE_CONFIG['notify_interested_subject'].gsub('{?}', pid.id.to_s)
       
-        body = MESSAGE_CONFIG['notify_interested_change'].gsub('{?}', "<a href='#{target}'>#{target}</a>")
+        body = MESSAGE_CONFIG['notify_interested_change'].gsub('{?}', "#{target}")
         body += "\n#{MESSAGE_CONFIG['notify_interested_url_change'].gsub("{?old?}", pid.url).gsub("{?new?}", new_url)}" unless pid.url == new_url
         body += "\n#{MESSAGE_CONFIG['notify_interested_deactivation']}" if new_url.nil?
     

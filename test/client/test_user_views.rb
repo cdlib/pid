@@ -21,6 +21,7 @@ class UserClientTestApp < Test::Unit::TestCase
                       :email => 'test@example.org', :super => true)
     @mgr = User.new(:login => 'test_mgr', :name => 'Test Manager', :password => @pwd, 
                       :email => 'mgr@example.org')
+                      
     @group.users << @user
     @group.users << @mgr
     @group.save
