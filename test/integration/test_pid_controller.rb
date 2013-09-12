@@ -108,7 +108,7 @@ class TestPidController < Test::Unit::TestCase
 # -----------------------------------------------------------------------------------------------
   def test_post_search
     # sleep so that the modification date on the pid will differ from the creation date!
-    sleep(10)
+    sleep(5)
     
     time_check = Time.now
     
@@ -119,10 +119,11 @@ class TestPidController < Test::Unit::TestCase
             :modified_low => '',
             :modified_high => '',
             :created_low => '',
-            :created_high => ''}
+            :created_high => '',
+            :interesteds => '0'}
             
     # Keep in mind that the JSON data of the test page generates the results table via JQuery
-    # so we must parse the json object to
+    # so we must parse the json object to determine the number of records returned!
     
     args[:url] = 'http://'
     
@@ -134,16 +135,25 @@ class TestPidController < Test::Unit::TestCase
     assert_equal 3, json.size, "Expected 3 results for User but found #{json.size}"
     get '/user/logout'
     
+    # Make sure the user 2 only find their one PID
     post '/user/login', {:login => @user2.login, :password => @pwd}
-    post '/link/search', args # expecting 3 results
+    post '/link/search', args # expecting 1 results
     assert last_response.ok?, "Search returned no results for the User 2! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
-    assert_equal 2, json.size, "Expected 2 results for User 2 but found #{json.size}"
+    assert_equal 1, json.size, "Expected 1 result for User 2 but found #{json.size}"
+    
+    # Make sure the user 2 finds their interested party PID
+    args[:interesteds] = '1'
+    post '/link/search', args # expecting 1 results
+    assert last_response.ok?, "Search returned no results for the User 2! #{last_response.status}"
+    json = convert_html_to_json(last_response.body)
+    assert_equal 1, json.size, "Expected 1 result for User 2 but found #{json.size}"
+    args[:interesteds] = '0'
     get '/user/logout'
     
     # Make sure maintainer can see the PIDs for all groups they maintain
     post '/user/login', {:login => @mgr.login, :password => @pwd}
-    post '/link/search', args # expecting 3 results
+    post '/link/search', args # expecting 4 results
     assert last_response.ok?, "Search returned no results for the Maintainer! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
     assert_equal 4, json.size, "Expected 4 results for Maintainer but found #{json.size}"
@@ -151,14 +161,14 @@ class TestPidController < Test::Unit::TestCase
     
     # Make sure admin can see ALL PIDs
     post '/user/login', {:login => @adm.login, :password => @pwd}
-    post '/link/search', args # expecting 3 results
+    post '/link/search', args # expecting 6 results
     assert last_response.ok?, "Search returned no results for the Admin! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
     assert_equal 6, json.size, "Expected 6 results for Admin but found #{json.size}"
     
     # Search by specific url
     args[:url] = 'http://www.yahoo.com'
-    post '/link/search', args # expecting 3 results
+    post '/link/search', args # expecting 1 results
     assert last_response.ok?, "Search returned no results for the specific url search! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
     assert_equal 1, json.size, "Expected 1 results for the specific url search but found #{json.size}"
@@ -166,7 +176,7 @@ class TestPidController < Test::Unit::TestCase
     
     # Search by user
     args[:userid] = @user.id
-    post '/link/search', args # expecting 3 results
+    post '/link/search', args # expecting 2 results
     assert last_response.ok?, "Search returned no results for the specific user search! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
     assert_equal 2, json.size, "Expected 2 results for the specific user search but found #{json.size}"
@@ -188,7 +198,7 @@ class TestPidController < Test::Unit::TestCase
     
     args[:modified_low] = time_check
     args[:modified_high] = Time.now
-    post '/link/search', args # expecting 3 results
+    post '/link/search', args # expecting 1 results
     assert last_response.ok?, "Search returned no results for the specific modified date range search! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
     assert_equal 1, json.size, "Expected 1 results for the specific modified date range search but found #{json.size}"
@@ -196,7 +206,7 @@ class TestPidController < Test::Unit::TestCase
     args[:modified_high] = ''
     
     args[:url] = 'www.abcdefghijklmnop.org'
-    post '/link/search', args # expecting 3 results
+    post '/link/search', args # expecting 0 results
     assert last_response.ok?, "User did not receive a 200 status code, got a #{last_response.status}"
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_search_not_found']), "User did not get a no results messaget!"
     

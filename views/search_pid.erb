@@ -3,9 +3,9 @@
   
   <form action="/link/search" method="post">
     <label><%= HTML_CONFIG['form_url'] %></label>
-		<input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
-		<div><%= HTML_CONFIG['form_search_url_instruction'] %></div>
-		
+    <input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
+    <div><%= HTML_CONFIG['form_search_url_instruction'] %></div>
+    
     <label><%= HTML_CONFIG['form_userid'] %></label>
     <select id="userid" name="userid">
     <option value=""></option>
@@ -13,7 +13,7 @@
         <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name.gsub("'", "&apos;") %> (<%= user.login %>)</option>
       <% end %>
     </select>
-		
+    
     <label><%= HTML_CONFIG['form_pid_range'] %></label>
     <input type="number" id="pid_low" name="pid_low" value="<%= params[:pid_low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
     <div> - </div> 
@@ -24,21 +24,29 @@
     <input type="date" id="created_low" name="created_low" value="<%= params[:created_low] %>" style="width: 150px;" />
     <div> - </div> 
     <input type="date" id="created_high" name="created_high" value="<%= params[:created_high] %>" style="width: 150px;" />
-		<div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:created_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:created_max] %>)</div>
-		
+    <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:created_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:created_max] %>)</div>
+    
     <label><%= HTML_CONFIG['form_modified_date_range'] %></label>
     <input type="date" id="modified_low" name="modified_low" value="<%= params[:modified_low] %>" style="width: 150px;" />
     <div> - </div> 
     <input type="date" id="modified_high" name="modified_high" value="<%= params[:modified_high] %>" style="width: 150px;" />
     <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:modified_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:modified_max] %>)</div>
-		
+    
     <label><%= HTML_CONFIG['form_active'] %></label>
     <select id="active" name="active">
       <option <%= 'selected="true"' if params[:active] == '' %>></option>
       <option value="1" <%= 'selected="true"' if params[:active] == '1' %>>Yes</option>
       <option value="0" <%= 'selected="true"' if params[:active] == '0' %>>No</option>
     </select>
-		
+    
+    <% if @has_interesteds %>
+      <label><%= HTML_CONFIG['form_interesteds'] %></label>
+      <select id="interesteds" name="interesteds">
+        <option value="0" <%= 'selected="true"' if params[:interesteds] != '1' %>>No</option>
+        <option value="1" <%= 'selected="true"' if params[:interesteds] == '1' %>>Yes</option>
+      </select>
+    <% end %>
+    
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
     <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
@@ -52,20 +60,23 @@
 <% if request.request_method == "POST" %>
   
   <section id="search_results">
-    <h3><%= HTML_CONFIG['header_search_results'] %></h3>
+    <img src="/spinner.gif" id="spinner" />
     
-    <% i = 1 %>
+		<% if params[:interesteds] == '1' %>
+			<h3><%= HTML_CONFIG['header_search_interested'] %></h3>
+		<% else %>
+    	<h3><%= HTML_CONFIG['header_search_results'] %></h3>
+		<% end %>
+		
     <% unless @json == '' %>
       <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
-      
-      <img src="/spinner.gif" id="spinner" />
       <table>
         <tr><th />
-          <th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
-          <th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
-          <th id="th_username"><a href="#"><%= HTML_CONFIG['th_userid'] %></a></th>
-          <th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_modified_date'] %></a></th>
-          <th id="th_deactivated"><a href="#"><%= HTML_CONFIG['th_active'] %></a></th></tr>
+        <th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
+        <th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
+        <th id="th_username"><a href="#"><%= HTML_CONFIG['th_userid'] %></a></th>
+        <th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_modified_date'] %></a></th>
+        <th id="th_deactivated"><a href="#"><%= HTML_CONFIG['th_active'] %></a></th></tr>
       </table>
       
       <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
@@ -158,12 +169,12 @@
 
     $("#spinner").hide();
   }
-	
+  
   function buildResultsTable(json){
     var i = 1;
-		
-		$("table").find('tr:not(.page_nav):gt(0)').remove();
-		
+    
+    $("table").find('tr:not(.page_nav):gt(0)').remove();
+    
     $.each(json, function(idx, pid) {
       var dt = new Date(pid.modified_at);
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()

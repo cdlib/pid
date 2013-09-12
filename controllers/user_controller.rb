@@ -281,8 +281,6 @@ class PidApp < Sinatra::Application
   get '/user/:id' do
     @user = User.first(:id => params[:id])
 
-puts "got #{@user.id}, group: #{@user.group.name}"
-
     halt(404) if @user.nil?
     
     if !current_user.nil?
