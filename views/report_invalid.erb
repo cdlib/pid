@@ -45,14 +45,18 @@
     
   <% end %>
   
-	<h4><%= HTML_CONFIG['header_report_invalid_skipped'] %></h4>
+  <h4><%= HTML_CONFIG['header_report_invalid_skipped'] %></h4>
   <table id="skips_table">
     <tr><th style="text-align: left;"><%= HTML_CONFIG['th_domain'] %></th></tr>
-		<% @skips.each do |skip| %>
-			<tr><td><%= skip.domain %></td></tr>
-		<% end %>
+    <% @skips.each do |skip| %>
+      <tr><td><%= skip.domain %></td></tr>
+    <% end %>
   </table>
-	
+  
+  <input type="hidden" id="error_data" name="error_data" value='<%= @error.gsub("'", '%27') %>' />
+  <input type="hidden" id="not_found_data" name="not_found_data" value='<%= @not_found.gsub("'", '%27') %>' />
+  <input type="hidden" id="moved_data" name="moved_data" value='<%= @moved.gsub("'", '%27') %>' />
+  
 </section>
 
 <section class="errors">

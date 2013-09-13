@@ -52,7 +52,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
 # Create a new group with the values provided
 # --------------------------------------------------------------------------------------------------------------
-  post '/group/:id' do
+  post '/group' do
     begin
       if Group.get(params[:id]).nil?
         Group.new(:id => params[:id],
@@ -63,6 +63,9 @@ class PidApp < Sinatra::Application
         @group = Group.first(params[:id])
       
         @msg = MESSAGE_CONFIG['group_create_success']
+        
+        @associations = get_users_and_maintainer_lists(@group)
+    
       else
         status 409
         @msg = MESSAGE_CONFIG['group_create_duplicate']
@@ -73,7 +76,11 @@ class PidApp < Sinatra::Application
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
     end
     
-    erb :new_group
+    if @associations.nil?
+      erb :new_group
+    else
+      erb :show_group  
+    end
   end
     
 # --------------------------------------------------------------------------------------------------------------
@@ -99,8 +106,9 @@ class PidApp < Sinatra::Application
     end
 
     @groups = Group.all
-    
-    erb :list_groups
+     
+    @msg if [409, 500].include?(status)
+    erb :list_groups unless [409, 500].include?(status)
   end
 
 # --------------------------------------------------------------------------------------------------------------

@@ -27,6 +27,10 @@ Capybara.javascript_driver = :poltergeist
 # --------------------------------------------------------------------------------------------------------------
 # Helper methods for controller security checks
 # --------------------------------------------------------------------------------------------------------------
+  def dead_pid_url
+    PidApp::APP_CONFIG['dead_pid_url']
+  end
+
   def security_check_administrator(page, method, args, test_maintainer)
     security_check_basic(page, method, args)
     
@@ -64,4 +68,10 @@ Capybara.javascript_driver = :poltergeist
     else
       get page 
     end
+  end
+  
+# -----------------------------------------------------------------------------------------------
+  def convert_html_to_json(html)
+    page = Nokogiri::HTML(last_response.body)
+    JSON.parse(page.search('#data').first['value'])
   end

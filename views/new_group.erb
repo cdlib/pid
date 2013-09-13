@@ -1,15 +1,38 @@
 <section id="new_group">
   <h3><%= HTML_CONFIG['header_group_create'] %></h3>
 
-  <section class="errors">
-    <%= "#{@msg}<br /><br />" %>
+  <a href="/group/list" class="letterpress right"><%= HTML_CONFIG['link_to_group_list'] %></a>
 
-    <% if !@group.nil? %>
-      <% if @group.errors %>
-        <% @group.errors.full_messages.each do | message | %>
-          <%= message %></br>
-        <% end %>
-      <% end %>
-    <% end %>  
-  </section>
+  <form method="post" action="/group">
+    <label for="id"><%= HTML_CONFIG['form_groupid'] %></label>
+    <input type="text" name="id" id="id" value="<%= params[:id] %>" />
+    <label for="name"><%= HTML_CONFIG['form_group_name'] %></label>
+    <input type="text" name="name" id="name" value="<%= params[:name] %>" />
+    <label for="description"><%= HTML_CONFIG['form_description'] %></label>
+    <input type="text" name="description" id="description" value="<%= params[:description] %>" />
+    <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_create_group'] %>" />
+  </form>
+
 </section>
+
+<section class="errors">
+  <%= @msg %>
+</section>
+
+<section id="new_group_instructions">
+  <%= HTML_CONFIG['new_group_text'] %>
+</section>
+
+<script type="text/javascript">
+
+  $("#submit").click( function(event){
+    
+    var validation = validate(["id", "name"], [], [], []);
+    
+    if(validation != ''){
+      event.preventDefault();
+      
+      $(".errors").html(validation);
+    }
+ 
+</script>

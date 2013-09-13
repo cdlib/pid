@@ -123,6 +123,7 @@ create_pids_some_errors:
 
 # Buttons
 button_add_skip_check: 'Add'
+button_create_group: 'Save'
 button_csv_download: 'Download as CSV'
 button_forgotten_password: 'Reset my password'
 button_login: 'Login'
@@ -202,8 +203,12 @@ edit_pid_text:
 error_text:
   "Oops, something went wrong! Please use your browser's back button and try that again."
 
+groups_text: "Groups can be deleted once all of their their users and managers have been removed."
+
 index_text: 
   "Hello World!"
+
+new_group_text: "You will be able to add users and maintainers to the group once you click the 'Save' button."
 
 not_found_text: 'The page you requested could not be found.'
   

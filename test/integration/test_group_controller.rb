@@ -96,9 +96,22 @@ class TestGroupController < Test::Unit::TestCase
 
     # logged in as a super admin
     post '/user/login', { :login => @adm.login, :password => @pwd }
-    post "/group/TEST", {:name => 'Updated Name', :description => 'Testing changes'}
+    post "/group", {:id => 'TEST', :name => 'Name', :description => 'Testing create'}
     assert last_response.ok?, "Did not receive a 200 status code, got a #{last_response.status}"
     assert !Group.first(:id => 'TEST').nil?, "The changes were not saved! #{last_response.body}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_group_view']), 'Did not get to the group page!'
+    
+    # Duplicate
+    post "/group", {:id => @group.id, :name => 'Name', :description => 'Testing duplicate'}
+    assert_equal 409, last_response.status, "Did not receive a 409 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['group_create_duplicate']), 'Did not get to the duplicate group message!'
+    
+    # Missing ID
+    post "/group", {:name => 'Name', :description => 'Testing create'}
+    assert_equal 500, last_response.status, "Did not receive a 500 status code, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['group_create_failure']), 'Did not get to the failure message!'
+    
+    get '/user/logout'
   end
 
 # --------------------------------------------------------------------------------------------------------------

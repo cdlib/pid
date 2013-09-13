@@ -201,6 +201,7 @@ form input[type=submit] {
     to(#0b3761));
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
+	text-align: center;
   border-radius: 10px;
   border: 1px solid #000000;
   -moz-box-shadow:

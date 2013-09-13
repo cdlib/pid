@@ -7,7 +7,7 @@
   <table>
     <tr>
       <th><%= HTML_CONFIG['th_groupid'] %></th><th><%= HTML_CONFIG['th_group_name'] %></th><th><%= HTML_CONFIG['th_description'] %></th>
-      <th><%= HTML_CONFIG['th_users'] %></th><th><%= HTML_CONFIG['th_maintainers'] %></th>
+      <th><%= HTML_CONFIG['th_users'] %></th><th><%= HTML_CONFIG['th_maintainers'] %></th><th />
     </tr>
     <% @groups.each do |group| %>
       <tr>
@@ -16,7 +16,48 @@
         <td><%= group.description %></td>
         <td class="center"><%= group.users.size %></td>
         <td class="center"><%= group.maintainers.size %></td>
+        <td class="center">
+          <% if (group.users.size + group.maintainers.size) == 0 %>
+            <img id="delete_group_<%= group.id %>" src="/notok_15.png" alt="delete" title="delete" class="delete" />
+          <% end %>
+        </td>
       </tr>
     <% end %>
   </table>
 </section>
+
+<section class="errors">
+  <%= @msg %>
+</section>
+
+<section id="group_instructions">
+  <%= HTML_CONFIG['groups_text'] %>
+</section>
+
+<script type="text/javascript">
+
+  $(".delete").click( function(event) {
+    event.preventDefault();
+    
+    var id = $(this).attr('id');
+    var parts = id.split('_');
+    
+    $.ajax({
+      url: '/group/' + parts[2],
+      type: 'delete',
+      success: function(data) {
+        /* Add the person to the dropdown box */
+        $("body").html(data);
+      },
+      error: function(xhr) {
+        if(xhr.status == 401){
+          window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
+        }else{
+          $(".errors").html(xhr.responseText);
+        }
+      }
+    });
+  
+  });
+  
+</script>
