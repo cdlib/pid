@@ -20,7 +20,7 @@ class PidApp < Sinatra::Application
       
       @msg = session[:msg]
       @userid = params[:login]
-      
+
       erb :login
     else
       redirect SECURITY_CONFIG['target_after_login']
@@ -136,7 +136,7 @@ class PidApp < Sinatra::Application
     if current_user.nil?
       @msg = session[:msg]
       @hide_nav = true
-    
+
       erb :forgot_user
     else      
       redirect SECURITY_CONFIG['target_after_login']
@@ -370,7 +370,9 @@ class PidApp < Sinatra::Application
   end
   
 # --------------------------------------------------------------------------------------------------------------
-  after '/group/*' do
+# The following routes handle ALL errors for the entire application!!!
+# --------------------------------------------------------------------------------------------------------------
+  after '*' do
     session[:msg] = nil
   end
 
@@ -383,7 +385,9 @@ class PidApp < Sinatra::Application
 
 # --------------------------------------------------------------------------------------------------------------
   error 401 do
-    erb :login
+    @msg = MESSAGE_CONFIG['session_expired']
+    @msg if request.xhr?
+    erb :login unless request.xhr?
   end
 
 # --------------------------------------------------------------------------------------------------------------

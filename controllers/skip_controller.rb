@@ -79,28 +79,4 @@ class PidApp < Sinatra::Application
     halt(403) if Maintainer.first(:user => current_user).nil? and !current_user.super
   end 
   
-# --------------------------------------------------------------------------------------------------------------
-  after '/group/*' do
-    session[:msg] = nil
-  end
-
-# --------------------------------------------------------------------------------------------------------------
-  not_found do
-    @msg = MESSAGE_CONFIG['skip_not_found']
-    @msg if request.xhr?
-    erb :not_found unless request.xhr?
-  end
-
-# --------------------------------------------------------------------------------------------------------------
-  error 401 do
-    erb :login
-  end
-    
-# --------------------------------------------------------------------------------------------------------------
-  error 403 do
-    @msg = MESSAGE_CONFIG['skip_unauthorized']
-    response.body = @msg if request.xhr?
-    erb :unauthorized unless request.xhr?
-  end
-  
 end

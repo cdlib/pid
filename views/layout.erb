@@ -16,7 +16,7 @@
         <h2 style="display: inline; margin-left: 45px; vertical-align: 20px;"><%= APP_CONFIG['application_name'] %></h2>
       </header>
     
-      <% if @hide_nav.nil? %>
+      <% if !@hide_nav %>
         <nav>
           <div class="nav_spacer">
             <ul>
@@ -34,7 +34,7 @@
               <% if @super || is_group_maintainer? %>
                 <li class="grey">|</li>
                 <li><a href="/user/admin"><%= HTML_CONFIG['nav_admin'] %></a></li>
-              <% else %>
+              <% elsif !current_user.nil? %>
                 <li class="grey">|</li>
                 <li><a href="/user/<%= current_user.id %>"><%= HTML_CONFIG['nav_user'] %></a></li>
               <% end %>

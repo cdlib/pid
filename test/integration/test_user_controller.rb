@@ -187,6 +187,21 @@ class TestUserController < Test::Unit::TestCase
     assert last_response.redirect?, "Admin not redirected to the main page #{last_response.status}"
     assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Admin did not get redirected to the main page!"
     get "/user/logout"
+    
+    # Force a lockout
+    lockout = PidApp::SECURITY_CONFIG['max_login_attempts']
+    (1..lockout).each do |i|
+      post '/user/login', { :login => @adm.login, :password => 'bad_pwd' }
+      if i == 1
+        assert last_response.ok?, "Expecting a 200 on the bad login credentials, got a #{last_response.status}"
+        assert last_response.body.include?(PidApp::MESSAGE_CONFIG['failed_login']), "Was expecting the failed login message! #{last_response.body}"
+      elsif i == (lockout - 2)
+        assert last_response.ok?, "Expecting a 200 on the account lockout warning, got a #{last_response.status}"
+        assert last_response.body.include?(PidApp::MESSAGE_CONFIG['failed_login_close_to_lockout'].gsub('#{?}', 2.to_s)), "Was expecting the account lockout warning message! #{last_response.body}"
+      end
+    end
+    assert last_response.ok?, "Expecting a 200 on the account lockout, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['account_locked'].gsub('${?}', PidApp::SECURITY_CONFIG['release_account_lock_after'].to_s)), "Was expecting the account lockout message! #{last_response.body}"
   end
 
 # -----------------------------------------------------------------------------------------------

@@ -243,30 +243,6 @@ class PidApp < Sinatra::Application
   end
 
 # --------------------------------------------------------------------------------------------------------------
-  after '/group/*' do
-    session[:msg] = nil
-  end
-
-# --------------------------------------------------------------------------------------------------------------
-  not_found do
-    @msg = MESSAGE_CONFIG['group_not_found']
-    @msg if request.xhr?
-    erb :not_found unless request.xhr?
-  end
-
-# --------------------------------------------------------------------------------------------------------------
-  error 401 do
-    erb :login
-  end
-  
-# --------------------------------------------------------------------------------------------------------------
-  error 403 do
-    @msg = MESSAGE_CONFIG['group_unauthorized']
-    @msg if request.xhr?
-    erb :unauthorized unless request.xhr?
-  end
-
-# --------------------------------------------------------------------------------------------------------------
 private
   def get_users_and_maintainer_lists(group)
     ret = {:users => [], :maintainers => [], :available_users => [], :available_maintainers => []}
