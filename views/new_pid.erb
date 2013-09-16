@@ -15,6 +15,10 @@
   </form>
 </section>
 
+<section id="new_pid_instructions">
+  <%= HTML_CONFIG['new_pids_text'] %>
+</section>
+
 <section class="errors">
     <% if @pid && @pid.errors %>
       <% @pid.errors.full_messages.each do | message | %>

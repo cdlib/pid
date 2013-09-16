@@ -36,7 +36,7 @@
                 <li><a href="/user/admin"><%= HTML_CONFIG['nav_admin'] %></a></li>
               <% else %>
                 <li class="grey">|</li>
-                <li><a href="/user/list"><%= HTML_CONFIG['nav_user'] %></a></li>
+                <li><a href="/user/<%= current_user.id %>"><%= HTML_CONFIG['nav_user'] %></a></li>
               <% end %>
               <li class="grey">|</li>
               <li><a href="/user/logout" class="navy"><%= HTML_CONFIG['nav_logout'] %></a></li>

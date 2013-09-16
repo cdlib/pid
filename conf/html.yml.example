@@ -210,6 +210,10 @@ index_text:
 
 new_group_text: "You will be able to add users and maintainers to the group once you click the 'Save' button."
 
+new_pids_text: 
+  "Enter your new URL(s) in the box above. Every URL should appear on a separate line and should include 
+   a protocol (e.g. http://)."
+
 not_found_text: 'The page you requested could not be found.'
   
 reports_text: 
