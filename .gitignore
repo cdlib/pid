@@ -8,3 +8,4 @@
 vendor
 conf/*.yml
 conf/*.conf
+log/*_log
