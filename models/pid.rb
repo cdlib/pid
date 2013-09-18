@@ -57,7 +57,7 @@ class Pid
   attr_accessor :mutable
   
   # establish a connection to the REDIS database
-  @@shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
+  @@shorty = Shortcake.new('pid', {:host => PidApp::APP_CONFIG['redis_host'], :port => PidApp::APP_CONFIG['redis_port']})
 
   # ---------------------------------------------------------------
   # Make a revision/change to the PID

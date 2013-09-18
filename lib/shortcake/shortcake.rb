@@ -7,7 +7,7 @@ class Shortcake
   VALID_CODE = Regexp.compile(/^[a-zA-Z0-9]{1,12}$/)
   
   #TODO: Use the one on app.rb!!
-  URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+  #URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
   
   def initialize(namespace, redis_config)
     @redis = Redis.new(redis_config)
@@ -65,7 +65,7 @@ private
     
     raise ValidCodeRequired if !shortcode.kind_of?(String) || !shortcode.match(VALID_CODE)
     #raise ValidURLRequired if (url =~ URI::regexp).nil?
-    raise ValidURLRequired if (url =~ URI_REGEX).nil?
+    raise ValidURLRequired if (url =~ PidApp::URI_REGEX).nil?
     raise CodeExists if !override && !existing.nil?
     
     # If the code already exists, detach it from its old URL

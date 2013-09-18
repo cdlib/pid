@@ -1,9 +1,14 @@
 $LOAD_PATH.unshift(File.absolute_path(File.dirname(__FILE__)))
+require_relative '../../test/test_helper'
 require 'test/unit'
 require 'shortcake'
 require 'fakeredis'
 
 class TestShortcake < Test::Unit::TestCase
+  
+    def app
+      PidApp
+    end
   
     def setup
       @shorty = Shortcake.new('id', {:host => "localhost", :port => 1000})

@@ -7,18 +7,14 @@ require "net/http"
 require 'pony'
 
 class PidApp < Sinatra::Application
+  
   $stdout.puts "loading configuration files"
   
-  base = 'conf/'
-  configure :production, :stage do
-    base = '../cdl/conf/'
-  end
-  
-  APP_CONFIG = YAML.load_file(File.exists?("#{base}app.yml") ? "#{base}app.yml" : 'conf/app.yml.example')
-  DATABASE_CONFIG = YAML.load_file(File.exists?("#{base}db.yml") ? "#{base}db.yml" : 'conf/db.yml.example')
-  SECURITY_CONFIG = YAML.load_file(File.exists?("#{base}security.yml") ? "#{base}security.yml" : 'conf/security.yml.example')
-  MESSAGE_CONFIG = YAML.load_file(File.exists?("#{base}message.yml") ? "#{base}message.yml" : 'conf/message.yml.example')
-  HTML_CONFIG = YAML.load_file(File.exists?("#{base}html.yml") ? "#{base}html.yml" : 'conf/html.yml.example')
+  APP_CONFIG = YAML.load_file(File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
+  DATABASE_CONFIG = YAML.load_file(File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
+  SECURITY_CONFIG = YAML.load_file(File.exists?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
+  MESSAGE_CONFIG = YAML.load_file(File.exists?("conf/message.yml") ? "conf/message.yml" : 'conf/message.yml.example')
+  HTML_CONFIG = YAML.load_file(File.exists?("conf/html.yml") ? "conf/html.yml" : 'conf/html.yml.example')
 
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
@@ -163,7 +159,7 @@ class PidApp < Sinatra::Application
 # Check Redis to see if the specified PID has the same URL as another PID
 # ---------------------------------------------------------------------------------------------------        
     def hasDuplicate(url, pid)
-      shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
+      shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
       ret = []
       
       # Convert the string returned by Redis to an array
