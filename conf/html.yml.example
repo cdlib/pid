@@ -46,6 +46,7 @@ header_unauthorized: 'You do not permission to do that'
 header_user_list: 'Users'
 header_user_register: 'New user registration'
 header_user_view: 'User profile'
+header_user_view_password: 'Change your password'
 
 # Page based links to other pages
 link_to_admin: 'Return to the administration page'
@@ -230,3 +231,6 @@ search_text: 'This utility will only return 5,000 results at a time. If your sea
 unauthorized_text:
   "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 
   this is a mistake."  
+
+user_profile_text:
+  "If you do not want to change your password, leave those fields blank."

@@ -261,6 +261,8 @@ class PidApp < Sinatra::Application
         rescue DataMapper::SaveFailureError => e
           500
           @msg = MESSAGE_CONFIG['user_register_failure']
+          
+          logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
         end
                           
       else # passwords were specified but they do not match
@@ -334,6 +336,8 @@ class PidApp < Sinatra::Application
         @msg = MESSAGE_CONFIG['user_update_failure']
         @msg += "<br /><br />#{e.message}" if current_user.super
         @msg += '<br /><br />' + @user.errors.inspect if current_user.super
+        
+        logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
       end
 
     else  # The user is not a group maintainer or super admin and they're trying to access another user's account
@@ -378,6 +382,8 @@ class PidApp < Sinatra::Application
 
 # --------------------------------------------------------------------------------------------------------------
   not_found do
+    logger.warn "#{current_user.login unless current_user.nil?} got a 404 on #{request.path}"
+    
     @msg = MESSAGE_CONFIG['user_not_found']
     @msg if request.xhr?
     erb :not_found unless request.xhr?
@@ -392,11 +398,12 @@ class PidApp < Sinatra::Application
 
 # --------------------------------------------------------------------------------------------------------------
   error 403 do
+    logger.warn "#{current_user.login unless current_user.nil?} was unauthorized on #{request.path}"
+    
     @msg = MESSAGE_CONFIG['user_unauthorized']
     @msg if request.xhr?
     erb :unauthorized unless request.xhr?
   end
-
   
 # --------------------------------------------------------------------------------------------------------------
 # Process the login

@@ -42,6 +42,8 @@ class PidApp < Sinatra::Application
       status 500
       @msg = MESSAGE_CONFIG['group_update_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+      
+      logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
     end
     
     @associations = get_users_and_maintainer_lists(@group)
@@ -74,6 +76,8 @@ class PidApp < Sinatra::Application
       status 500
       @msg = MESSAGE_CONFIG['group_create_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+      
+      logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
     end
     
     if @associations.nil?
@@ -103,6 +107,8 @@ class PidApp < Sinatra::Application
       status 500
       @msg = MESSAGE_CONFIG['group_delete_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+      
+      logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
     end
 
     @groups = Group.all
@@ -132,6 +138,8 @@ class PidApp < Sinatra::Application
       status 500
       @msg = MESSAGE_CONFIG['group_add_maintainer_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+      
+      logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
     end
     
     @msg
@@ -166,6 +174,8 @@ class PidApp < Sinatra::Application
       status 500
       @msg = MESSAGE_CONFIG['group_remove_maintainer_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+      
+      logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
     end
     
     @msg
@@ -193,6 +203,8 @@ class PidApp < Sinatra::Application
       status 500
       @msg = MESSAGE_CONFIG['group_add_user_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+      
+      logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
     end
     
     @msg
@@ -220,6 +232,8 @@ class PidApp < Sinatra::Application
       status 500
       @msg = MESSAGE_CONFIG['group_remove_user_failure']
       @msg += " - #{e.message}" if current_user.super   # Include the actual error is the user is sys admin
+      
+      logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
     end
     
     @msg

@@ -26,10 +26,15 @@ class PidApp < Sinatra::Application
       rescue Exception => e
         status 500
         @msg = MESSAGE_CONFIG['skip_failure']
+        @msg += e.message if current_user.super
+        
+        logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
       end
     else
       status 500
       @msg = MESSAGE_CONFIG['skip_duplicate']
+      
+      logger.error "#{current_user.login} - #{@msg}"
     end
     
     @skips = SkipCheck.all()
@@ -54,6 +59,9 @@ class PidApp < Sinatra::Application
         rescue Exception => e
           status 500
           @msg = MESSAGE_CONFIG['skip_failure']
+          @msg += e.message if current_user.super
+          
+          logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
         end
       else
         halt(403)

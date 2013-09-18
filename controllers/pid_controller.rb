@@ -142,6 +142,8 @@ class PidApp < Sinatra::Application
                     
                   rescue Exception => e
                     @failures << "#{MESSAGE_CONFIG['batch_process_mint_failure'].gsub('{?}', url.to_s)}"
+                    
+                    logger.error "#{current_user.login} failed to mint #{url.to_s}\n#{e.message}"
                   end
                 else
                   @failures << MESSAGE_CONFIG['batch_process_mint_inactive']
@@ -178,6 +180,8 @@ class PidApp < Sinatra::Application
                       end
                     rescue Exception => e
                       @failures << "#{MESSAGE_CONFIG['batch_process_revise_failure'].gsub('{?}', id)} - #{e.message}"
+                      
+                      logger.error "#{current_user.login} failed to revise #{id.to_s}\n#{e.message}"
                     end
                   else
                     @failures << MESSAGE_CONFIG['batch_process_revise_wrong_group'].gsub('{?}', id)
@@ -317,7 +321,7 @@ class PidApp < Sinatra::Application
                              :modified_at => Time.now,
                              :dead_pid_url => DEAD_PID_URL,
                              :host => request.ip})
-        
+                             
                 # Check to see if the PID's URL is valid, if not WARN the user
                 if verify_url(params[:url]) != 200
                   @msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', @pid.id.to_s) 
@@ -331,6 +335,8 @@ class PidApp < Sinatra::Application
           rescue Exception => e
             @msg = MESSAGE_CONFIG['pid_update_failure'] 
             @msg += e.message
+            
+            logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
           end
         
         end
@@ -415,6 +421,8 @@ class PidApp < Sinatra::Application
             rescue Exception => e
               fatal = true 
               @failures[line.strip] = "#{MESSAGE_CONFIG['pid_mint_failure'].gsub('{?}', url)} - #{e.message}"
+              
+              logger.error "#{current_user.login} failed to mint #{url.to_s}\n#{e.message}"
             end
           end
           

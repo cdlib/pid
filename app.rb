@@ -40,6 +40,10 @@ class PidApp < Sinatra::Application
   
   set :root, File.dirname(__FILE__)
   
+  configure :production, :stage do
+    enable :logging
+  end
+  
   
   # set database
   $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
