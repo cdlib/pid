@@ -9,11 +9,16 @@ require 'pony'
 class PidApp < Sinatra::Application
   $stdout.puts "loading configuration files"
   
-  APP_CONFIG = YAML.load_file(File.exists?('conf/app.yml') ? 'conf/app.yml' : 'conf/app.yml.example')
-  DATABASE_CONFIG = YAML.load_file(File.exists?('conf/db.yml') ? 'conf/db.yml' : 'conf/db.yml.example')
-  SECURITY_CONFIG = YAML.load_file(File.exists?('conf/security.yml') ? 'conf/security.yml' : 'conf/security.yml.example')
-  MESSAGE_CONFIG = YAML.load_file(File.exists?('conf/message.yml') ? 'conf/message.yml' : 'conf/message.yml.example')
-  HTML_CONFIG = YAML.load_file(File.exists?('conf/html.yml') ? 'conf/html.yml' : 'conf/html.yml.example')
+  base = 'conf/'
+  configure :production, :stage do
+    base = '../cdl/conf/'
+  end
+  
+  APP_CONFIG = YAML.load_file(File.exists?("#{base}app.yml") ? "#{base}app.yml" : 'conf/app.yml.example')
+  DATABASE_CONFIG = YAML.load_file(File.exists?("#{base}db.yml") ? "#{base}db.yml" : 'conf/db.yml.example')
+  SECURITY_CONFIG = YAML.load_file(File.exists?("#{base}security.yml") ? "#{base}security.yml" : 'conf/security.yml.example')
+  MESSAGE_CONFIG = YAML.load_file(File.exists?("#{base}message.yml") ? "#{base}message.yml" : 'conf/message.yml.example')
+  HTML_CONFIG = YAML.load_file(File.exists?("#{base}html.yml") ? "#{base}html.yml" : 'conf/html.yml.example')
 
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
