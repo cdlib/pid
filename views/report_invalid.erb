@@ -1,7 +1,7 @@
 <section id="invalid_report">
   <h3><%= HTML_CONFIG['header_report_invalid'] %></h3>
   
-  <a href="/link/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+  <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
   
   <% if @error.empty? && @not_found.empty? && @moved.empty? %>
     <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>

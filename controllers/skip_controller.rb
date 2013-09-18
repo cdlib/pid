@@ -66,11 +66,10 @@ class PidApp < Sinatra::Application
       else
         halt(403)
       end
-      
-      @skips = SkipCheck.all()
     
-      @msg if request.xhr?
-      erb :list_skips unless request.xhr?
+      @skips = SkipCheck.all()
+      
+      erb :list_skips
     else
       halt(404)
     end
