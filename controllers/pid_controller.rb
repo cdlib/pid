@@ -294,13 +294,14 @@ class PidApp < Sinatra::Application
       if @pid.group == user.group || !Maintainer.first(:group => @pid.group, :user => user).nil? || user.super
         
         # Don't save if nothing has changed!
-        if @pid.url != params[:url] || @pid.group.id != params[:group] || (@pid.deactivated != ((params[:active] == "on") ? false : true))
+        if @pid.url != params[:url] || @pid.group.id != params[:group] || @pid.notes != params[:notes] || 
+                                              (@pid.deactivated != ((params[:active] == "on") ? false : true))
             
           begin
             dups = hasDuplicate(params[:url], @pid.id)
             
-            # If there is already a PID out there using the specified url
-            if !dups.empty?
+            # If there is already a PID out there using the specified url and the user is not a maintainer or super admin
+            if !dups.empty? && Maintainer.first(:group => @pid.group, :user => current_user).nil? && !user.super
               # Set the user's group as an Interested Party
               existing = Pid.get(dups[0])
               Interested.new(:pid => existing, :group => current_user.group).save if Interested.first(:pid => existing, :group => current_user.group).nil?
@@ -321,6 +322,7 @@ class PidApp < Sinatra::Application
                              :username => user.login,
                              :modified_at => Time.now,
                              :dead_pid_url => DEAD_PID_URL,
+                             :notes => (params[:notes].nil?) ? @pid.notes : params[:notes],
                              :host => request.ip})
                              
                 # Check to see if the PID's URL is valid, if not WARN the user
@@ -349,6 +351,10 @@ class PidApp < Sinatra::Application
         
         @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
         @owner = Maintainer.first(:group => @pid.group)
+
+puts @owner.inspect
+puts @pid.inspect          
+          
           
         #reload the pid before we pass it to the erb
         @pid = Pid.get(params[:id])

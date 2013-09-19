@@ -93,6 +93,7 @@ form_url: 'URL:'
 form_urls: 'URL(s):'
 form_userid: 'User Id:'
 form_users: 'Users:'
+form_notes: 'Notes:'
 
 # Hints that appear next to the criteria on the search and stats report pages
 form_search_and: 'and'
