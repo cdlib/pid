@@ -2,7 +2,7 @@
   <h3><%= HTML_CONFIG['header_pid_view'] %> <%= @pid.id %><% if(@pid.deactivated) %><span class="red"> - <%= HTML_CONFIG['header_pid_inactive'] %></span><% end %></h3>
   
   <form action="/link/<%= @pid.id %>" method="get" id="pid_update" name="pid_update">
-    <label><%= HTML_CONFIG['form_pid'] %></label><span class="form_informational"><%= link_to(to("/PID/#{@pid.id}")) %></span>
+    <label><%= HTML_CONFIG['form_pid'] %></label><span class="form_informational" style="width: 80%;"><%= link_to(to("/PID/#{@pid.id}")) %></span>
     
     <label for="url"><%= HTML_CONFIG['form_url'] %></label>
     <% if @is_owner %>
