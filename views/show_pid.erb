@@ -84,7 +84,7 @@
       
     <% unless @pid.url == version.url && @pid.modified_at == version.created_at %>
       <form>
-        <label><%= HTML_CONFIG['form_old_url'] %></label><span class="form_informational"><%= version.url %></span>
+        <label><%= HTML_CONFIG['form_old_url'] %></label><span class="form_informational" style="width: 80%;"><%= version.url %></span>
         <label><%= HTML_CONFIG['form_created_by'] %></label><span class="form_informational"><%= version.username %></span>
         <label><%= HTML_CONFIG['form_created_date'] %></label>
         <span class="form_informational"><%= version.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
