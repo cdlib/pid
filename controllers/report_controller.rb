@@ -157,6 +157,7 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
   get '/report/stats' do
     @json = [].to_json
+
     @params = get_search_defaults(params)
     
     erb :report_stats
@@ -184,17 +185,20 @@ class PidApp < Sinatra::Application
     
     args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" unless @params[:created_low].empty?
     args[:created_at.lte] = "#{@params[:created_high]} 23:59:59" unless @params[:created_high].empty?
-    
+
     # Filter the results to the user's group unless the user is an admin
     if !current_user.super
-      args[:group] = current_user.group 
     
-      pids = Pid.all(args)
+      # If the user manages groups show the pids for all of those groups
+      if !Maintainer.all(:user => current_user).empty?
+        Maintainer.all(:user => current_user).each do |maintainer| 
+        
+          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+        end
+      else
+        args[:group] = current_user.group 
     
-    # If the user manages groups show the pids for all of those groups
-    elsif !Maintainer.all(:user => current_user).empty?
-      Maintainer.all(:user => current_user).each do |maintainer| 
-        (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+        pids = Pid.all(args)
       end
     end
       

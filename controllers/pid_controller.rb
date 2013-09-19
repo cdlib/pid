@@ -58,6 +58,7 @@ class PidApp < Sinatra::Application
       if current_user.group == @pid.group || current_user.super || 
                                   !Maintainer.first(:group => @pid.group, :user => current_user).nil? ||
                                   !Interested.first(:group => current_user.group, :pid => @pid).nil?
+                                  
         @groups = Group.all if current_user.super
         @group = current_user.group
 
