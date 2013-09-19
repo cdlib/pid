@@ -169,6 +169,7 @@ class PidApp < Sinatra::Application
     results = []
     @params = get_search_defaults(params)
     
+    pids = []
     args = {}
       
     # Set the search criteria based on the user's input
@@ -188,14 +189,14 @@ class PidApp < Sinatra::Application
     if !current_user.super
       args[:group] = current_user.group 
     
+      pids = Pid.all(args)
+    
     # If the user manages groups show the pids for all of those groups
     elsif !Maintainer.all(:user => current_user).empty?
       Maintainer.all(:user => current_user).each do |maintainer| 
         (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
       end
     end
-    
-    pids = Pid.all(args)
       
     pids.each do |pid|
       results << {:id => pid.id, :url => pid.url, :username => pid.username, :created_at => pid.created_at, :modified_at => pid.modified_at,
