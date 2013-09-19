@@ -117,7 +117,7 @@ class PidApp < Sinatra::Application
       # If the user manages groups show the pids for all of those groups
       elsif !Maintainer.all(:user => current_user).empty?
         Maintainer.all(:user => current_user).each do |maintainer| 
-          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid }   
+          (Pid.all(:deactivated => false, :group => maintainer.group)).each{ |pid| pids << pid }   
         end
           
       else
