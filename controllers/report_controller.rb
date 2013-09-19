@@ -148,8 +148,6 @@ class PidApp < Sinatra::Application
     
     @json = dups.to_json
     
-puts @json
-    
     erb :report_duplicate
     
   end
