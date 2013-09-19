@@ -250,7 +250,9 @@ class PidApp < Sinatra::Application
                               :host => request.ip,
                               :name => params[:name], 
                               :affiliation => params[:affiliation], 
+                              :active => true,
                               :group => params[:group].nil? ? current_user.group : Group.first(:id => params[:group]) )
+
           new_user.save
         
           @user = new_user

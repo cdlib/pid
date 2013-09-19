@@ -3,8 +3,14 @@
   
   <form action="/link/<%= @pid.id %>" method="get" id="pid_update" name="pid_update">
     <label><%= HTML_CONFIG['form_pid'] %></label><span class="form_informational"><%= link_to(to("/PID/#{@pid.id}")) %></span>
-    <label for="url"><%= HTML_CONFIG['form_url'] %></label><input type="text" id="url" name="url" style="width: 450px;" value="<%= @pid.url %>" />
-  
+    
+    <label for="url"><%= HTML_CONFIG['form_url'] %></label>
+    <% if @is_owner %>
+      <input type="text" id="url" name="url" style="width: 450px;" value="<%= @pid.url %>" />
+    <% else %>
+      <span class="form_informational"><%= @pid.url %></span>
+    <% end %>
+    
     <% if @groups %>
       <label for="group"><%= HTML_CONFIG['form_group'] %></label>
       <select name="group" id="group">
@@ -16,7 +22,23 @@
       <input type="hidden" id="group" name="group" value="<%= @group.id %>" />
     <% end %>
   
+    <label><%= HTML_CONFIG['form_created_date'] %></label>
+    <span class="form_informational"><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
+    <label><%= HTML_CONFIG['form_modified_date'] %></label>
+    <span class="form_informational"><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
+    <label><%= HTML_CONFIG['form_modified_by'] %></label><span class="form_informational"><%= @pid.username %></span>
+    <label><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @pid.group.id %></span>
+    <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= @pid.change_category %></span>
+
+    <label for="active"><%= HTML_CONFIG['form_active'] %></label>
+    <% if @is_owner %>
+      <input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %> />
+    <% else %>
+      <span class="form_informational"><%= @pid.deactivated ? 'No' : 'Yes' %></span>
+    <% end %>
+    
     <% if @interested.size > 0 %>
+      <label>&nbsp;</label><span class="form_informational" style="width: 80%;">&nbsp;</span>
       <label for="interested"><%= HTML_CONFIG['form_interested'] %></label>
       <span class="form_informational">
         <% @interested.each do |it| %>
@@ -25,23 +47,17 @@
       </span>
     <% end %>
     
-    <label><%= HTML_CONFIG['form_created_date'] %></label>
-    <span class="form_informational"><%= @pid.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
-    <label><%= HTML_CONFIG['form_modified_date'] %></label>
-    <span class="form_informational"><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
-    <label><%= HTML_CONFIG['form_modified_by'] %></label><span class="form_informational"><%= @pid.username %></span>
-    <label><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @pid.group.id %></span>
-    <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= @pid.change_category %></span>
-    <label for="active"><%= HTML_CONFIG['form_active'] %></label>
-    <input type="checkbox" id="active" name="active" <%= !@pid.deactivated ? 'checked="checked"' : '' %> />
     
     <% if @is_owner %>
       <% if @interested.size > 0 %>
+        <label>&nbsp;</label><span class="form_informational" style="width: 80%;">&nbsp;</span>
+        
         <label>&nbsp;</label><span class="form_informational" style="width: 80%;"><%= HTML_CONFIG['edit_pid_interested_parties'] %></span>
       <% end %>
     
       <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_update_pid'] %>" />
     <% else %>
+      <label>&nbsp;</label><span class="form_informational" style="width: 80%;">&nbsp;</span>
       <label>&nbsp;</label>
       <span class="errors form_informational" style="width: 80%;">
         <%= HTML_CONFIG['edit_pid_not_owner'].gsub('{?}', '<a href="mailto:' + @owner.email + '">' + @owner.name + '</a>') %>

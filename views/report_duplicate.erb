@@ -3,7 +3,7 @@
   
   <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
   
-  <% unless @json == '' %>
+  <% unless @json == '{}' %>
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
     <table>
@@ -14,7 +14,9 @@
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
   <% else %>
-    <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
+    <table>
+      <tr><th /><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
+      <tr><td colspan="3"><%= HTML_CONFIG['report_no_activity'] %></td></tr>
   <% end %>
   
     

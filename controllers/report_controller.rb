@@ -32,6 +32,10 @@ class PidApp < Sinatra::Application
       
     rescue Exception => e
       @msg = "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
+      
+      @msg += " - #{e.message}" if current_user.super
+      
+      logger.error "#{current_user.login} - #{@msg}: #{e.message}"
     end
 
     @json = pids.to_json
@@ -84,6 +88,10 @@ class PidApp < Sinatra::Application
       
     rescue Exception => e
       @msg += "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
+      
+      @msg += " - #{e.message}" if current_user.super
+      
+      logger.error "#{current_user.login} - #{@msg}: #{e.message}"
     end
     
     @moved = moved.to_json
@@ -98,6 +106,7 @@ class PidApp < Sinatra::Application
 # Get a list of duplicate PIDs
 # ---------------------------------------------------------------
   get '/report/duplicate' do
+    pids = []
     
     begin
       shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
@@ -108,7 +117,7 @@ class PidApp < Sinatra::Application
       # If the user manages groups show the pids for all of those groups
       elsif !Maintainer.all(:user => current_user).empty?
         Maintainer.all(:user => current_user).each do |maintainer| 
-          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid }   
         end
           
       else
@@ -116,11 +125,11 @@ class PidApp < Sinatra::Application
       end
       
       dups = {}
-      
+
       pids.each do |pid|
         if dups[pid.url].nil?
           occurences = shorty.get(pid.url)        
-        
+
           if occurences
             vals = JSON.parse(occurences)
             if vals.size > 1
@@ -131,10 +140,15 @@ class PidApp < Sinatra::Application
       end
       
     rescue Exception => e
-      @msg = "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
+      @msg = "#{MESSAGE_CONFIG['reports_failure']}"
+      @msg += " - #{e.message}" if current_user.super
+      
+      logger.error "#{current_user.login} - #{@msg}: #{e.message}"
     end
     
     @json = dups.to_json
+    
+puts @json
     
     erb :report_duplicate
     
