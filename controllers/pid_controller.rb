@@ -78,6 +78,7 @@ class PidApp < Sinatra::Application
         
         @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
         @is_owner = true if Maintainer.first(:user => current_user, :group => @pid.group) || current_user.super
+        @is_owner = false if current_user.read_only
         
         @owner = User.first(:login => @pid.username)
 
@@ -300,6 +301,7 @@ class PidApp < Sinatra::Application
         
         @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
         @is_owner = true if Maintainer.first(:user => current_user, :group => @pid.group) || current_user.super
+        @is_owner = false if current_user.read_only
         
         @owner = User.first(:login => @pid.username)
         
