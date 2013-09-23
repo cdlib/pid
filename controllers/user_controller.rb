@@ -414,7 +414,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   after '*' do
     session[:msg] = nil
-    @read_only = current_user.read_only
+    @read_only = current_user.read_only unless current_user.nil?
   end
 
 # --------------------------------------------------------------------------------------------------------------
