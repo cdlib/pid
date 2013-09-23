@@ -36,7 +36,7 @@ class User
   property :salt, String
   property :created_at, DateTime
   property :host, String, :length => 30
-  property :readonly, Boolean, :default => false
+  property :read_only, Boolean, :default => false
   
   attr_accessor :password
 

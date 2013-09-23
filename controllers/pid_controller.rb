@@ -391,7 +391,7 @@ class PidApp < Sinatra::Application
     halt(401) unless logged_in?
     
     # If the user has a readonly account prevent them from running the post/put/delete commands!
-    halt(403) if ['post', 'put', 'delete'].include?(request.request_method) && current_user.readonly
+    halt(403) if ['post', 'put', 'delete'].include?(request.request_method) && current_user.read_only
   end
 
 # --------------------------------------------------------------------------------------------------------------

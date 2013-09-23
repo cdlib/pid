@@ -21,8 +21,8 @@
     <% end %>
     
     <% if current_user.super %>
-      <label for="readonly"><%= HTML_CONFIG['form_readonly'] %></label>
-      <input type="checkbox" name="readonly" id="readonly" <% if @user.readonly %>checked="checked"<% end %> />
+      <label for="read_only"><%= HTML_CONFIG['form_readonly'] %></label>
+      <input type="checkbox" name="read_only" id="read_only" <% if @user.read_only %>checked="checked"<% end %> />
     <% end %>
     
     <label for="login"><%= HTML_CONFIG['form_userid'] %></label>

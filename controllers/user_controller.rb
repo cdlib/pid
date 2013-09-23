@@ -281,7 +281,7 @@ class PidApp < Sinatra::Application
                               :affiliation => params[:affiliation], 
                               :active => true,
                               :group => params[:group].nil? ? current_user.group : Group.first(:id => params[:group]),
-                              :readonly => (current_user.super) ? (params[:readonly] == 'on') : @user.readonly )
+                              :read_only => (current_user.super) ? (params[:read_only] == 'on') : @user.read_only )
 
           new_user.save
         
@@ -356,7 +356,7 @@ class PidApp < Sinatra::Application
                       :locked => (params[:locked] == 'on'),
                       :group => (params[:group]) ? Group.first(:id => params[:group]) : current_user.group,
                       :host => request.ip,
-                      :readonly => (current_user.super) ? (params[:readonly] == 'on') : @user.readonly)
+                      :read_only => (current_user.super) ? (params[:read_only] == 'on') : @user.read_only)
         
           # If a password change was entered, update the user's password
           @user.update(:password => params[:password].strip) if !params[:password].nil? && params[:password] == params[:confirm]
@@ -399,7 +399,7 @@ class PidApp < Sinatra::Application
     halt(401) unless logged_in?
     
     # If the user has a readonly account prevent them from running the post/put/delete commands!
-    halt(403) if ['post', 'delete'].include?(request.request_method) && current_user.readonly
+    halt(403) if ['post', 'delete'].include?(request.request_method) && current_user.read_only
   end
 
 # --------------------------------------------------------------------------------------------------------------
@@ -414,7 +414,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   after '*' do
     session[:msg] = nil
-    @readonly = current_user.readonly
+    @read_only = current_user.read_only
   end
 
 # --------------------------------------------------------------------------------------------------------------

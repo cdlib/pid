@@ -227,7 +227,7 @@ class PidApp < Sinatra::Application
     halt(401) unless logged_in?
     
     # If the user has a readonly account prevent them accessing anything
-    halt(403) if current_user.readonly
+    halt(403) if current_user.read_only
   end
       
 # --------------------------------------------------------------------------------------------------------------
@@ -235,7 +235,7 @@ class PidApp < Sinatra::Application
     halt(401) unless logged_in?
     
     # If the user has a readonly account prevent them accessing anything
-    halt(403) if current_user.readonly
+    halt(403) if current_user.read_only
   end
   
 end
