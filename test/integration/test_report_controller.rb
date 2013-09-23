@@ -56,8 +56,8 @@ class TestReportController < Test::Unit::TestCase
   def test_get_inactive_pids_report
     security_check_basic("/report/inactive", "get", nil)
 
-    Pid.first(:url => 'http://www.huffingtonpost.com').revise({:deactivated => true, :dead_pid_url => dead_pid_url})
-    Pid.first(:url => 'http://www.dailybeast.com').revise({:deactivated => true, :dead_pid_url => dead_pid_url})
+    Pid.first(:url => 'http://www.huffingtonpost.com').revise({:deactivated => true, :dead_pid_url => dead_pid_url, :group => @group})
+    Pid.first(:url => 'http://www.dailybeast.com').revise({:deactivated => true, :dead_pid_url => dead_pid_url, :group => @group})
 
     post '/user/login', {:login => @user.login, :password => @pwd}
     get '/report/inactive'

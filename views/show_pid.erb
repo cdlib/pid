@@ -11,7 +11,7 @@
       <span class="form_informational" style="width: 80%;"><%= @pid.url %></span>
     <% end %>
     
-    <% if @groups %>
+    <% if !@groups.empty? && @is_owner %>
       <label for="group"><%= HTML_CONFIG['form_group'] %></label>
       <select name="group" id="group">
         <% @groups.each do |group| %>
@@ -19,7 +19,8 @@
         <% end %>
       </select>
     <% else %>
-      <input type="hidden" id="group" name="group" value="<%= @group.id %>" />
+      <label><%= HTML_CONFIG['form_groupid'] %></label>
+      <span class="form_informational"><%= @pid.group.id %><input type="hidden" id="group" name="group" value="<%= @group.id %>" /></span>
     <% end %>
   
     <label><%= HTML_CONFIG['form_created_date'] %></label>
@@ -27,7 +28,6 @@
     <label><%= HTML_CONFIG['form_modified_date'] %></label>
     <span class="form_informational"><%= @pid.modified_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
     <label><%= HTML_CONFIG['form_modified_by'] %></label><span class="form_informational"><%= @pid.username %></span>
-    <label><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= @pid.group.id %></span>
     <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= @pid.change_category %></span>
 
     <label for="active"><%= HTML_CONFIG['form_active'] %></label>
@@ -92,12 +92,13 @@
     <% unless @pid.url == version.url && @pid.modified_at == version.created_at %>
       <form>
         <label><%= HTML_CONFIG['form_old_url'] %></label><span class="form_informational" style="width: 80%;"><%= version.url %></span>
+        <label><%= HTML_CONFIG['form_groupid'] %></label><span class="form_informational"><%= version.group %></span>
         <label><%= HTML_CONFIG['form_created_by'] %></label><span class="form_informational"><%= version.username %></span>
         <label><%= HTML_CONFIG['form_created_date'] %></label>
         <span class="form_informational"><%= version.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
         <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= version.change_category %></span>
         <label><%= HTML_CONFIG['form_active'] %></label><span class="form_informational"><%= (version.deactivated) ? "No" : "Yes" %></span>
-        <label><%= HTML_CONFIG['form_notes'] %></label><span class="form_informational"><%= (version.notes) %></span>
+        <label><%= HTML_CONFIG['form_notes'] %></label><span class="form_informational" style="width: 80%;"><%= (version.notes) %></span>
       </form>
       
       <hr />

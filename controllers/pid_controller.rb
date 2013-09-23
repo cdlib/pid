@@ -1,6 +1,17 @@
 require 'json'
 
 class PidApp < Sinatra::Application
+# -------------------------------------------------------------------------------------------------------------- 
+# Dead PID page
+# --------------------------------------------------------------------------------------------------------------  
+  get '/link/dead' do    
+    erb :dead_pid, :layout => false
+  end
+  
+  get '/link/inactive' do
+    erb :dead_pid, :layout => false
+  end
+  
 # ---------------------------------------------------------------
 # Display the new PID form
 # ---------------------------------------------------------------  
@@ -58,14 +69,16 @@ class PidApp < Sinatra::Application
       if current_user.group == @pid.group || current_user.super || 
                                   !Maintainer.first(:group => @pid.group, :user => current_user).nil? ||
                                   !Interested.first(:group => current_user.group, :pid => @pid).nil?
-                                  
-        @groups = Group.all if current_user.super
+
+        @groups = (current_user.super) ? Group.all : []
+        Maintainer.all(:user => current_user).each{ |maintain| @groups << maintain.group } unless current_user.super
         @group = current_user.group
 
         @interested = Interested.all(:pid => @pid)
         
         @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
-        @owner = Maintainer.first(:group => @pid.group)
+        @is_owner = true if Maintainer.first(:user => current_user, :group => @pid.group) || current_user.super
+        
         @owner = User.first(:login => @pid.username)
 
         if params[:ajax] == "true"
@@ -110,92 +123,64 @@ class PidApp < Sinatra::Application
           CSV.foreach(params[:csv][:tempfile], :field_size_limit => APP_CONFIG['max_upload_csv_size']) do |row| 
             id, url, cat, note = row
 
-            dups = url.nil? ? [] : hasDuplicate(url, id)
-            
-            # If the url is already being used by another PID, add it to the interested array
-            if !dups.empty?
-              existing = Pid.get(dups[0])
-              Interested.new(:pid => existing, :group => current_user.group).save if Interested.first(:pid => existing, :group => current_user.group).nil?
-              
-              @interested << existing
-              
-            # Otherwise go ahead and mint/revise the PID
-            else
-              # If the PID id is null they would like to mint the PID
-              if id.nil?
-                # Make sure the URL is not missing
-                if !url.nil?
-                  begin
-              
-                    # Only mint if the URL is valid
-                    if url =~ URI_REGEX
-                      
-                      pid = Pid.mint(:url => url, 
-                                     :username => current_user.login,
-                                     :group => current_user.group,
-                                     :change_category => cat,
-                                     :notes => note)
+            # Strip off the last slash, the REGEX 
+            if !url.nil?
+              url = url[0..(url.size())] if url[url.size() -1] == '/'
+            end
 
-                      @mints << pid
-                    else
-                      @failures << "#{MESSAGE_CONFIG['batch_process_mint_invalid'].gsub('{?}', url)}"
-                    end
-                    
-                  rescue Exception => e
-                    @failures << "#{MESSAGE_CONFIG['batch_process_mint_failure'].gsub('{?}', url.to_s)}"
-                    
-                    logger.error "#{current_user.login} failed to mint #{url.to_s}\n#{e.message}"
-                  end
+            # If the PID id is null they would like to mint the PID
+            if id.nil?
+              # Make sure the URL is not missing
+              if !url.nil?
+              
+                result = mint_pid(url, 'Batch', note, request.ip)
+              
+                # If we successfully minted the PID
+                if result[:saved?]
+                 @mints << result[:pid]
+                 
+                  # We were unable to mint the pid
                 else
-                  @failures << MESSAGE_CONFIG['batch_process_mint_inactive']
-                end
-            
-              # We are updating an existing PID
-              else
-                pid = Pid.get(id)
-          
-                # If the PID was found and its in the same group as the user or the user is an admin
-                if !pid.nil?
-
-                  if pid.group == current_user.group || !Maintainer.first(:group => pid.group, :user => current_user).nil? || current_user.super
-                    begin 
+                  if result[:msg].include?(MESSAGE_CONFIG['pid_mint_failure'])
+                    @failures << "URL: #{url} - #{result[:msg]}"
                     
-                      # If the URL is nil or valid
-                      if url =~ URI_REGEX or url.nil?
-                        
-                        notify_interested_parties(pid, url) if (pid.url != url || url.nil?)
-
-                        pid.revise({:url => url.nil? ? pid.url : url, 
-                                    :change_category => cat,
-                                    :notes => note,
-                                    :deactivated => url.nil? ? true : false,
-                                    :group =>  current_user.group,
-                                    :username => current_user.login,
-                                    :modified_at => Time.now,
-                                    :dead_pid_url => DEAD_PID_URL})
-                             
-                        @revisions << Pid.get(pid.id)
-                      
-                      else
-                        @failures << "#{MESSAGE_CONFIG['batch_process_revise_invalid'].gsub('{?}', id)}"
-                      end
-                    rescue Exception => e
-                      @failures << "#{MESSAGE_CONFIG['batch_process_revise_failure'].gsub('{?}', id)} - #{e.message}"
-                      
-                      logger.error "#{current_user.login} failed to revise #{id.to_s}\n#{e.message}"
-                    end
+                  elsif result[:msg] == MESSAGE_CONFIG['pid_mint_invalid_url']
+                    @failures << "URL: #{url} - #{result[:msg]}"
                   else
-                    @failures << MESSAGE_CONFIG['batch_process_revise_wrong_group'].gsub('{?}', id)
+                    @interested << result[:pid]
                   end
-                else
-                  @failures << MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', id)
                 end
+                    
+              else
+                @failures << "URL: #{url} - #{MESSAGE_CONFIG['batch_process_mint_inactive']}"
               end
+            
+            # We are updating an existing PID
+            else
+              pid = Pid.get(id)
           
-            end # dups.empty
+              # If the PID was found and its in the same group as the user or the user is an admin
+              if !pid.nil?
+
+                # Attempt to revise the PID
+                revision = revise_pid(pid, (url.nil?) ? pid.url : url, note, current_user.group, (url.nil?) ? "off" : "on")
+                      
+                # If the revision was successful add it to the list otherwise record it as a failure
+                if revision[:saved?]
+                  @revisions << Pid.first(:id => pid.id)
+                else
+                  @failures << "PID: #{id} - #{revision[:msg]}"
+                end
+                      
+              else
+                @failures << MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', id)
+              end
+            end
+          
           end # CSV.foreach
         
           @msg = MESSAGE_CONFIG['batch_process_success']
+          
         rescue Exception => e
           @msg = "#{MESSAGE_CONFIG['batch_process_failure']}<br /><br />#{e.message}"
         end
@@ -286,76 +271,38 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
   put '/link/:id' do
     @pid = Pid.get(params[:id])
-    user = current_user
+    @group = current_user.group
     @msg = "blah"
     
-    if @pid
+    url = params[:url]
+    # Strip off the last slash, the REGEX 
+    url = url[0..(url.size())] if url[url.size() -1] == '/'
+    
+    if !@pid.nil?
       # User can only edit their own PIDs, PIDs of groups they maintain, or if they are a super admin
-      if @pid.group == user.group || !Maintainer.first(:group => @pid.group, :user => user).nil? || user.super
+      if @pid.group == @group || !Maintainer.first(:group => @pid.group, :user => current_user).nil? || current_user.super
         
         # Don't save if nothing has changed!
-        if @pid.url != params[:url] || @pid.group.id != params[:group] || @pid.notes != params[:notes] || 
+        if @pid.url != url || @pid.group.id != params[:group] || @pid.notes != params[:notes] || 
                                               (@pid.deactivated != ((params[:active] == "on") ? false : true))
-            
-          begin
-            dups = hasDuplicate(params[:url], @pid.id)
-            
-            # If there is already a PID out there using the specified url and the user is not a maintainer or super admin
-            if !dups.empty? && Maintainer.first(:group => @pid.group, :user => current_user).nil? && !user.super
-              # Set the user's group as an Interested Party
-              existing = Pid.get(dups[0])
-              Interested.new(:pid => existing, :group => current_user.group).save if Interested.first(:pid => existing, :group => current_user.group).nil?
-              
-              @msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}link/#{dups[0]}'>#{dups[0]}</a>")
-            
-            else
-              url = params[:url]
-              # Strip off the last slash, the REGEX 
-              url = url[0..(url.size())] if url[url.size() -1] == '/'
-              
-              if url =~ URI_REGEX
-                notify_interested_parties(@pid, params[:url]) if (@pid.url != params[:url] || params[:active] != "on")
-                
-                @pid.revise({:url => params[:url], 
-                             :deactivated => (params[:active] == "on") ? false : true,
-                             :group =>  (params[:group].nil?) ? @pid.group : params[:group],
-                             :username => user.login,
-                             :modified_at => Time.now,
-                             :dead_pid_url => DEAD_PID_URL,
-                             :notes => (params[:notes].nil?) ? @pid.notes : params[:notes],
-                             :host => request.ip})
-                             
-                # Check to see if the PID's URL is valid, if not WARN the user
-                if verify_url(params[:url]) != 200
-                  @msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', @pid.id.to_s) 
-                else
-                  @msg = MESSAGE_CONFIG['pid_update_success']
-                end
-              else
-                @msg = MESSAGE_CONFIG['pid_update_invalid_url']
-              end
-            end
-          rescue Exception => e
-            @msg = MESSAGE_CONFIG['pid_update_failure'] 
-            @msg += e.message
-            
-            logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
-          end
-        
+          
+          # If the group passed in cannot be found just use the PID's existing group
+          group = (Group.first(:id => params[:group]).nil?) ? @pid.group : Group.first(:id => params[:group])
+          
+          revision = revise_pid(@pid, url, params[:notes], group, params[:active])
+          @msg = revision[:msg]
         end
       
-        @groups = Group.all if user.super
-        @group = user.group
+        @groups = (current_user.super) ? Group.all : []
+        Maintainer.all(:user => current_user).each{ |maintain| @groups << maintain.group } unless current_user.super
           
         @interested = Interested.all(:pid => @pid)
         
         @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
-        @owner = Maintainer.first(:group => @pid.group)
-
-puts @owner.inspect
-puts @pid.inspect          
-          
-          
+        @is_owner = true if Maintainer.first(:user => current_user, :group => @pid.group) || current_user.super
+        
+        @owner = User.first(:login => @pid.username)
+        
         #reload the pid before we pass it to the erb
         @pid = Pid.get(params[:id])
         erb :show_pid
@@ -381,7 +328,7 @@ puts @pid.inspect
     
     params[:new_urls].lines do |line|
       
-      change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'REST_API'
+      change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'Batch'
       notes = MESSAGE_CONFIG['pid_mint_default_note'].gsub('{?ip?}', request.ip).gsub('{?}', url) if request.referrer != "#{hostname}link/new"
       
       # Strip off the line breaks from the form
@@ -390,51 +337,26 @@ puts @pid.inspect
       url = url[0..(url.size())] if url[url.size() -1] == '/'
       
       unless url.empty?
-        if url =~ URI_REGEX
-      
-          dups = hasDuplicate(url, nil)
-          
-          if !dups.empty?            
-            existing = Pid.get(dups[0])
-            
-            # If the Interested Party does not already exist
-            if Interested.first(:pid => existing, :group => current_user.group).nil?
-              interested = Interested.new(:pid => existing, :group => current_user.group)
-              
-              # Don't save the Interested record if the user's group already owns the PID!!!
-              interested.save if existing.group != current_user.group
-            end
-            
-            @interested << existing
-          
-          # Otherwise go ahead and mint the pid
+        
+        result = mint_pid(url, change_category, notes, request.ip)
+        
+        # If we successfully minted the PID
+        if result[:saved?]
+          if result[:msg] == MESSAGE_CONFIG['pid_mint_success']
+            @successes << result[:pid]
           else
-      
-            begin
-              pid = Pid.mint(:url => url, 
-                             :username => current_user.login,
-                             :group => current_user.group,
-                             :change_category => change_category,
-                             :notes => notes,
-                             :host => request.ip)
-                             
-              # Check to see if the PID's URL is valid, if not WARN the user
-              if verify_url(url) != 200
-                @dead_urls << pid
-              else
-                @successes << pid
-              end
-
-            rescue Exception => e
-              fatal = true 
-              @failures[line.strip] = "#{MESSAGE_CONFIG['pid_mint_failure'].gsub('{?}', url)} - #{e.message}"
-              
-              logger.error "#{current_user.login} failed to mint #{url.to_s}\n#{e.message}"
-            end
+            @dead_urls << result[:pid]
           end
           
+        # We were unable to mint the pid
         else
-          @failures[line.strip] = MESSAGE_CONFIG['pid_mint_invalid_url'].gsub('{?}', url) 
+          if result[:msg].include?(MESSAGE_CONFIG['pid_mint_failure'])
+            @failures[line.strip] = result[:msg]
+          elsif result[:msg] == MESSAGE_CONFIG['pid_mint_invalid_url']
+            @failures[line.strip] = result[:msg]
+          else
+            @interested << result[:pid]
+          end
         end
       
       else
@@ -453,7 +375,7 @@ puts @pid.inspect
     else                          # We had no failures 302 (per PURL spec for success minting)
       response.status = 200
     end
-    
+
     erb :new_pid
   end
 
@@ -465,10 +387,15 @@ puts @pid.inspect
   end
   
 # --------------------------------------------------------------------------------------------------------------
-  before '/link/*' do
+  before /^\/link\/(?!(dead|inactive))/ do
     halt(401) unless logged_in?
+    
+    # If the user has a readonly account prevent them from running the post/put/delete commands!
+    halt(403) if ['post', 'put', 'delete'].include?(request.request_method) && current_user.readonly
   end
- 
+
+# --------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------- 
 private
   def notify_interested_parties(pid, new_url)
     if pid
@@ -498,4 +425,124 @@ private
       end
     end
   end
+  
+# --------------------------------------------------------------------------------------------------------------
+  def revise_pid(pid, url, notes, group, active)
+    saved = false
+    
+    # If the pid belongs to the current user's group or the current user is a Maintainer of the Pid's group or the current user is a super admin
+    if pid.group == current_user.group || !Maintainer.first(:group => pid.group, :user => current_user).nil? || current_user.super
+      
+      # If the URL is even valid
+      if url =~ URI_REGEX || url.nil?
+        begin
+          # Notify any interested parties if the URL changed or the PID was deactivated
+          notify_interested_parties(pid, url) if (pid.url != url || active != "on")
+          
+          pid.revise({:url => (url.nil?) ? pid.url : url,
+                      :deactivated => (active == "on") ? false : true,
+                      :notes => (notes.nil?) ? pid.notes : notes,
+                      :group => (group.nil?) ? pid.group : group,
+                      :username => current_user.login,
+                      :modified_at => Time.now,
+                      :dead_pid_url => DEAD_PID_URL,
+                      :host => request.ip})
+                       
+          # Only search for duplicates if the URL has changed!
+          dups = (url != pid.url) ? hasDuplicate(url, pid.id) : []
+
+          # If there is already a PID out there using that URL
+          if !dups.empty? 
+            msg = MESSAGE_CONFIG['pid_duplicate_url_warn'].gsub('{?}', "<a href='#{hostname}link/#{dups[0]}'>#{dups[0]}</a>")
+          
+          else
+            # Check to see if the PID's URL is retuirning an http 200
+            good_url = verify_url(url)
+            if good_url >= 400
+              msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', good_url.to_s)
+            else
+              msg = MESSAGE_CONFIG['pid_update_success']
+            end  
+          end
+          
+          saved = true
+        
+        rescue Exception => e
+          msg = MESSAGE_CONFIG['pid_update_failure'] 
+          msg += e.message
+      
+          logger.error "#{current_user.login} - #{msg}\n#{e.message}"
+        end
+      
+      # The URL is an invalid format
+      else
+        msg = MESSAGE_CONFIG['pid_update_invalid_url']
+      end 
+    
+      # The user does not have permission to revise the PID!
+    else
+      msg = MESSAGE_CONFIG['pid_unauthorized']
+    end
+    
+    {:saved? => saved, :msg => msg, :pid => pid}
+  end
+  
+# --------------------------------------------------------------------------------------------------------------
+  def mint_pid(url, change_category, notes, host)
+    saved = false
+    
+    # If the URL is even valid
+    if url =~ URI_REGEX
+      begin
+        
+        dups = hasDuplicate(url, nil)
+      
+        if !dups.empty?
+          pid = Pid.first(:id => dups[0])
+
+          # If the Interested Party does not already exist
+          if Interested.first(:pid => pid, :group => current_user.group).nil?
+            interested = Interested.new(:pid => pid, :group => current_user.group)
+        
+            # Don't save the Interested record if the user's group already owns the PID!!!
+            interested.save if pid.group != current_user.group
+          end
+          
+          msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}link/#{pid.id}'>#{pid.id}</a>")
+        
+        # The URL doesn't exist
+        else
+          pid = Pid.mint(:url => url, 
+                         :username => current_user.login,
+                         :group => current_user.group,
+                         :change_category => change_category,
+                         :notes => notes,
+                         :host => host)
+                       
+          # Check to see if the PID's URL is retuirning an http 200
+          good_url = verify_url(url)
+          if good_url >= 400
+            msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', good_url.to_s)
+          else
+            msg = MESSAGE_CONFIG['pid_mint_success']
+          end 
+                        
+          saved = true
+        end
+      
+      rescue Exception => e
+        msg = MESSAGE_CONFIG['pid_mint_failure'] 
+        msg += e.message
+      
+        logger.error "#{current_user.login} - #{msg}\n#{e.message}"
+      end
+      
+    # The URL is an invalid format
+    else
+      msg = MESSAGE_CONFIG['pid_mint_invalid_url']
+    end 
+    
+    {:saved? => saved, :msg => msg, :pid => pid}
+  end
+  
 end

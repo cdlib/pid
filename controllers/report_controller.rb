@@ -225,11 +225,17 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   before '/report' do
     halt(401) unless logged_in?
+    
+    # If the user has a readonly account prevent them accessing anything
+    halt(403) if current_user.readonly
   end
       
 # --------------------------------------------------------------------------------------------------------------
   before '/report/*' do
     halt(401) unless logged_in?
+    
+    # If the user has a readonly account prevent them accessing anything
+    halt(403) if current_user.readonly
   end
   
 end

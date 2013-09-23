@@ -30,6 +30,11 @@
       <input type="hidden" id="active" name="active" value="<%= (@user.active) ? 'on' : 'off' %>" />
       <input type="hidden" id="locked" name="locked" value="<%= (@user.locked) ? 'on' : 'off' %>" />
     <% end %>
+    
+    <% if current_user.super %>
+      <label for="readonly"><%= HTML_CONFIG['form_readonly'] %></label>
+      <input type="checkbox" name="readonly" id="readonly" <% if @user.readonly %>checked="checked"<% end %> />
+    <% end %>
 
     <label for="login"><%= HTML_CONFIG['form_userid'] %></label>
     <input type="text" name="login" id="login" value="<%= @user.login %>" /><div id="login_chk" class="icon">&nbsp;</div>

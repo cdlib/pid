@@ -187,7 +187,7 @@ admin_text_super:
   </ul>"
 
 dead_pid_text:
-  "The PID you are looking for is no longer active. Please contact so and so if you think that this is an error."
+  "The PID you are looking for is no longer active. Please contact you local administrator if you think that this is an error."
 
 edit_pid_interested_parties: "The interested groups listed above will be notified of any changes you make to this PID."
 

@@ -3,9 +3,9 @@
   
   <form action="/report/stats" method="post">
     <label><%= HTML_CONFIG['form_url'] %></label>
-		<input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
+    <input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
     <div><%= HTML_CONFIG['form_search_url_instruction'] %></div>
-		
+    
     <label><%= HTML_CONFIG['form_userid'] %></label>
     <select id="userid" name="userid">
     <option value=""></option>
@@ -25,13 +25,13 @@
     <div> - </div> 
     <input type="date" id="created_high" name="created_high" value="<%= params[:created_high] %>" style="width: 150px;" />
     <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:created_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:created_max] %>)</div>
-		
+    
     <label><%= HTML_CONFIG['form_modified_date_range'] %></label>
     <input type="date" id="modified_low" name="modified_low" value="<%= params[:modified_low] %>" style="width: 150px;" />
     <div> - </div> 
     <input type="date" id="modified_high" name="modified_high" value="<%= params[:modified_high] %>" style="width: 150px;" />
     <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:modified_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:modified_max] %>)</div>
-		
+    
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
     <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
@@ -50,6 +50,7 @@
     <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
   
     <% unless @json == '' %>
+      <span style="left" id="rec_count"></span>
       <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
       <img src="/spinner.gif" id="spinner" />
@@ -84,6 +85,8 @@
   
   // Filter the json dataset for the current page
   var json_subset = paginate_json(json, 1);
+  
+  $("#rec_count").html(json.length + " records found");
   
   // Add a line to the table for each item in the JSON
   buildResultsTable(json_subset);

@@ -40,10 +40,10 @@
     
     <table>
         <tr><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th></tr>
-        <% @interested.each do |pid| %>
+        <% @interested.each do |interest| %>
           <tr>
-            <td><a href="/link/<%= pid.id %>" class="letterpress"><%= pid.id %></a></td>
-            <td><a href="<%= pid.url %>" class="underline" target="_blank"><%= pid.url %></a></td>
+            <td><a href="/link/<%= interest.id %>" class="letterpress"><%= interest.id %></a></td>
+            <td><a href="<%= interest.url %>" class="underline" target="_blank"><%= interest.url %></a></td>
           </tr>
       <% end %>
     </table>

@@ -21,7 +21,7 @@ class TestPid < Test::Unit::TestCase
       url = 'http://cdlib.org'
       url_revised = 'http://uclibs.org'
       link = Pid.mint(:url => url, :username => @user.login, :change_category => 'User_Entered', :group => @group)
-      link.revise(:url => url_revised, :username => @user.login, :notes => 'revising link', :change_category => 'User_Entered')
+      link.revise(:url => url_revised, :username => @user.login, :notes => 'revising link', :change_category => 'User_Entered', :group => @group)
       link.reload
       assert_equal url_revised, link.url
     end

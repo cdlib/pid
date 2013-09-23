@@ -62,13 +62,14 @@
   <section id="search_results">
     <img src="/spinner.gif" id="spinner" />
     
-		<% if params[:interesteds] == '1' %>
-			<h3><%= HTML_CONFIG['header_search_interested'] %></h3>
-		<% else %>
-    	<h3><%= HTML_CONFIG['header_search_results'] %></h3>
-		<% end %>
-		
+    <% if params[:interesteds] == '1' %>
+      <h3><%= HTML_CONFIG['header_search_interested'] %></h3>
+    <% else %>
+      <h3><%= HTML_CONFIG['header_search_results'] %></h3>
+    <% end %>
+    
     <% unless @json == '' %>
+      <span style="left" id="rec_count"></span>
       <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
       <table>
         <tr><th />
@@ -98,6 +99,8 @@
 
   // Setup table pagination
   paginate_init(<%= APP_CONFIG['search_results_limit'] %>, json.length);
+  
+  $("#rec_count").html(json.length + " records found");
   
   // Filter the json dataset for the current page
   var json_subset = paginate_json(json, 1);
@@ -155,6 +158,12 @@
   $("#reset").click( function() {
     event.preventDefault();
     reset_form_criteria('<%= HTML_CONFIG['unable_to_load_criteria_defaults'] %>');
+  });
+  
+  $("#pid_low").change(function() {
+    if($("#pid_high").val() == ""){
+      $("#pid_high").val($("#pid_low").val())
+    }
   });
   
   // Required by the pagination controls since rebuilding the nav tr would lose the above th.pagination click event

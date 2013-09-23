@@ -4,6 +4,7 @@
   <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
   
   <% unless @json == '' %>
+    <span style="left" id="rec_count"></span>
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
     <img src="/spinner.gif" id="spinner" />
@@ -41,6 +42,8 @@
   
   // Filter the json dataset for the current page
   var json_subset = paginate_json(json, 1);
+  
+  $("#rec_count").html(json.length + " records found");
   
   // Add a line to the table for each item in the JSON
   buildResultsTable(json_subset);

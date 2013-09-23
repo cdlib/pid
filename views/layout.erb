@@ -4,7 +4,7 @@
     
     <link rel="stylesheet" type="text/css" href="/css/pid.css" />
     <script type="text/javascript" src="/js/jquery-1.10.2.min.js"></script>
-		<script type="text/javascript" src="/js/pid.js"></script>
+    <script type="text/javascript" src="/js/pid.js"></script>
   </head>
   
   <body>
@@ -26,19 +26,24 @@
               <li class="grey">|</li>
               <li><a href="/link/search"><%= HTML_CONFIG['nav_pid_search'] %></a></li>
               <li class="grey">|</li>
-              <li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
-              <li class="grey">|</li>
-              <li><a href="/link/edit"><%= HTML_CONFIG['nav_pid_update'] %></a></li>
-              <li class="grey">|</li>
-              <li><a href="/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
-              <% if @super || is_group_maintainer? %>
+              
+              <% if !@readonly %>
+                <li><a href="/link/new"><%= HTML_CONFIG['nav_pid_create'] %></a></li>
                 <li class="grey">|</li>
-                <li><a href="/user/admin"><%= HTML_CONFIG['nav_admin'] %></a></li>
-              <% elsif !current_user.nil? %>
+                <li><a href="/link/edit"><%= HTML_CONFIG['nav_pid_update'] %></a></li>
                 <li class="grey">|</li>
-                <li><a href="/user/<%= current_user.id %>"><%= HTML_CONFIG['nav_user'] %></a></li>
+                <li><a href="/report"><%= HTML_CONFIG['nav_reports'] %></a></li>
+                <li class="grey">|</li>
               <% end %>
-              <li class="grey">|</li>
+              
+              <% if @super || is_group_maintainer? %>
+                <li><a href="/user/admin"><%= HTML_CONFIG['nav_admin'] %></a></li>
+                <li class="grey">|</li>
+              <% elsif !current_user.nil? %>
+                <li><a href="/user/<%= current_user.id %>"><%= HTML_CONFIG['nav_user'] %></a></li>
+                <li class="grey">|</li>
+              <% end %>
+              
               <li><a href="/user/logout" class="navy"><%= HTML_CONFIG['nav_logout'] %></a></li>
             </ul>
           </div>

@@ -28,6 +28,7 @@ class User
   property :locked_timer, Integer, :required => false
   property :failed_login_attempts, Integer, :default => 0
   property :last_login, Date, :required => false
+  property :reset_attempts, Integer, :required => false, :default => 0
   property :reset_code, String, :required => false
   property :reset_timer, Integer, :required => false
   property :super, Boolean, :default => false
@@ -35,6 +36,7 @@ class User
   property :salt, String
   property :created_at, DateTime
   property :host, String, :length => 30
+  propertry :readonly, Boolean, :default => false
   
   attr_accessor :password
 
@@ -94,6 +96,7 @@ class User
   def reset_password()
     self.reset_code = User.random_string(20)
     self.reset_timer = Time.now.to_i
+    self.reset_attempts = self.reset_attempts + 1
   end
 
   def self.active

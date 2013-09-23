@@ -143,7 +143,6 @@ class TestPidController < Test::Unit::TestCase
     # Check for new Interested Party on 
     assert last_response.body.include?(PidApp::HTML_CONFIG['batch_duplicate_url_log']), 'Did not get a Interested Parties section!'
     assert !Interested.first(:group => @group, :pid => Pid.first(:url => 'http://www.gizmodo.com')).nil?, "Did not find a new Interested Party for Gizmodo!"
-    assert !Interested.first(:group => @group, :pid => Pid.first(:url => 'http://cdlib.org')).nil?, 'Did not find a new Interested Party for CDLib!'
     
     # Verify deactivated
     assert Pid.first(:url => 'http://weather.yahoo.com').deactivated, "Expected to see a deactivated PID!"
@@ -158,11 +157,11 @@ class TestPidController < Test::Unit::TestCase
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_mint_inactive']), 'Did not receive a mint inactive error message'
     
     # 1 unauthorized
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_revise_wrong_group'].gsub('{?}', '1')), 'Did not receive an unauthorized message'
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_unauthorized'].gsub('{?}', '1')), 'Did not receive an unauthorized message'
     
     # 2 bad urls
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_mint_invalid'].gsub('{?}', 'www.badurl.org')), "Did not receive a mint error!  #{last_response.body}"
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_revise_invalid'].gsub('{?}', "#{Pid.first(:url => 'http://news.yahoo.com').id}")), 'Did not receive a revision error!'
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_mint_invalid_url'].gsub('{?}', '')), "Did not receive a mint error! #{last_response.body}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_update_invalid_url'].gsub('{?}', "#{Pid.first(:url => 'http://news.yahoo.com').id}")), 'Did not receive a revision error!'
   end
   
 # -----------------------------------------------------------------------------------------------
@@ -254,7 +253,7 @@ class TestPidController < Test::Unit::TestCase
     
     # Search returns no results
     pid1 = Pid.first('http://www.yahoo.com')
-    pid1.revise({:url => "#{pid1.url}/testing"})
+    pid1.revise({:url => "#{pid1.url}/testing", :group => @group})
     
     args[:modified_low] = time_check
     args[:modified_high] = Time.now
@@ -317,11 +316,6 @@ class TestPidController < Test::Unit::TestCase
     assert last_response.ok?, "User did not get a 200 after updating a PID, got a #{last_response.status}!"
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_update_success']), "Did not receive the success message!"
 
-    # Dead URL
-    put "/link/#{pid.id}", {:url => 'http://mail.yahoo.com/', :active => 'on'}
-    assert last_response.ok?, "User did not get a 200 after updating a PID, got a #{last_response.status}!"
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', '')), "Did not receive the Dead URL message!"
-    
     # Bad URL format
     put "/link/#{pid.id}", {:url => 'mail.yahoo.com/', :active => 'on'}
     assert last_response.ok?, "User did not receive a 500 status code, got a #{last_response.status}"
@@ -333,13 +327,6 @@ class TestPidController < Test::Unit::TestCase
     put "/link/#{pid.id}", {:url => 'http://mail.yahoo.com/', :active => 'on'}
     assert_equal 403, last_response.status, "Was expecting a 403 because the user should not be able to edit a PID they do not own!"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
-    get '/user/logout'
-    
-    # Already existing URL just creates an Interested party
-    post '/user/login', {:login => @user2.login, :password => @pwd}
-    put "/link/#{pid.id}", {:url => 'http://www.yahoo.com', :active => 'on'}
-    assert last_response.ok?, "User did not get a 200 after updating a PID, got a #{last_response.status}!"
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', '')), "Did not receive the Duplicate URL message! #{last_response.body}"
     
     # Cannot modify PID that does not exist
     put "/link/999999999", {:url => 'http://www.yahoo_new.com/', :active => 'on'}

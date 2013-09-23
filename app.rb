@@ -138,17 +138,23 @@ class PidApp < Sinatra::Application
       SkipCheck.all().each{ |it| skip = true if url.downcase.include?(it.domain.downcase) }
       
       if !skip
-            
-        #Test to make sure this a valid URL
-        uri = URI.parse(url)
-        req = Net::HTTP.new(uri.host, uri.port)
-        if uri.path.empty?
-          res = req.request_get(url)
-        else
-          res = req.request_head(uri.path) 
+        begin
+          #Test to make sure this a valid URL
+          uri = URI.parse(url)
+          req = Net::HTTP.new(uri.host, uri.port)
+          if uri.path.empty?
+            res = req.request_get(url)
+          else
+            res = req.request_head(uri.path) 
+          end
+        
+          res.code.to_i
+      
+        rescue Exception => e
+          logger.error "#{current_user.login} - verify_url: #{e.message}"
+          404
         end
           
-        res.code.to_i  
       else
         200
       end
@@ -159,18 +165,11 @@ class PidApp < Sinatra::Application
 # Check Redis to see if the specified PID has the same URL as another PID
 # ---------------------------------------------------------------------------------------------------        
     def hasDuplicate(url, pid)
-      shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
       ret = []
       
-      # Convert the string returned by Redis to an array
-      pids = shorty.get(url)
+      Pid.all(:url => url).each{ |pid| ret << pid.id }
       
-      if !pids.nil?
-        pids = pids.gsub(/[\[\]"]/, '').split(',')
-      
-        # Add the PID's id to the return array if its not the pid specified
-        pids.each { |it| ret << it unless it == pid } unless pids.empty?
-      end
+      ret.delete(pid) unless ret.empty?
       
       ret
     end

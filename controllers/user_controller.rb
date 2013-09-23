@@ -105,6 +105,7 @@ class PidApp < Sinatra::Application
           usr.password = params[:password]
           usr.reset_timer = nil
           usr.reset_code = nil
+          usr.reset_attempts = 0
           usr.host = request.ip
           usr.save
           
@@ -153,25 +154,53 @@ class PidApp < Sinatra::Application
       if !params['login'].empty?
         usr = User.first(:login => params['login'])
         if !usr.nil?
-          usr.reset_password()
-          usr.save
+          # If the account is locked do not allow the reset request
+          if usr.locked
+            @msg = MESSAGE_CONFIG['account_locked']
+            @msg = @msg.gsub('${?}', SECURITY_CONFIG['release_account_lock_after'].to_s) if !SECURITY_CONFIG['release_account_lock_after'].nil?
+          else
+            if usr.reset_attempts < SECURITY_CONFIG['max_login_attempts'].to_i
+              usr.reset_password()
+              usr.host = request.ip
+              usr.save
           
-          # Create the reset URL
-          url = "#{hostname}user/reset?n=#{usr.id}&c=#{usr.reset_code}"
+              # Create the reset URL
+              url = "#{hostname}user/reset?n=#{usr.id}&c=#{usr.reset_code}"
           
-          # Get the notification email settings
-          cc = SECURITY_CONFIG['password_reset_email_cc']
-          bc = SECURITY_CONFIG['password_reset_email_bcc']
-          subject = SECURITY_CONFIG['password_reset_email_subject']
-          body = SECURITY_CONFIG['password_reset_email_body'].gsub('{?name?}', usr.name).gsub('{?url?}', url).gsub('{?affiliation?}', 
-                  usr.affiliation.to_s).gsub('{?group?}', usr.group.id).gsub('{?timeframe?}', SECURITY_CONFIG['password_reset_timeout'].to_s)
+              # Get the notification email settings
+              cc = SECURITY_CONFIG['password_reset_email_cc']
+              bc = SECURITY_CONFIG['password_reset_email_bcc']
+              subject = SECURITY_CONFIG['password_reset_email_subject']
+              body = SECURITY_CONFIG['password_reset_email_body'].gsub('{?name?}', usr.name).gsub('{?url?}', url).gsub('{?affiliation?}', 
+                    usr.affiliation.to_s).gsub('{?group?}', usr.group.id).gsub('{?timeframe?}', SECURITY_CONFIG['password_reset_timeout'].to_s)
           
-          send_email(usr.email, subject, body)
+              send_email(usr.email, subject, body)
           
-          @msg = MESSAGE_CONFIG['user_password_reset_email']
+              @msg = MESSAGE_CONFIG['user_password_reset_email']
+            
+            # Too many reset password attempts have been made, so lock the account
+            else
+              usr.locked = true
+              usr.reset_attempts = 0
+              usr.host = request.ip
+              usr.save
+            
+              # Get the administrator notification email settings
+              to = SECURITY_CONFIG['account_lock_email_to']
+              cc = SECURITY_CONFIG['account_lock_email_cc']
+              subject = SECURITY_CONFIG['account_lock_email_subject']
+              body = SECURITY_CONFIG['account_lock_email_body'].gsub('{?login?}', usr.login).gsub('{?name?}', usr.name).gsub('{?email?}', 
+                                      usr.email).gsub('{?ip?}', request.ip)
+            
+              send_email(to, subject, body)
+            
+              @msg = MESSAGE_CONFIG['user_password_forgot_max_attempts']
+            end
+          end
         else
           halt(404)
         end
+        
       else
         @msg = MESSAGE_CONFIG['no_login']
         500
@@ -251,7 +280,8 @@ class PidApp < Sinatra::Application
                               :name => params[:name], 
                               :affiliation => params[:affiliation], 
                               :active => true,
-                              :group => params[:group].nil? ? current_user.group : Group.first(:id => params[:group]) )
+                              :group => params[:group].nil? ? current_user.group : Group.first(:id => params[:group]),
+                              :readonly => (current_user.super) ? (params[:readonly] == 'on') : @user.readonly )
 
           new_user.save
         
@@ -325,7 +355,8 @@ class PidApp < Sinatra::Application
                       :active => (params[:active] == 'on'),
                       :locked => (params[:locked] == 'on'),
                       :group => (params[:group]) ? Group.first(:id => params[:group]) : current_user.group,
-                      :host => request.ip)
+                      :host => request.ip,
+                      :readonly => (current_user.super) ? (params[:readonly] == 'on') : @user.readonly)
         
           # If a password change was entered, update the user's password
           @user.update(:password => params[:password].strip) if !params[:password].nil? && params[:password] == params[:confirm]
@@ -366,6 +397,9 @@ class PidApp < Sinatra::Application
   # Only super admins can create/delete groups nor can they load the group list or new group pages!
   before /^\/user\/(?!(forgot|reset|login|logout))/ do
     halt(401) unless logged_in?
+    
+    # If the user has a readonly account prevent them from running the post/put/delete commands!
+    halt(403) if ['post', 'delete'].include?(request.request_method) && current_user.readonly
   end
 
 # --------------------------------------------------------------------------------------------------------------
@@ -380,6 +414,7 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   after '*' do
     session[:msg] = nil
+    @readonly = current_user.readonly
   end
 
 # --------------------------------------------------------------------------------------------------------------

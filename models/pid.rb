@@ -12,6 +12,7 @@ class PidVersion
       :format => 'You cannot save a historical version of a PID that has an invalid URL!'
     }
   property :username, String, :length => 20, :format => /[a-z]{3,20}/, :required => true
+  property :group, String, :length => 20
   property :created_at, DateTime, :required => true
   property :notes, String, :length => 250
   property :host, String, :length => 30
@@ -109,7 +110,7 @@ class Pid
           #Otherwise we're updating so set the modified_at to now
           else
             revise_params = {}
-            [:change_category, :url, :username, :notes, :deactivated].each { |key| revise_params[key] = params[key] }
+            [:change_category, :url, :username, :notes, :deactivated, :group].each { |key| revise_params[key] = params[key] }
             
             pid.attributes = revise_params.merge(:modified_at => (is_seed) ? params[:modified_at] : now)
           end
@@ -123,6 +124,8 @@ class Pid
         #Save the version
         version_params = {:pid => pid}
         [:change_category, :url, :username, :notes, :deactivated].each { |key| version_params[key] = params[key] }
+
+        version_params[:group] = params[:group].id
 
         ver = nil
         if is_seed
