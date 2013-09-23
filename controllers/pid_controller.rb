@@ -249,10 +249,10 @@ class PidApp < Sinatra::Application
       args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
 
       # Filter the results to the user's group unless the user is an admin
-      if !Maintainer.all(:user => current_user).empty? and !current_user.super
+      if !Maintainer.all(:user => current_user).empty? and !current_user.super and !current_user.read_only
         Maintainer.all(:user => current_user).each{ |maintainer| (Pid.all(args) & Pid.all(:group => maintainer.group)).each{ |pid| results << pid } }
       else
-        args[:group] = current_user.group unless current_user.super
+        args[:group] = current_user.group unless current_user.super or current_user.read_only
       
         results = Pid.all(args)
       end
