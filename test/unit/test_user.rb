@@ -2,43 +2,130 @@ require_relative '../test_helper'
 
 class TestUser < Test::Unit::TestCase
   
-    def setup
-      Pid.flush!
-      @group = Group.new(:id => 'TEST', :name => 'test_group')
-      @group.save
-    end
+  def setup
+    Pid.flush!
+    @group = Group.new(:id => 'TEST', :name => 'test_group')
+    @group.save
     
-    def test_create_new
-      user = User.new(:login => 'test_user', :name => 'Test User', :email => 'test@example.org')
-      user.group = @group
-      user.save
-      assert_equal User.first.login, 'test_user'
-    end
+    @pwd = 'password'
     
-    def test_modify
-      user = User.new(:login => 'test_user', :name => 'Test User', :email => 'test@example.org')
-      user.group = @group
-      user.save
-      assert_equal User.first.name, 'Test User'
-      user.name = 'New Name'
-      user.save
-      assert_equal User.first.name, 'New Name'
-    end
+    @user = User.new(:login => 'test_user', :name => 'Test', :email => 'test@example.org', :group => @group, :password => @pwd)
+    @user.save
+  end
     
-    def test_active_and_deactivated_users
-      user1 = User.new(:login => 'test_user1', :name => 'Test User1', :email => 'test@example.org')
-      user1.group = @group
-      user1.save
-      user2 = User.new(:login => 'test_user2', :name => 'Test User2', :email => 'test2@example.org')
-      user2.group = @group
-      user2.save
-      assert_equal User.active.count, 2
-      assert_equal User.deactivated.count, 0
-      user1.active = false
-      user1.save
-      assert_equal user1.active?, false
-      assert_equal User.active.count, 1
-      assert_equal User.deactivated.count, 1
-    end
+# -----------------------------------------------------------------------------------------------     
+  def test_create_new
+    # Make sure we can save a new user
+    assert !User.first(:login => @user.login).nil?, "Unable to create a user"
+    
+    # Make sure the password was encrypted and a salt was created
+    assert User.first(:login => @user.login).hashed_password != @pwd, "Password was not encrypted. It was stored as clear text!"
+    assert !User.first(:login => @user.login).salt.nil?, "No password salt was generated!"
+    
+    # Make sure we cannot save a duplicate Login Id
+    assert_raise(DataMapper::SaveFailureError){ User.new(:login => @user.login, :name => 'Test', :email => 'test@example.org', :password => @pwd).save }
+    
+    # Make sure we cannot save a User without a login
+    assert_raise(DataMapper::SaveFailureError){ User.new(:name => 'Test User', :email => 'test@example.org', :password => @pwd).save }
+    
+    # Make sure we cannot save a User without a name
+    assert_raise(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :email => 'test@example.org', :password => @pwd).save }
+    
+    # Make sure we cannot save a User without an email
+    assert_raise(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :name => 'Test User', :password => @pwd).save }
+    
+    # Make sure we cannot save a User with an invalid email
+    assert_raise(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :name => 'Test User', :email => 'test', :password => @pwd).save }
+  end
+  
+# -----------------------------------------------------------------------------------------------   
+  def test_modify
+    user = User.new(:login => 'new_user', :name => 'New', :email => 'new@example.org', :group => @group, :password => @pwd)
+    user.save
+    
+    # Make sure we can modify a user record
+    user.name = 'New Name'
+    user.save
+    assert_equal User.first(:login => 'new_user').name, 'New Name'
+    
+    # Make sure we cannot save a duplicate Login Id
+    user.login = "test_user"
+    assert_raise(DataMapper::SaveFailureError){ user.save }
+    
+    # Make sure we cannot save a User without a login
+    user.login = ""
+    assert_raise(DataMapper::SaveFailureError){ user.save }
+    user.login = "new_user"
+    
+    # Make sure we cannot save a User without a name
+    user.name = ""
+    assert_raise(DataMapper::SaveFailureError){ user.save }
+    user.name = "New Name"
+    
+    # Make sure we cannot save a User without an email
+    user.email = ""
+    assert_raise(DataMapper::SaveFailureError){ user.save }
+    
+    # Make sure we cannot save a User with an invalid email
+    user.email = "new"
+    assert_raise(DataMapper::SaveFailureError){ user.save }
+    
+  end
+  
+# -----------------------------------------------------------------------------------------------   
+  def test_authenticate
+    # Make sure we can authenticate
+    assert !User.authenticate(@user.login, @pwd).nil?, "Unable to authenticate!"
+    
+    # Make sure authentication fails with bad login
+    assert User.authenticate('new_user', @pwd).nil?, "Able to authenticate as non-existent user!"
+    
+    # Make sure authentication fails with bad password
+    assert User.authenticate(@user, 'badpassword').nil?, "Able to authenticate with a bad password!"
+    
+    # Make sure authentication fails with bad login id and bad password
+    assert User.authenticate(@user, 'badpassword').nil?, "Able to authenticate with a bad password!"
+  end
+  
+# -----------------------------------------------------------------------------------------------   
+  def test_encrypt_password
+    assert @pwd != User.encrypt(@pwd, @user.salt), "Unable to encrypt the password!"
+  end
+
+# -----------------------------------------------------------------------------------------------     
+  def test_reset_password
+    @user.reset_password
+    @user.save
+    @user.reload
+    
+    assert !@user.reset_code.nil?, "The reset command did not set the reset code and timer!"
+  end
+  
+# -----------------------------------------------------------------------------------------------   
+  def test_active_and_deactivated_users
+    user = User.new(:login => 'new_user', :name => 'New', :email => 'new@example.org', :group => @group, :password => @pwd)
+    user.save
+    
+    # Make sure the active check succeeds
+    assert user.active?, "The user was not active!"
+    
+    # Make sure there are 2 active users
+    assert_equal User.active.count, 2, "Did not find 2 active users!"
+    
+    user.active = false
+    user.save
+    
+    #Make sure the active check fails
+    assert !user.active?, "The user is still active!"
+    
+    # Make sure there is 1 active user and 1 inactive user
+    assert_equal User.active.count, 1
+    assert_equal User.deactivated.count, 1
+  end
+  
+# -----------------------------------------------------------------------------------------------   
+  def test_random_string
+    assert User.random_string(10) != User.random_string(10), "The User object did not generate separate random strings!"
+  end
     
 end

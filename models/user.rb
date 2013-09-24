@@ -1,4 +1,12 @@
+# -----------------------------------------------------------------------------------------------   
+# Represents a user of the system
+#
+# If super is set to true the user is a super admin and has full access to everything (no group restrictions)
+# If readonly is set to true the user will only be able to search for and view PIDs (no group restrictions)
+# -----------------------------------------------------------------------------------------------   
+
 require 'digest/sha1'
+
 class User
   include DataMapper::Resource
   belongs_to :group, :required => false
@@ -32,28 +40,32 @@ class User
   property :reset_code, String, :required => false
   property :reset_timer, Integer, :required => false
   property :super, Boolean, :default => false
-  property :hashed_password, String
-  property :salt, String
+  property :hashed_password, String, :required => true
+  property :salt, String, :required => true
   property :created_at, DateTime
   property :host, String, :length => 30
   property :read_only, Boolean, :default => false
   
   attr_accessor :password
 
+# -----------------------------------------------------------------------------------------------   
   def active?
     self.active
   end
   
+# -----------------------------------------------------------------------------------------------   
   def password=(pass)
     @password = pass
     self.salt = User.random_string(10) unless self.salt
     self.hashed_password = User.encrypt(@password, self.salt)
   end
 
+# -----------------------------------------------------------------------------------------------   
   def self.encrypt(pass, salt)
     Digest::SHA1.hexdigest(pass.to_s + salt.to_s)
   end
 
+# -----------------------------------------------------------------------------------------------   
   def self.authenticate(login, pass)    
     u = User.first(:login => login)
     return nil if u.nil?
@@ -82,14 +94,16 @@ class User
     return u if User.encrypt(pass, u.salt) == u.hashed_password
       nil
   end
-  
+
+# -----------------------------------------------------------------------------------------------     
   def self.random_string(len)
     chars = ("a".."z").to_a + ("A".."Z").to_a + ("0".."9").to_a
     str = ""
     1.upto(len) { |i| str << chars[rand(chars.size-1)] }
     return str
   end
-  
+
+# -----------------------------------------------------------------------------------------------   
   # A password reset creates a random reset key and starts a timer. An email gets sent to the user that contains a url. That url contains
   # the reset key in its query string. If the key matches and the reset page is opened within the timeframe defined in the security.yml file,
   # the user is able to reset their password without logging in.
@@ -99,14 +113,17 @@ class User
     self.reset_attempts = self.reset_attempts + 1
   end
 
+# -----------------------------------------------------------------------------------------------   
   def self.active
     User.all(:active => true)
   end
-  
+
+# -----------------------------------------------------------------------------------------------   
   def self.deactivated
     User.all(:active => false)
   end
-  
+
+# -----------------------------------------------------------------------------------------------   
   def self.flush!
     DataMapper.auto_migrate!
   end

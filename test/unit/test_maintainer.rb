@@ -6,8 +6,8 @@ class TestMaintainer < Test::Unit::TestCase
     @group = Group.new(:id => 'TEST', :name => 'test_group')
     @group.save
 
-    @user = User.new(:login => 'test_user', :name => 'Test User 1', :email => 'test.user@example.org', :group => @group)
-    @mngr = User.new(:login => 'test_mngr', :name => 'Test Manager', :email => 'test.mngr@example.org', :group => @group)
+    @user = User.new(:login => 'test_user', :name => 'Test User 1', :email => 'test.user@example.org', :group => @group, :password => 'secret')
+    @mngr = User.new(:login => 'test_mngr', :name => 'Test Manager', :email => 'test.mngr@example.org', :group => @group, :password => 'secret')
     @mngr.save
     @user.save
 

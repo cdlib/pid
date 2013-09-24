@@ -1,5 +1,9 @@
+class PidException < Exception
+end
 
+# -----------------------------------------------------------------------------------------------   
 # Represents a historical snapshot of a PID, a new PidVersion record is created everytime a change is made to a PID
+# -----------------------------------------------------------------------------------------------   
 class PidVersion
   include DataMapper::Resource
   belongs_to :pid
@@ -20,7 +24,9 @@ class PidVersion
   validates_format_of :url, :with => PidApp::URI_REGEX
 end
 
+# -----------------------------------------------------------------------------------------------   
 # Represents a Persistent Identifier (PID).
+# -----------------------------------------------------------------------------------------------   
 class Pid
   include DataMapper::Resource
   has n, :pid_versions
@@ -60,9 +66,7 @@ class Pid
   # establish a connection to the REDIS database
   @@shorty = Shortcake.new('pid', {:host => PidApp::APP_CONFIG['redis_host'], :port => PidApp::APP_CONFIG['redis_port']})
 
-  # ---------------------------------------------------------------
-  # Make a revision/change to the PID
-  # ---------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------   
   def revise(params)  
     begin
       #If we're seeding its ok for the modified_at to come through as a param
@@ -81,9 +85,7 @@ class Pid
     end
   end
   
-  # ------------------------------------------------------------------------------
-  # Save the PID, this method will determine whether we're inserting/updating
-  # ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------   
   def self.create_or_update(params)
     is_seed = (params[:is_seed].nil?) ? false : params[:is_seed]
     dead_pid_url = params[:dead_pid_url]
@@ -162,38 +164,41 @@ class Pid
         
         pid
         
-      rescue Exception => e
+      rescue Exception => e     
         t.rollback       
-        raise e
+        raise PidException, e.message
       end
       
     end
   end
   
-  # --------------------------------------------------------------------------------------
-  # Methods that prevent the DataMapper object from performing its normal CRUD operations
-  # --------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------   
   def self.mint(params)
     Pid.create_or_update(params)
   end
 
+# -----------------------------------------------------------------------------------------------   
   def self.flush!
     Pid.flush_shortcake!
     Pid.flush_db!
   end
   
+# -----------------------------------------------------------------------------------------------   
   def self.flush_shortcake!
     @@shorty.flushall!
   end
   
+# -----------------------------------------------------------------------------------------------   
   def self.flush_db!
     DataMapper.auto_migrate!(:default)
   end
-  
+
+# -----------------------------------------------------------------------------------------------   
   def self.reconcile
     Pid.count == @@shorty.dbsize
   end
-  
+
+# -----------------------------------------------------------------------------------------------   
   before :save do |post|
     # restriction for saving, updating. ensure handling through create_or_update for shortcake syncing
     unless self.mutable
@@ -201,6 +206,7 @@ class Pid
     end
   end
   
+# -----------------------------------------------------------------------------------------------   
   before :update do |post|
     # restriction for saving, updating. ensure handling through create_or_update for shortcake syncing
     unless self.mutable
@@ -208,6 +214,7 @@ class Pid
     end
   end
   
+# -----------------------------------------------------------------------------------------------   
   before :destroy do |post|
     # pids are immutable
     throw :halt

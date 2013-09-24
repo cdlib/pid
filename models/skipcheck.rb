@@ -1,3 +1,8 @@
+# -----------------------------------------------------------------------------------------------   
+# Represents a domain that we will ignore when doing url validation for PIDs
+#
+# This list is managed by super admins and Group Maintainers/Managers
+# -----------------------------------------------------------------------------------------------   
 class SkipCheck
   include DataMapper::Resource
   
