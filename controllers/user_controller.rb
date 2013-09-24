@@ -433,7 +433,7 @@ class PidApp < Sinatra::Application
   error 401 do
     @msg = MESSAGE_CONFIG['session_expired']
     @msg if request.xhr?
-    erb :login, :layout => false unless request.xhr?
+    erb :login unless request.xhr?
   end
 
 # --------------------------------------------------------------------------------------------------------------
