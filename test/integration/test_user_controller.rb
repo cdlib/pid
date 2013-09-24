@@ -242,26 +242,26 @@ class TestUserController < Test::Unit::TestCase
     
     # As a user updating their own record
     post '/user/login', {:login => @user.login, :password => @pwd}
-    put "/user/#{@user.id}", {:name => 'Updated my name'}
+    put "/user/#{@user.id}", {:name => 'Updated my name', :password => ''}
     assert last_response.ok?, "User was unable to update their own profile!"
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "User did not receive the success message!"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "User did not receive the success message! #{last_response.body}"
     
     # As a user updating another's record - should fail!
-    put "/user/#{@mgr.id}", {:name => 'Updated another users name'}
+    put "/user/#{@mgr.id}", {:name => 'Updated another users name', :password => ''}
     assert_equal 403, last_response.status, "Was expecting a 403 because the user cannot update another user's profile!"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
     get '/user/logout'
     
     # As a manager updating one of their users
     post '/user/login', {:login => @mgr.login, :password => @pwd}
-    put "/user/#{@user.id}", {:name => 'Updated user name'}
+    put "/user/#{@user.id}", {:name => 'Updated user name', :password => ''}
     assert last_response.ok?, "Unable to update a user as a Manager/Maintainer!"
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "Maintainer did not receive the success message!"
     get '/user/logout'
     
     # As a manager updating one of their users
     post '/user/login', {:login => @adm.login, :password => @pwd}
-    put "/user/#{@user.id}", {:name => 'Updated user name'}
+    put "/user/#{@user.id}", {:name => 'Updated user name', :password => ''}
     assert last_response.ok?, "Unable to update a user as a Admin!"
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "Admin did not receive the success message!"
     get '/user/logout'

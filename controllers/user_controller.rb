@@ -281,7 +281,7 @@ class PidApp < Sinatra::Application
                               :affiliation => params[:affiliation], 
                               :active => true,
                               :group => params[:group].nil? ? current_user.group : Group.first(:id => params[:group]),
-                              :read_only => (current_user.super) ? (params[:read_only] == 'on') : @user.read_only )
+                              :read_only => (current_user.super) ? (params[:read_only] == 'on') : false )
 
           new_user.save
         
@@ -369,7 +369,7 @@ class PidApp < Sinatra::Application
         @msg = MESSAGE_CONFIG['user_update_failure']
         @msg += "<br /><br />#{e.message}" if current_user.super
         @msg += '<br /><br />' + @user.errors.inspect if current_user.super
-        
+
         logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
       end
 
