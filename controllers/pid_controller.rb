@@ -64,9 +64,9 @@ class PidApp < Sinatra::Application
     @pid = Pid.get(params[:id])
     
     if @pid
-      # If the user's group owns the PID, the user is a super admin, 
+      # If the user's group owns the PID, the user is a super admin, the user has a read only account,
       #      the user is a maintainer of the PID's group, or the user's group is an Interested Party
-      if current_user.group == @pid.group || current_user.super || 
+      if current_user.group == @pid.group || current_user.super || current_user.read_only ||
                                   !Maintainer.first(:group => @pid.group, :user => current_user).nil? ||
                                   !Interested.first(:group => current_user.group, :pid => @pid).nil?
 
@@ -394,6 +394,8 @@ class PidApp < Sinatra::Application
     
     # If the user has a readonly account prevent them from running the post/put/delete commands!
     halt(403) if ['post', 'put', 'delete'].include?(request.request_method) && current_user.read_only
+    
+    halt(403) if ['/link/edit', '/link/new'].include?(request.path) && current_user.read_only
   end
 
 # --------------------------------------------------------------------------------------------------------------

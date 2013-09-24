@@ -23,7 +23,7 @@ header_pid_edit: 'Update PIDs'
 header_pid_history: 'History'
 header_pid_inactive: 'Inactive!'
 header_pid_register: 'Mint a new PID'
-header_pid_register_dead_url: 'The following PID(s) were created but they point to a URL that does not return an HTTP 200 status code!'
+header_pid_register_dead_url: 'The following PID(s) were created but the URL seems to be returning a 404 - Page not Found or a 500 - Server Error!<br />Please double check the URL to make sure its correct.'
 header_pid_register_duplicate_url: 'The following PID(s) are already defined for the following URL(s)'
 header_pid_register_success: 'Successfully created the following PID(s)'
 header_pid_view: 'PID:'
@@ -72,6 +72,7 @@ form_created_date_range: 'Created Date Range:'
 form_description: 'Description:'
 form_domain: 'Domain'
 form_email: 'Email:'
+form_file: 'CSV File:'
 form_group: 'Group:'
 form_group_maintainer: 'Can maintain group?'
 form_group_name: 'Name:'
@@ -130,7 +131,7 @@ button_create_group: 'Save'
 button_csv_download: 'Download as CSV'
 button_forgotten_password: 'Reset my password'
 button_login: 'Login'
-button_process_batch: 'Upload'
+button_process_batch: 'Process File'
 button_register_user: 'Save'
 button_reset: 'Reset'
 button_reset_password: 'Save'
@@ -138,6 +139,7 @@ button_save_group: 'Save'
 button_save_user: 'Save'
 button_search: 'Search'
 button_update_pid: 'Save'
+button_file_upload: 'Choose File'
 
 # Table headings
 th_active: 'Active?'
@@ -153,6 +155,7 @@ th_email: 'Email'
 th_group: 'Group'
 th_group_name: 'Name'
 th_groupid: 'Group Id'
+th_last_activity: 'Last Activity On'
 th_last_modified_by: 'Last Modified By'
 th_last_modified_on: 'Last Modified On'
 th_locked: 'Locked?'
@@ -196,12 +199,19 @@ edit_pid_not_owner: "You are not the owner of this PID and cannot make changes!<
 
 edit_pid_text:
   "Select the CSV file that contains your changes. The file should be in the following format (without headers!): <br /><br />
-  &nbsp;&nbsp;PID Id, New URL, Change Category, Notes<br /><br />
-  The PID Id column should only contain the PID's number, not the entire URL.<br />
-  If you leave the PID Id blank, the system will attempt to mint a new PID.<br />
-  If you would like to deactivate a PID, leave its URL blank.<br />
-  There is no limit to the number of PIDs you can update at one time.<br /><br />
-  If any of the PIDs you are updating are used by other groups, they will be notified of the change via email."
+  &nbsp;&nbsp;PID Id, New URL, Change Category, Notes<br /><br /><br />
+  To edit a PID you would include both the PID Id and the new URL<br />
+  &nbsp;&nbsp;1234,http://www.newsite.org/pageA,Sample,Sample Edit PID<br /><br />
+  To mint a new PID you would leave the PID Id blank.<br />
+  &nbsp;&nbsp;,http://www.somesite.com/page,Sample,Sample Mint New PID<br /><br />
+  To deactivate a PID you would leave its URL blank. (This will not actually delete the URL, just deactivate the PID)<br />
+  &nbsp;&nbsp;1234,,Sample,Sample Deactivation<br /><br />"
+
+edit_pid_text_2:
+  "- The PID Id column should only contain the PID's number, not the entire URL. (e.g. 1234 not /PID/1234)<br /><br />
+  - You may mix edit, mint, and deactivate records within the same file.<br /><br />
+  - There is a 20MB limit to the size of the CSV file. Large files may take a long time to finish processing!<br /><br />
+  - If any of the PIDs you are updating are used by other groups, they will be notified of the change via email."
 
 error_text:
   "Oops, something went wrong! Please use your browser's back button and try that again."

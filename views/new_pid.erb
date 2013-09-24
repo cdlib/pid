@@ -28,9 +28,6 @@
     
     <% if !@failures.empty? %>
       <%= HTML_CONFIG['create_pids_some_errors'] %>
-      <% @failures.each do |failure| %>
-        <%= failure %>
-      <% end %>
     <% end %>
 </section>
 

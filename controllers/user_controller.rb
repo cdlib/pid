@@ -236,7 +236,7 @@ class PidApp < Sinatra::Application
       end
         
       # Sort the user list by login
-      @users.sort_by{ |x,y| x.login <=> y.login unless x.nil? || y.nil? }
+      @users.sort!{ |x,y| x.login <=> y.login unless x.nil? || y.nil? }
         
       erb :list_users
     else
@@ -359,7 +359,7 @@ class PidApp < Sinatra::Application
                       :read_only => (current_user.super) ? (params[:read_only] == 'on') : @user.read_only)
         
           # If a password change was entered, update the user's password
-          @user.update(:password => params[:password].strip) if !params[:password].nil? && params[:password] == params[:confirm]
+          @user.update(:password => params[:password].strip) if params[:password].strip != '' && params[:password] == params[:confirm]
           
           @msg = MESSAGE_CONFIG['user_update_success']   
         end
@@ -406,6 +406,10 @@ class PidApp < Sinatra::Application
   before '/*' do
     if !current_user.nil?
       @super = true if current_user.super
+      @read_only = current_user.read_only
+    else
+      @super = false
+      @read_only = false
     end
   end
   
@@ -414,7 +418,6 @@ class PidApp < Sinatra::Application
 # --------------------------------------------------------------------------------------------------------------
   after '*' do
     session[:msg] = nil
-    @read_only = current_user.read_only unless current_user.nil?
   end
 
 # --------------------------------------------------------------------------------------------------------------
@@ -430,7 +433,7 @@ class PidApp < Sinatra::Application
   error 401 do
     @msg = MESSAGE_CONFIG['session_expired']
     @msg if request.xhr?
-    erb :login unless request.xhr?
+    erb :login, :layout => false unless request.xhr?
   end
 
 # --------------------------------------------------------------------------------------------------------------

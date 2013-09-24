@@ -147,11 +147,10 @@ class PidApp < Sinatra::Application
           else
             res = req.request_head(uri.path) 
           end
-        
           res.code.to_i
-      
+        
         rescue Exception => e
-          logger.error "#{current_user.login} - verify_url: #{e.message}"
+          logger.error "#{current_user.login} - verify_url: #{e.message}"     
           404
         end
           
@@ -184,7 +183,7 @@ class PidApp < Sinatra::Application
     
       # If the group (or system in the case of a super user) has PIDs find the first and last otherwise default to generic values
       args = {}
-      args = {:group => current_user.group} unless current_user.super
+      args = {:group => current_user.group} unless current_user.super or current_user.read_only
       
       # Load the low and high values for the defaults
 
@@ -212,7 +211,16 @@ class PidApp < Sinatra::Application
       params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high].to_i < params[:pid_low].to_i
       
       # Load the list of users available to the user
-      params[:users] = (current_user.super) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
+      params[:users] = (current_user.super or current_user.read_only) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
+      
+      # If the user is a maintainer add the user ids for any other users they may manage
+      Maintainer.all(:user => current_user).each do |maint|
+        if maint.group != current_user.group          
+          User.all(:group => maint.group).each { |usr| params[:users] << usr unless params[:users].include?(usr) }
+        end
+      end
+      params[:users].sort!{ |x,y| x.login <=> y.login }
+      
       
       params
     end

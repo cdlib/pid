@@ -27,6 +27,10 @@ a.letterpress:hover {
   text-shadow:         0px 2px 1px #333;
 }
 
+li {
+  margin-bottom:      15px;  
+}
+
 hr {
   clear:              both;
   color:              #005695;
@@ -132,12 +136,12 @@ form input, form select, form a, form textarea, form span.form_informational, sp
   
   margin-bottom:       10px;
   width:              200px;
-	
-	text-align:						left;
+  
+  text-align:            left;
 }
 form span.form_informational a {
-	position:						  static;
-	float:								none;
+  position:              static;
+  float:                none;
 }
 form label { 
   position:            relative;
@@ -187,10 +191,8 @@ form a {
         0px -1px 3px rgba(121,155,224,0.8),
         0px 1px 0px rgba(175,193,230,0.3);  
 }
-form input[type=submit] {
-  font-size: 14px;
+form input[type=submit], form input[type=submit].inline_button {
   color: #ffffff;
-  padding: 8px 20px;
   background: -moz-linear-gradient(
     top,
     #0b3761 0%,
@@ -201,7 +203,7 @@ form input[type=submit] {
     to(#0b3761));
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
-	text-align: center;
+  text-align: center;
   border-radius: 10px;
   border: 1px solid #000000;
   -moz-box-shadow:
@@ -216,6 +218,20 @@ form input[type=submit] {
   text-shadow:
     0px -1px 3px rgba(121,155,224,0.8),
     0px 1px 0px rgba(175,193,230,0.3);  
+}
+
+form input[type=submit] {
+  font-size: 14px;
+  padding: 8px 20px;
+}
+form input[type=submit].inline_button {
+  display:          inline;
+  font-size: 12px;
+  padding: 8px 10px;
+  width: 100px;
+  position: relative;
+  float: none;
+  clear: none;
 }
 
 #spinner {
