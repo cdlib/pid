@@ -16,4 +16,4 @@ pid_file: "versions.csv" #"versions_sample.csv"
 default_password: 'seeded'
 
 # The default user account to use in the event that one of the user's attached to a pid in your pid_file is invalid.
-default_user_login: "admin"
+default_user_login: "root"

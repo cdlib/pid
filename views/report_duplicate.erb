@@ -10,7 +10,7 @@
       <tr><th /><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
     </table>
     
-    <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
+    <input type="hidden" id="data" value='<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>' />
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
   <% else %>
@@ -30,7 +30,7 @@
   
   // Add a line to the table for each item in the JSON
   var i = 1;
-  $.each($.parseJSON('<%= @json.gsub("'", '%27') %>'), function(url, pids) {
+  $.each($.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>'), function(url, pids) {
       
     col = ""
     $.each(pids, function(idx, pid) {

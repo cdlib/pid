@@ -26,9 +26,13 @@ class TestUserController < Test::Unit::TestCase
     @group.users << @mgr
     @group.save
     
+    @group2 = Group.new(:id => 'UCSD', :name => 'group2')
+    @group2.save
+    
     @adm.save
     
     Maintainer.new(:group => @group, :user => @mgr).save
+    Maintainer.new(:group => @group2, :user => @mgr).save
   end
 
 # -----------------------------------------------------------------------------------------------
@@ -259,7 +263,7 @@ class TestUserController < Test::Unit::TestCase
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_update_success']), "Maintainer did not receive the success message!"
     get '/user/logout'
     
-    # As a manager updating one of their users
+    # As an admin updating one of their users
     post '/user/login', {:login => @adm.login, :password => @pwd}
     put "/user/#{@user.id}", {:name => 'Updated user name', :password => ''}
     assert last_response.ok?, "Unable to update a user as a Admin!"
@@ -278,11 +282,33 @@ class TestUserController < Test::Unit::TestCase
     post '/user/register', args
     assert last_response.ok?, 'Unable to register a new user as a Manager/Maintainer!'
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_register_success']), "Maintainer did not receive the success message!"
+
+    assert_equal 2, Maintainer.all(:user => @mgr).count, "User is not a maintainer of 2 groups!"
+
+    # As a manager selecting an invalid group
+    args[:group] = @adm_grp.id
+    args[:login] = 'invalid'
+    post '/user/register', args
+    assert_equal 409, last_response.status, "Was able to register a new user as a Manager/Maintainer for a group we do not manage! #{last_response.body}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_register_invalid_group']), "Maintainer did not receive the invalid group message!"
+    
+    # As a manager selecting a different group
+    args[:group] = @group2.id
+    args[:login] = 'valid'
+    post '/user/register', args
+    assert last_response.ok?, "Unable to register a new user as a Manager/Maintainer!"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['user_register_success']), "Maintainer did not receive the success message!"
     get '/user/logout'
     
     # test the new account
-    assert !User.first(:login => 'blahblah').nil?, 'The user was not created!'
-    assert_equal @mgr.group, User.first(:login => 'blahblah').group, "The users group is not the same as the managers!"
+    usr = User.first(:login => 'blahblah')
+    assert !usr.nil?, 'The user was not created!'
+    assert_equal @mgr.group, usr.group, "The users group is not the same as the managers!"
+    
+    post '/user/login', {:login => usr.login, :password => @pwd}
+    assert last_response.redirect?, "Was unable to login as the new user! #{last_response.status}"
+    assert_equal "http://example.org#{PidApp::SECURITY_CONFIG['target_after_login']}", last_response.location, "Was not redirected to the home page! #{last_response.location}."
+    get '/user/logout'
     
     # As a super admin
     post '/user/login', {:login => @adm.login, :password => @pwd}

@@ -15,7 +15,7 @@
   <h3><%= HTML_CONFIG['header_manage_maintainers'] %></h3>
   <span id="maintainers" class="form_association">
     <table id="maintainer_table">
-      <% @associations[:maintainers].each do |maintainer| %>
+      <% @associations[:maintainers].sort{ |x,y| x.login <=> y.login  }.each do |maintainer| %>
         <tr>
           <td />
           <td><%= maintainer.login %> - <%= maintainer.name %></td>
@@ -29,7 +29,7 @@
           <td colspan="2">
             <select id="new_maintainer" name="new_maintainer">
               <option value=""></option>
-              <% @associations[:available_maintainers].each do |maintainer| %>
+              <% @associations[:available_maintainers].sort{ |x,y| x.login <=> y.login  }.each do |maintainer| %>
                 <option value="<%= maintainer.id %>"><%= maintainer.login %> - <%= maintainer.name %></option>
               <% end %>
             </select>
@@ -44,7 +44,7 @@
     <span id="users" class="form_association">
       <table id="user_table">
         
-        <% @associations[:users].each do |user| %>
+        <% @associations[:users].sort{ |x,y| x.login <=> y.login  }.each do |user| %>
           <tr>
             <td />
             <td><%= user.login %> - <%= user.name %></td>
@@ -58,7 +58,7 @@
             <td colspan="2">
               <select id="new_user">
                 <option value=""></option>
-                <% @associations[:available_users].each do |user| %>
+                <% @associations[:available_users].sort{ |x,y| x.login <=> y.login  }.each do |user| %>
                   <option value="<%= user.id %>"><%= user.login %> - <%= user.name %></option>
                 <% end %>
               </select>

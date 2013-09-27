@@ -129,6 +129,9 @@ class PidApp < Sinatra::Application
       if Maintainer.first(:group => @group, :user => @user).nil?
         Maintainer.new(:group => @group, :user => @user).save
       
+        #If the user does not have a primary group, assign them as a user of this group
+        @user.update(:group => @group) if @user.group.nil?
+      
         @msg = MESSAGE_CONFIG['group_add_maintainer_success']
       else
         status 409

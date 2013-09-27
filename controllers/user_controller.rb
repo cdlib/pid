@@ -251,7 +251,16 @@ class PidApp < Sinatra::Application
     
     # If the user is a maintainer of their group or an admin
     if !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
-      @groups = Group.all if current_user.super
+      @groups = (current_user.super) ? Group.all : []
+      
+      if !current_user.super
+        Maintainer.all(:user => current_user).each do |maint|
+         @groups << maint.group 
+        end
+      end
+      
+      @groups = nil if @groups.count <= 1
+      
       @params = {:group => current_user.group.id}
       @super = current_user.super
       @user = User.new
@@ -273,25 +282,38 @@ class PidApp < Sinatra::Application
       if params[:password] == params[:confirm]
         
         begin
-          new_user = User.new(:login => params[:login], 
-                              :email => params[:email], 
-                              :password => params[:password], 
-                              :host => request.ip,
-                              :name => params[:name], 
-                              :affiliation => params[:affiliation], 
-                              :active => true,
-                              :group => params[:group].nil? ? current_user.group : Group.first(:id => params[:group]),
-                              :read_only => (current_user.super) ? (params[:read_only] == 'on') : false )
-
-          new_user.save
-        
-          @user = new_user
+          group = params[:group].nil? ? current_user.group : Group.first(:id => params[:group])
           
-          @msg = MESSAGE_CONFIG['user_register_success']
-          params = {} # Clear the params so the user can do another registration
+          # If the group isn't the current user's, make sure they're a maintainer for the specified group
+          if group != current_user.group and !current_user.super
+            group = nil if Maintainer.first(:group => group, :user => current_user).nil?
+          end
+          
+          if !group.nil?
+            new_user = User.new(:login => params[:login], 
+                                :email => params[:email], 
+                                :password => params[:password], 
+                                :host => request.ip,
+                                :name => params[:name], 
+                                :affiliation => params[:affiliation], 
+                                :active => true,
+                                :group => group,
+                                :read_only => (current_user.super) ? (params[:read_only] == 'on') : false )
+
+            new_user.save
         
+            @user = new_user
+          
+            @msg = MESSAGE_CONFIG['user_register_success']
+            params = {} # Clear the params so the user can do another registration
+        
+          else
+            status 409
+            @msg = MESSAGE_CONFIG['user_register_invalid_group']
+          end
+          
         rescue DataMapper::SaveFailureError => e
-          500
+          status 500
           @msg = MESSAGE_CONFIG['user_register_failure']
           
           logger.error "#{current_user.login} - #{@msg}\n#{e.message}"
@@ -323,8 +345,17 @@ class PidApp < Sinatra::Application
       # If the current user is trying to retrieve their own record or the current user manages the group 
       if @user == current_user || !current_user.group.maintainers.first(:user => current_user).nil? || current_user.super
         
-        @groups = (current_user.super) ? Group.all : (!current_user.group.maintainers.first(:user => current_user).nil?) ? [current_user.group] : nil          
+        #@groups = (current_user.super) ? Group.all : (!current_user.group.maintainers.first(:user => current_user).nil?) ? [current_user.group] : nil          
+        @groups = (current_user.super) ? Group.all : []
+      
+        if !current_user.super
+          Maintainer.all(:user => current_user).each do |maint|
+           @groups << maint.group 
+          end
+        end
         
+        @groups = nil if @groups.count <= 1
+          
         erb :show_user
       else
         halt(403)
@@ -354,7 +385,7 @@ class PidApp < Sinatra::Application
                       :affiliation => (!params[:affiliation].nil?) ? params[:affiliation].strip : @user.affiliation,
                       :active => (params[:active] == 'on'),
                       :locked => (params[:locked] == 'on'),
-                      :group => (params[:group]) ? Group.first(:id => params[:group]) : current_user.group,
+                      :group => (!params[:group].nil?) ? Group.first(:id => params[:group]) : current_user.group,
                       :host => request.ip,
                       :read_only => (current_user.super) ? (params[:read_only] == 'on') : @user.read_only)
         
@@ -377,7 +408,8 @@ class PidApp < Sinatra::Application
       halt(403)
     end
     
-    @groups = (current_user.super) ? Group.all : (!current_user.group.maintainers.first(:user => current_user).nil?) ? [current_user.group] : nil
+    @groups = (current_user.super) ? Group.all : (!Maintainer.first(:user => current_user, :group => current_user.group).nil?) ? [current_user.group] : nil
+    
     @super = current_user.super
 
     erb :show_user

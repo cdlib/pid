@@ -1,7 +1,7 @@
 seed_config = YAML.load_file('db/seed.yml')
 config = YAML.load_file('conf/app.yml')
 
-$stdout.puts 'Seeding the database'
+$stdout.puts "Seeding the database at #{Time.now}"
 
 debug = seed_config['debug_on']
 
@@ -177,7 +177,7 @@ i = 0; j = 0; k = 0
 
 begin
   last_pid = nil
-  dead_pid_url = APP_CONFIG['dead_pid_url']
+  dead_pid_url = config['dead_pid_url']
   
   CSV.foreach(versions_file, :headers => true) do |row|
     incoming = spawn_object(Pid, row)
@@ -197,7 +197,8 @@ begin
     end
   
     # Load the user specified in the CSV
-    users = incoming.username.split(' ')
+    users = incoming.username.split(', ') if incoming.username.include?(', ')
+    users = incoming.username.split(' ') if users.nil?
     user = nil
     interested = []
     
@@ -245,13 +246,13 @@ begin
           
           i = i.next
         rescue Exception => e
-          $stdout.puts "........ unable to create pid: #{incoming.id} - #{incoming.modified_at}"
+          $stdout.puts "........ unable to mint pid: #{incoming.id} - #{incoming.modified_at}"
           $stdout.puts "............ #{e.message}"
           $stdout.puts "............ #{incoming.inspect}" if debug
         end
   
       else
-        $stdout.puts "........ No URL specified for #{incoming.id} - #{incoming.modified_at}"
+        $stdout.puts "........ Cannot mint, No URL specified for #{incoming.id} - #{incoming.modified_at}"
         $stdout.puts "............ #{incoming.inspect}" if debug
       end
         
@@ -261,7 +262,7 @@ begin
       
         j = j.next
       rescue Exception => e
-        $stdout.puts "........ unable to update pid: #{incoming.id} - #{incoming.modified_at}"
+        $stdout.puts "........ unable to revise pid: #{incoming.id} - #{incoming.modified_at}"
         $stdout.puts "............ #{e.message}"
         $stdout.puts "............ #{incoming.inspect}" if debug
       end
@@ -290,7 +291,7 @@ if debug
   end
 end
 
-$stdout.puts 'Finished seeding the database'
+$stdout.puts "Finished seeding the database at #{Time.now}"
 $stdout.puts ''
 
 

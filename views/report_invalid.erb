@@ -16,7 +16,7 @@
             <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
       </table>
     
-      <input type="hidden" id="error_json" value='<%= @error.gsub("'", '%27') %>' />
+      <input type="hidden" id="error_json" value='<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>' />
     <% end %>
   
     <% unless @not_found.empty? %>
@@ -28,7 +28,7 @@
             <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
       </table>
     
-      <input type="hidden" id="not_found_json" value='<%= @not_found.gsub("'", '%27') %>' />
+      <input type="hidden" id="not_found_json" value='<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>' />
     <% end %>
     
     <% unless @moved.empty? %>
@@ -40,7 +40,7 @@
             <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
       </table>
     
-      <input type="hidden" id="moved_json" value='<%= @moved.gsub("'", '%27') %>' />
+      <input type="hidden" id="moved_json" value='<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>' />
     <% end %>
     
   <% end %>
@@ -53,9 +53,9 @@
     <% end %>
   </table>
   
-  <input type="hidden" id="error_data" name="error_data" value='<%= @error.gsub("'", '%27') %>' />
-  <input type="hidden" id="not_found_data" name="not_found_data" value='<%= @not_found.gsub("'", '%27') %>' />
-  <input type="hidden" id="moved_data" name="moved_data" value='<%= @moved.gsub("'", '%27') %>' />
+  <input type="hidden" id="error_data" name="error_data" value='<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>' />
+  <input type="hidden" id="not_found_data" name="not_found_data" value='<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>' />
+  <input type="hidden" id="moved_data" name="moved_data" value='<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>' />
   
 </section>
 
@@ -86,9 +86,9 @@
     });
   }
   
-  processJSON('error', '<%= @error.gsub("'", '%27') %>');
-  processJSON('not_found', '<%= @not_found.gsub("'", '%27') %>');
-  processJSON('moved', '<%= @moved.gsub("'", '%27') %>');
+  processJSON('error', '<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>');
+  processJSON('not_found', '<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>');
+  processJSON('moved', '<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>');
 
   // convert the JSON into a CSV output
   $(".download").click( function(){

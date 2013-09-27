@@ -11,20 +11,19 @@ class UserClientTestApp < Test::Unit::TestCase
   end
   
   def setup
-    Pid.flush!
     User.flush!
     Group.flush!
     Maintainer.flush!
+    
     @pwd = 'secret'
-    @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd, 
-                      :email => 'test@example.org', :super => true)
-    @mgr = User.new(:login => 'test_mgr', :name => 'Test Manager', :password => @pwd, 
-                      :email => 'mgr@example.org')
-                      
+    @group = Group.new(:id => 'TEST', :name => 'test_group')
+    @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd, :email => 'purl-test-user@cdlib.org')
+    @mgr = User.new(:login => 'test_mgr', :name => 'Test Manager', :password => @pwd, :email => 'purl-test-mgr@cdlib.org')
+    
     @group.users << @user
     @group.users << @mgr
     @group.save
+    
     
     Maintainer.new(:group => @group, :user => @mgr).save
   end
@@ -36,14 +35,6 @@ class UserClientTestApp < Test::Unit::TestCase
 # --------------------------------------------------------------------------------------------------------
 # Login page tests
 # --------------------------------------------------------------------------------------------------------
-  def test_login_load
-    visit '/user/login'
-    
-    assert page.has_selector?('#login'), 'No userid input found!'
-    assert page.has_selector?('#password'), 'No password input found!'
-    assert page.has_selector?('#submit'), 'No submit button found!'
-  end
-  
   def test_login_missing_password
     visit '/user/login'
     
@@ -53,6 +44,7 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_content?(PidApp::MESSAGE_CONFIG['no_password']), 'Did not receive the missing password message!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_login_missing_userid
     visit '/user/login'
     
@@ -63,39 +55,8 @@ class UserClientTestApp < Test::Unit::TestCase
   end  
   
 # --------------------------------------------------------------------------------------------------------
-# Logout page tests 
-# --------------------------------------------------------------------------------------------------------
-  def test_logout_load
-    login(@user.login, @pwd)
-
-    assert page.driver.cookies.include?('rack.session'), 'Was unable to login!'
-
-    visit '/user/logout'
-  
-    assert page.has_selector?('#login'), 'No userid input found!'
-    assert page.has_selector?('#password'), 'No password input found!'
-    assert page.has_selector?('#submit'), 'No submit button found!'
-  
-    assert !page.has_content?('session_id'), 'Was able to login - found session id info!'
-  end
-  
-# --------------------------------------------------------------------------------------------------------
 # Forgotten password page tests 
 # --------------------------------------------------------------------------------------------------------
-  def test_forgotten_password_load
-    visit '/user/forgot'
-    
-    assert page.has_selector?('#login'), 'No userid input found!'
-  end
-  
-  def test_forgotten_password_not_available_when_logged_in
-    login(@user.login, @pwd)
-    
-    visit '/user/forgot'
-    
-    assert !page.has_selector?('#login'), 'Was able to access the forgotten password page while logged in!'
-  end
-
   def test_forgotten_password_bad_userid
     visit '/user/forgot'
     
@@ -104,6 +65,7 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_selector?('.not_ok'), "An invalid userid did not display the red X icon!"
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_forgotten_password_valid_userid
     visit '/user/forgot'
     
@@ -115,25 +77,6 @@ class UserClientTestApp < Test::Unit::TestCase
 # --------------------------------------------------------------------------------------------------------
 # Reset password page tests 
 # --------------------------------------------------------------------------------------------------------
-  def test_reset_password_load
-    reset_params = request_password_reset(@user.login)
-
-    visit "/user/reset?n=#{reset_params[:n]}&c=#{reset_params[:c]}"
-
-    assert page.has_selector?('#password'), 'Cannot open the reset password page - no password field found!'
-    assert page.has_selector?('#confirm'), 'Cannot open the reset password page - no password confirmation field found!'
-  end
-
-  def test_reset_password_not_available_when_logged_in
-    reset_params = request_password_reset(@user.login)
-
-    login(@user.login, @pwd)
-    
-    visit "/user/reset?n=#{reset_params[:n]}&c=#{reset_params[:c]}"
-    
-    assert !page.has_selector?('#login'), 'Was able to access the reset password page while logged in!'
-  end
-
   def test_reset_missing_fields
     reset_params = request_password_reset(@user.login)
 
@@ -153,6 +96,7 @@ class UserClientTestApp < Test::Unit::TestCase
     assert !page.has_content?("#{PidApp::HTML_CONFIG['form_new_password']} cannot be blank!"), 'Was able to leave the password blank!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_reset_password_mismatch
     reset_params = request_password_reset(@user.login)
 
@@ -165,29 +109,8 @@ class UserClientTestApp < Test::Unit::TestCase
   end
 
 # --------------------------------------------------------------------------------------------------------
-# User list page tests 
-# --------------------------------------------------------------------------------------------------------
-  def test_list_users_load
-    login(@user.login, @pwd)
-    
-    visit "/user/list"
-
-    assert page.has_content?(PidApp::HTML_CONFIG['th_email']), 'The email column header was not found!'
-    assert page.has_content?(PidApp::HTML_CONFIG['th_name']), 'The name column header was not found!'
-  end
-
-# --------------------------------------------------------------------------------------------------------
 # User show page tests 
 # --------------------------------------------------------------------------------------------------------
-  def test_show_user_load
-    login(@user.login, @pwd)
-    
-    visit "/user/#{@user.id}"
-
-    assert page.has_selector?('#group'), 'The group field could not be found!'
-    assert page.has_selector?('#email'), 'The email field was not found!'
-  end
-
   def test_show_user_required_fields
     login(@user.login, @pwd)
     
@@ -202,6 +125,7 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_content?("#{PidApp::HTML_CONFIG['form_email'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank email!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_show_user_invalid_email
     login(@user.login, @pwd)
     
@@ -212,6 +136,7 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_content?("is not a valid email address!"), 'Was able to enter an invalid email!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_show_user_password_mismatch
     login(@user.login, @pwd)
     
@@ -223,6 +148,7 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_content?("#{PidApp::HTML_CONFIG['form_new_password'].gsub(':', '')} and #{PidApp::HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_show_userid_unique
     login(@user.login, @pwd)
     
@@ -232,18 +158,22 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_selector?('.ok'), "A unique userid is displaying a red X icon!"
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_show_user_userid_already_used
     user = User.new(:login => 'new_user', :name => 'New User', :password => @pwd, 
                       :email => 'new@example.org', :group => @group)
     user.save
 
-    login(user.login, @pwd)
+    login(@mgr.login, @pwd)
     
-    visit "/user/#{user.id}"
-    fill_in 'login', with: @user.login
-    assert page.has_selector?('.not_ok'), "An already used userid is displaying a green checkmark!"
+    visit "/user/#{@user.id}"
+    
+    fill_in 'login', with: 'new_user'
+    fill_in 'name', with: 'New User Again'
+    assert page.has_selector?('.not_ok'), "An already used userid is displaying a green checkmark! #{page.body}"
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_show_user_ajax_put
     login(@user.login, @pwd)
     
@@ -251,23 +181,15 @@ class UserClientTestApp < Test::Unit::TestCase
 
     fill_in 'email', with: 'this.is@goodemail.org'
     click_button 'submit'
-    assert page.has_content?(PidApp::MESSAGE_CONFIG['user_update_success']), 'Was unable to edit the user!'
+    
+    assert page.has_content?(PidApp::MESSAGE_CONFIG['user_update_success']), "Was unable to edit the user! #{page.body}"
   end
 
 # --------------------------------------------------------------------------------------------------------
 # User register page tests 
 # --------------------------------------------------------------------------------------------------------
-  def test_register_user_load
-    login(@user.login, @pwd)
-
-    visit "/user/register"
-
-    assert page.has_selector?('#group'), 'The group field could not be found!'
-    assert page.has_selector?('#email'), 'The email field was not found!'
-  end
-
   def test_register_user_required_fields
-    login(@user.login, @pwd)
+    login(@mgr.login, @pwd)
     
     visit '/user/register'
     
@@ -285,8 +207,9 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_content?("#{PidApp::HTML_CONFIG['form_confirm_password'].gsub(':', '')} cannot be blank!"), 'Was able to submit a blank password confirmation!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_register_user_invalid_email
-    login(@user.login, @pwd)
+    login(@mgr.login, @pwd)
     
     visit '/user/register'
     
@@ -300,8 +223,9 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_content?("is not a valid email address!"), 'Was able to enter an invalid email!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_register_user_password_mismatch
-    login(@user.login, @pwd)
+    login(@mgr.login, @pwd)
 
     visit '/user/register'
 
@@ -315,8 +239,9 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_content?("#{PidApp::HTML_CONFIG['form_new_password'].gsub(':', '')} and #{PidApp::HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_register_userid_unique
-    login(@user.login, @pwd)
+    login(@mgr.login, @pwd)
 
     visit '/user/register'
 
@@ -324,16 +249,18 @@ class UserClientTestApp < Test::Unit::TestCase
     assert page.has_selector?('.ok'), "A unique userid is displaying a red X icon!"
   end
 
+# --------------------------------------------------------------------------------------------------------
   def test_register_user_userid_already_used
-    user = User.new(:login => 'new_user', :name => 'New User', :password => @pwd, 
-                      :email => 'new@example.org', :group => @group)
-
-    login(@user.login, @pwd)
+    User.new(:login => 'new_user', :name => 'New User', :password => @pwd, 
+                      :email => 'new@example.org', :group => @group).save
+                      
+    login(@mgr.login, @pwd)
 
     visit '/user/register'
 
-    fill_in 'login', with: @user.login
-    assert page.has_selector?('.not_ok'), "An already used userid is displaying a green checkmark!"
+    fill_in 'login', with: 'new_user'
+    fill_in 'name', with: 'Another user'
+    assert page.has_selector?('.not_ok'), "An already used userid is displaying a green checkmark! #{page.body}"
   end
 
 # --------------------------------------------------------------------------------------------------------
@@ -348,6 +275,7 @@ private
     click_button 'submit'
   end
   
+# -------------------------------------------------------------------------------------------------------- 
   def request_password_reset(login)
     visit '/user/forgot'
 

@@ -17,7 +17,7 @@ no_login: 'The user id cannot be blank!'
 no_password: 'The password cannot be blank!'
 
 # User controller messages
-user_not_found: 'The user could not be found!'
+user_not_found: "Please use your browser's back button to return to the previous page."
 user_password_reset_email: 'An email has been sent to your account. Please follow the instructions in the email to continue the password reset process.'
 user_password_reset_expired: 
   'Your password reset request has expired. For security reasons you have only #{?} minutes between 
@@ -25,6 +25,7 @@ user_password_reset_expired:
 user_password_reset_success: 'Your password has been reset.'
 user_password_reset_unauthorized: 'You do not have permission to reset this password.'
 user_register_failure: 'Unable to register the new user!'
+user_register_invalid_group: 'You do not manage that group!'
 user_register_success: 'The user has been registered.'
 user_unauthorized: 'You do not have permission to view or change that user!'
 user_update_failure: 'Unable to save your changes!'

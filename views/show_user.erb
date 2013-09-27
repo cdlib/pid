@@ -25,7 +25,7 @@
       <input type="checkbox" name="locked" id="locked" <% if @user.locked %>checked="checked"<% end %> />
 
     <% else %>
-      <input type="text" id="group" name="group" readonly="true" value="<%= @user.group.name %>" />
+      <input type="text" id="group" name="group" readonly="true" value="<%= @user.group.id %>" />
       <input type="hidden" id="maintainer" name="maintainer" value="<%= (@maintainer) ? 'on' : 'off' %>" />
       <input type="hidden" id="active" name="active" value="<%= (@user.active) ? 'on' : 'off' %>" />
       <input type="hidden" id="locked" name="locked" value="<%= (@user.locked) ? 'on' : 'off' %>" />

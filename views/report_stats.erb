@@ -64,7 +64,7 @@
           <th id="th_versions"><a href="#"><%= HTML_CONFIG['th_number_modifications'] %></a></th></tr>
       </table>
     
-      <input type="hidden" id="data" value='<%= @json.gsub("'", '%27') %>' />
+      <input type="hidden" id="data" value='<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>' />
       <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
     <% else %>
@@ -77,8 +77,8 @@
   $("#spinner").hide();
   
   // Parse the json
-  var json = $.parseJSON('<%= @json.gsub("'", '%27') %>');
-  $("#data").val('<%= @json.gsub("'", '%27') %>');
+  var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
+  $("#data").val('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
 
   // Setup table pagination
   paginate_init(<%= APP_CONFIG['search_results_limit'] %>, json.length);
