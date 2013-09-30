@@ -1,3 +1,5 @@
+require "net/http"
+
 class PidException < Exception
 end
 
@@ -31,7 +33,9 @@ class Pid
   include DataMapper::Resource
   has n, :pid_versions
   has n, :interesteds, :required => false     # Groups with an interest in the PID but are not the maintainers
+  
   belongs_to :group
+  belongs_to :invalid_url_report, :required => false
   
   property :id, Serial, :key => true
 
@@ -169,6 +173,47 @@ class Pid
         raise PidException, e.message
       end
       
+    end
+  end
+  
+# ---------------------------------------------------------------------------------------------------
+  def verify_url
+    skip = false
+      
+    # Make sure the domain isn't designated as one we cannot scan
+    SkipCheck.all().each{ |it| skip = true if url.downcase.include?(it.domain.downcase) }
+      
+    if !skip
+      begin
+        #Test to make sure this a valid URL
+        uri = URI.parse(self.url)
+        
+        req = Net::HTTP.new(uri.host, uri.port)
+        if uri.path.empty?
+          res = req.request_get(url)
+        else
+          res = req.request_head(uri.path) 
+        end
+          
+        if res.code.to_i >= 300 and res.code.to_i != 302
+          self.invalid_url_report = InvalidUrlReport.new(:http_code => res.code.to_i,
+                                                          :last_checked => Time.now)
+        else
+          self.invalid_url_report = nil
+        end
+        
+        self.mutable = true
+        self.save
+        self.mutable = false
+          
+        res.code.to_i
+        
+      rescue Exception => e
+        404
+      end
+          
+    else
+      200
     end
   end
   

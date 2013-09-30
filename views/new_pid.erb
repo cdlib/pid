@@ -19,6 +19,8 @@
   <%= HTML_CONFIG['new_pids_text'] %>
 </section>
 
+<img src="/spinner.gif" id="spinner" />
+
 <section class="errors">
     <% if @pid && @pid.errors %>
       <% @pid.errors.full_messages.each do | message | %>
@@ -82,4 +84,12 @@
   <% end %>
 
 </section>
+
+<script type="text/javascript">
+$("#spinner").hide();
+
+$("#submit").click(function() {
+  $("#spinner").show();
+});
+</script>
 

@@ -273,7 +273,7 @@ class PidApp < Sinatra::Application
   put '/link/:id' do
     @pid = Pid.get(params[:id])
     @group = current_user.group
-    @msg = "blah"
+    @msg = ""
     
     url = params[:url]
     # Strip off the last slash, the REGEX 
@@ -331,7 +331,6 @@ class PidApp < Sinatra::Application
     params[:new_urls].lines do |line|
       
       change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'Batch'
-      notes = MESSAGE_CONFIG['pid_mint_default_note'].gsub('{?ip?}', request.ip).gsub('{?}', url) if request.referrer != "#{hostname}link/new"
       
       # Strip off the line breaks from the form
       url = line.strip.gsub("\r\n", '').gsub("\n", '')
@@ -340,7 +339,7 @@ class PidApp < Sinatra::Application
       
       unless url.empty?
         
-        result = mint_pid(url, change_category, notes, request.ip)
+        result = mint_pid(url, change_category, nil, request.ip)
         
         # If we successfully minted the PID
         if result[:saved?]
@@ -461,7 +460,7 @@ private
           
           else
             # Check to see if the PID's URL is retuirning an http 200
-            good_url = verify_url(url)
+            good_url = pid.verify_url
             if good_url >= 400
               msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', good_url.to_s)
             else
@@ -524,7 +523,7 @@ private
                          :host => host)
                        
           # Check to see if the PID's URL is retuirning an http 200
-          good_url = verify_url(url)
+          good_url = pid.verify_url
           if good_url >= 400
             msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', good_url.to_s)
           else
@@ -535,7 +534,7 @@ private
         end
       
       rescue Exception => e
-        msg = MESSAGE_CONFIG['pid_mint_failure'] 
+        msg = MESSAGE_CONFIG['pid_mint_failure'].gsub('{?}', url) 
         msg += e.message
       
         logger.error "#{current_user.login} - #{msg}\n#{e.message}"

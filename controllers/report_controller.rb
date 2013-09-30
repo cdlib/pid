@@ -56,29 +56,32 @@ class PidApp < Sinatra::Application
     begin
       # If the user is a super user, get all of the PIDs otherwise just the ones for their group
       if current_user.super
-        pids = Pid.all(:deactivated => false)
+        pids = Pid.all(:deactivated => false, :invalid_url_report.not => nil )
         
       # If the user manages groups show the pids for all of those groups
       elsif !Maintainer.all(:user => current_user).empty?
         Maintainer.all(:user => current_user).each do |maintainer| 
-          (Pid.all(:deactivated => false) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
+          (Pid.all(:deactivated => false, :invalid_url_report.not => nil) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
         end
           
       else
-        pids = Pid.all(:group => current_user.group, :deactivated => false)
+        pids = Pid.all(:group => current_user.group, :deactivated => false, :invalid_url_report.not => nil)
       end
       
       pids.each do |pid|
         
-        begin          
-          # Check the URLs for each of the PIDs
-          case verify_url(pid.url).to_i
-          when 300..399
-            moved << pid
-          when 400..499
-            not_found << pid
-          when 500..999
-            error << pid
+        begin      
+          if !pid.invalid_url_report.nil?    
+            
+            # Check the URLs for each of the PIDs
+            case pid.invalid_url_report.http_code
+            when 300..399
+              moved << pid
+            when 400..499
+              not_found << pid
+            when 500..999
+              error << pid
+            end
           end
           
         rescue Exception => e
@@ -125,18 +128,24 @@ class PidApp < Sinatra::Application
       end
       
       dups = {}
-
+      
       pids.each do |pid|
-        if dups[pid.url].nil?
-          occurences = shorty.get(pid.url)        
-
-          if occurences
-            vals = JSON.parse(occurences)
-            if vals.size > 1
-              dups[pid.url] = vals
-            end
-          end
+        occurences = Pid.all(:url => pid.url, :id.not => pid.id)
+        
+        if occurences
+          dups[pid.url] = occurences.join(", "){ |it| it.id }
         end
+        
+      #  if dups[pid.url].nil?
+      #    occurences = shorty.get(pid.url)        
+
+      #    if occurences
+      #      vals = JSON.parse(occurences)
+      #      if vals.size > 1
+      #        dups[pid.url] = vals
+      #      end
+      #    end
+      #  end
       end
       
     rescue Exception => e

@@ -38,11 +38,15 @@
   </form>
 </section>
 
+<img src="/spinner.gif" id="spinner" />
+
 <section class="errors">
   <%= @msg %>
 </section>
 
 <script type="text/javascript">
+  
+  $("#spinner").hide();
   
   $("#login").change( function(event){
     var userid = $("#login").val();
@@ -73,6 +77,9 @@
   $("#submit").click( function(event){
     var validation = validate(["login", "name", "email", "group", "password", "confirm"], ["email"], [], [ ["password", "confirm"] ]);
       
+    $("#spinner").show();
+    $(".errors").html("");
+    
     // If there were validation errors display them and cancel the submit
     if( validation != '' ){
       event.preventDefault();

@@ -51,6 +51,7 @@
     <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
 
+  <img src="/spinner.gif" id="spinner" style="top: 350px;" />
 </section>
 
 <section class="errors">
@@ -60,8 +61,6 @@
 <% if request.request_method == "POST" %>
   
   <section id="search_results">
-    <img src="/spinner.gif" id="spinner" />
-    
     <% if params[:interesteds] == '1' %>
       <h3><%= HTML_CONFIG['header_search_interested'] %></h3>
     <% else %>
@@ -153,6 +152,8 @@
 
   $("#submit").click( function(){
     $("#spinner").show();
+    $(".errors").html("");
+		$("#search_results").hide();
   });
 
   $("#reset").click( function() {

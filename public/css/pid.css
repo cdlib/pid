@@ -237,7 +237,7 @@ form input[type=submit].inline_button {
 #spinner {
   position:          absolute;
   
-  top:              -20px;
+  top:               20px;
   left:              320px;
 }
 

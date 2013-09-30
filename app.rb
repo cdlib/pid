@@ -130,37 +130,6 @@ class PidApp < Sinatra::Application
     end
     
 # ---------------------------------------------------------------------------------------------------
-# Process to verify that the url is a valid target
-# ---------------------------------------------------------------------------------------------------
-    def verify_url(url)
-      skip = false
-      
-      SkipCheck.all().each{ |it| skip = true if url.downcase.include?(it.domain.downcase) }
-      
-      if !skip
-        begin
-          #Test to make sure this a valid URL
-          uri = URI.parse(url)
-          req = Net::HTTP.new(uri.host, uri.port)
-          if uri.path.empty?
-            res = req.request_get(url)
-          else
-            res = req.request_head(uri.path) 
-          end
-          res.code.to_i
-        
-        rescue Exception => e
-          logger.error "#{current_user.login} - verify_url: #{e.message}"     
-          404
-        end
-          
-      else
-        200
-      end
-      
-    end
-    
-# ---------------------------------------------------------------------------------------------------
 # Check Redis to see if the specified PID has the same URL as another PID
 # ---------------------------------------------------------------------------------------------------        
     def hasDuplicate(url, pid)

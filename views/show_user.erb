@@ -52,6 +52,8 @@
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_save_user'] %>" />
   </form>
 
+  <img src="/spinner.gif" id="spinner" style="top: 525px;" />
+
 </section>
 
 <section><%= HTML_CONFIG['user_profile_text'] %></section>
@@ -68,6 +70,7 @@
 
 
 <script type="text/javascript">
+  $("#spinner").hide();
   
   $("#login").change( function(event){
     var userid = $("#login").val();
@@ -100,6 +103,9 @@
 
     var validation = validate(["login", "name", "email", "group"], ["email"], [], [ ["password", "confirm"] ]);
 
+    $(".errors").html("");
+    $("#spinner").show();
+
     // If there were no validation errors submit the changes to the application
     if( validation == '' ){
 
@@ -118,7 +124,9 @@
             $(".errors").html(xhr.responseText);
           }
         },
-        complete: {}
+        complete: function(xhr, textStatus){
+          $("#spinner").hide();
+        }
       });
 
     // Otherwise display the errors to the user.

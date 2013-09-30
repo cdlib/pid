@@ -3,4 +3,13 @@
 	
   <article><%= HTML_CONFIG['reports_text'] %></article>
   
+  <img src="/spinner.gif" id="spinner" style="top: 225px;" />
 </section>
+
+<script type="text/javascript">
+$("#spinner").hide();
+
+$("a").click( function(e){
+  $("#spinner").show();
+});
+</script>

@@ -233,7 +233,7 @@ reports_text:
   "Please select on of the following reports below:
   <ul>
     <li><a href='/report/inactive' class='letterpress'>Inactive PIDs</a></li>
-    <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URL targets</a> (takes a very long time to run)</li>
+    <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URLs</a></li>
     <li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a></li>
     <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
   </ul>"

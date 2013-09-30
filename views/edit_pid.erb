@@ -4,8 +4,8 @@
   
     <article><%= HTML_CONFIG['edit_pid_text'] %></article>
   
-		<hr />
-		
+    <hr />
+    
     <form id="batch_form" name="batch_form" action="/link/edit" method="post" enctype="multipart/form-data">
       <label style="width: 10%;"><%= HTML_CONFIG['form_file'] %></label>
       <input type="submit" id="file_selector" value="<%= HTML_CONFIG['button_file_upload'] %>" class="inline_button" />
@@ -14,12 +14,12 @@
       <input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_process_batch'] %>" class="inline_button" style="float: right; margin-right: 200px;"/>
       <progress></progress>
     </form>
-		
-		<hr />
+    
+    <hr />
   
     <article><%= HTML_CONFIG['edit_pid_text_2'] %></article>
 
-		<hr />
+    <hr />
   </section>
 
   <section class="errors">
@@ -68,10 +68,11 @@
   
   $("#submit").click( function(event) {
     $('progress').show();
+    $(".errors").html("");
   });
   
   $("#file_selector").click(function(event) {
-		event.preventDefault();
+    event.preventDefault();
     $("#csv").click();
   });
   

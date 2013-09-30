@@ -71,6 +71,8 @@
       </span>
     <% end %>
   </form>
+
+  <img src="/spinner.gif" id="spinner" style="top: 325px;" />
   
 </section>
 
@@ -108,8 +110,13 @@
 </section>
 
 <script type="text/javascript">
+  $("#spinner").hide();
+
   $("#submit").click( function(event){
     event.preventDefault();
+  
+    $(".errors").html("");
+    $("#spinner").show();
   
     var validation = validate(["url", "group"], [], ["url"], [ [] ]);
   
@@ -132,7 +139,9 @@
           }
           
         },
-        complete: {}
+        complete: function(xhr, textStatus){
+          $("#spinner").hide();
+        }
       });
     
     // Otherwise display the errors to the user.
