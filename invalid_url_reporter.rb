@@ -1,9 +1,12 @@
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
 require 'shortcake'
 require "net/http"
-require "yaml"
-require "data_mapper"
+require 'data_mapper'
+require 'dm-sqlite-adapter'
 require 'dm-mysql-adapter'
+require 'dm-transactions'
+require 'dm-timestamps'
+require 'redis'
 
 class PidApp
   
