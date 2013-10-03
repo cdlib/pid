@@ -2,10 +2,13 @@ $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/sho
 require 'shortcake'
 require "net/http"
 require "data_mapper"
+require 'dm-core'
+require 'dm-validations'
 require 'dm-mysql-adapter'
 require 'dm-transactions'
 require 'dm-timestamps'
-require 'redis'
+#require 'dm-migration'
+#require 'redis'
 
 class PidApp
   
