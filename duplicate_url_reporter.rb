@@ -1,11 +1,11 @@
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
 require 'shortcake'
 require "net/http"
-require "yaml"
-require 'dm-core'
+require "data_mapper"
 require 'dm-mysql-adapter'
 require 'dm-transactions'
 require 'dm-timestamps'
+require 'redis'
 
 class PidApp
   
@@ -27,6 +27,7 @@ class PidApp
             :username => DATABASE_CONFIG['db_username'],
             :password => DATABASE_CONFIG['db_password']}
 
+    DataMapper::Logger.new($stdout, :error)
     DataMapper.setup(:default, args)
 
     # load controllers and models
