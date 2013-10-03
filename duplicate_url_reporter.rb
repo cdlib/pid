@@ -24,46 +24,51 @@ class PidApp
           :username => DATABASE_CONFIG['db_username'],
           :password => DATABASE_CONFIG['db_password']}
 
-  DataMapper.setup(:default, args)
 
-  # load controllers and models
-  Dir.glob("models/*.rb").each { |r| 
-    require_relative r
-   }
+  begin
+    DataMapper.setup(:default, args)
 
-  # finalize database models
-  DataMapper::Model.raise_on_save_failure = true
-  DataMapper.finalize.auto_upgrade!
+    # load controllers and models
+    Dir.glob("models/*.rb").each { |r| 
+      require_relative r
+    }
+
+    # finalize database models
+    DataMapper::Model.raise_on_save_failure = true
+    DataMapper.finalize.auto_upgrade!
   
-  # Delete all of the old report results
-  $stdout.puts "...Deleting old duplicate records."
-  DuplicateUrlReport.all().destroy
+    # Delete all of the old report results
+    $stdout.puts "...Deleting old duplicate records."
+    DuplicateUrlReport.all().destroy
   
-  # Gather all of the PIDs that are active and loop through them verifying their URLs
-  Pid.all(:deactivated => false).each do |pid|    
-    dups = Pid.all(:url => pid.url, :deactivated => false, :id.not => pid.id)
+    # Gather all of the PIDs that are active and loop through them verifying their URLs
+    Pid.all(:deactivated => false).each do |pid|    
+      dups = Pid.all(:url => pid.url, :deactivated => false, :id.not => pid.id)
     
-    pids = []
-    # Loopo through the duplicate URLs
-    dups.each do |dup|      
-      # If any duplicates were found add them to the pid as duplicates
-      pids << "<a href='#{hostname}link/#{dup.id}'>#{dup.id}</a>"
-    end
-
-    begin
-      
-      unless pids.empty?
-        pid.mutable = true
-        pid.duplicate_url_report = DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
-        pid.save
-        pid.mutable = false
+      pids = []
+      # Loopo through the duplicate URLs
+      dups.each do |dup|      
+        # If any duplicates were found add them to the pid as duplicates
+        pids << "<a href='#{hostname}link/#{dup.id}'>#{dup.id}</a>"
       end
+
+      begin
       
-    rescue Exception => e
-      puts "Failed to save duplicate information: #{e.message} - #{pid.id}"
+        unless pids.empty?
+          pid.mutable = true
+          pid.duplicate_url_report = DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
+          pid.save
+          pid.mutable = false
+        end
+      
+      rescue Exception => e
+        puts "Failed to save duplicate information: #{e.message} - #{pid.id}"
+      end
     end
+  
+  rescue Exception => e
+    puts "A fatal exception occurred! - #{e.message}"
   end
   
   $stdout.puts "Finished adding #{DuplicateUrlReport.count} URLs from the duplicate URL scan - #{Time.now}"
-  
 end

@@ -22,23 +22,28 @@ class PidApp
           :username => DATABASE_CONFIG['db_username'],
           :password => DATABASE_CONFIG['db_password']}
 
-  DataMapper.setup(:default, args)
+  begin
+    DataMapper.setup(:default, args)
 
-  # load controllers and models
-  Dir.glob("models/*.rb").each { |r| 
-    require_relative r
-   }
+    # load controllers and models
+    Dir.glob("models/*.rb").each { |r| 
+      require_relative r
+    }
 
-  # finalize database models
-  DataMapper::Model.raise_on_save_failure = true
-  DataMapper.finalize.auto_upgrade!
+    # finalize database models
+    DataMapper::Model.raise_on_save_failure = true
+    DataMapper.finalize.auto_upgrade!
   
-  # Clear out all of the old records
-  InvalidUrlReport.all.destroy
+    # Clear out all of the old records
+    InvalidUrlReport.all.destroy
   
-  # Gather all of the PIDs that are active and loop through them verifying their URLs
-  Pid.all(:deactivated => false).each do |pid|  
-    pid.verify_url
+    # Gather all of the PIDs that are active and loop through them verifying their URLs
+    Pid.all(:deactivated => false).each do |pid|  
+      pid.verify_url
+    end
+  
+  rescue Exception => e
+    puts "A fatal exception occurred! - #{e.message}"
   end
   
   $stdout.puts "Finished adding #{DuplicateUrlReport.count} URLs from the invalid URL scan - #{Time.now}"
