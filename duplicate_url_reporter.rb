@@ -8,24 +8,23 @@ require 'dm-mysql-adapter'
 class PidApp
   
   $stdout.puts "Starting duplicate URL scan - #{Time.now}"
+ 
+  begin 
+    APP_CONFIG = YAML.load_file(File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
+    DATABASE_CONFIG = YAML.load_file(File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
+    SECURITY_CONFIG = YAML.load_file(File.exists?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
   
-  APP_CONFIG = YAML.load_file(File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
-  DATABASE_CONFIG = YAML.load_file(File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
-  SECURITY_CONFIG = YAML.load_file(File.exists?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
-  
-  URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+    URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
-  hostname = "http://#{APP_CONFIG['host']}:#{APP_CONFIG['port'].to_s}/"
+    hostname = "http://#{APP_CONFIG['host']}:#{APP_CONFIG['port'].to_s}/"
 
-  args = {:adapter => DATABASE_CONFIG['db_adapter'],
-          :host => DATABASE_CONFIG['db_host'],
-          :port => DATABASE_CONFIG['db_port'].to_i,
-          :database => DATABASE_CONFIG['db_name'],
-          :username => DATABASE_CONFIG['db_username'],
-          :password => DATABASE_CONFIG['db_password']}
+    args = {:adapter => DATABASE_CONFIG['db_adapter'],
+            :host => DATABASE_CONFIG['db_host'],
+            :port => DATABASE_CONFIG['db_port'].to_i,
+            :database => DATABASE_CONFIG['db_name'],
+            :username => DATABASE_CONFIG['db_username'],
+            :password => DATABASE_CONFIG['db_password']}
 
-
-  begin
     DataMapper.setup(:default, args)
 
     # load controllers and models
