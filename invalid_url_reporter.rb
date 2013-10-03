@@ -9,20 +9,20 @@ class PidApp
   
   $stdout.puts "Starting invalid URL scan - #{Time.now}"
   
-  APP_CONFIG = YAML.load_file(File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
-  DATABASE_CONFIG = YAML.load_file(File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
-  SECURITY_CONFIG = YAML.load_file(File.exists?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
-  
-  URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
-
-  args = {:adapter => DATABASE_CONFIG['db_adapter'],
-          :host => DATABASE_CONFIG['db_host'],
-          :port => DATABASE_CONFIG['db_port'].to_i,
-          :database => DATABASE_CONFIG['db_name'],
-          :username => DATABASE_CONFIG['db_username'],
-          :password => DATABASE_CONFIG['db_password']}
-
   begin
+    APP_CONFIG = YAML.load_file(File.exists?("/apps/purl/webapp/conf/app.yml") ? "/apps/purl/webapp/conf/app.yml" : 'conf/app.yml.example')
+    DATABASE_CONFIG = YAML.load_file(File.exists?("/apps/purl/webapp/conf/db.yml") ? "conf/db.yml" : '/apps/purl/webapp/conf/db.yml.example')
+    SECURITY_CONFIG = YAML.load_file(File.exists?("/apps/purl/webapp/conf/security.yml") ? "/apps/purl/webapp/conf/security.yml" : 'conf/security.yml.example')
+  
+    URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+
+    args = {:adapter => DATABASE_CONFIG['db_adapter'],
+            :host => DATABASE_CONFIG['db_host'],
+            :port => DATABASE_CONFIG['db_port'].to_i,
+            :database => DATABASE_CONFIG['db_name'],
+            :username => DATABASE_CONFIG['db_username'],
+            :password => DATABASE_CONFIG['db_password']}
+
     DataMapper.setup(:default, args)
 
     # load controllers and models
