@@ -38,11 +38,11 @@ class PidApp
   
     # Delete all of the old report results
     $stdout.puts "...Deleting old duplicate records."
-    DuplicateUrlReport.all().destroy
+    PidApp::DuplicateUrlReport.all().destroy
   
     # Gather all of the PIDs that are active and loop through them verifying their URLs
-    Pid.all(:deactivated => false).each do |pid|    
-      dups = Pid.all(:url => pid.url, :deactivated => false, :id.not => pid.id)
+    PidApp::Pid.all(:deactivated => false).each do |pid|    
+      dups = PidApp::Pid.all(:url => pid.url, :deactivated => false, :id.not => pid.id)
     
       pids = []
       # Loopo through the duplicate URLs
@@ -55,7 +55,7 @@ class PidApp
       
         unless pids.empty?
           pid.mutable = true
-          pid.duplicate_url_report = DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
+          pid.duplicate_url_report = PidApp::DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
           pid.save
           pid.mutable = false
         end
@@ -69,5 +69,5 @@ class PidApp
     puts "A fatal exception occurred! - #{e.message}"
   end
   
-  $stdout.puts "Finished adding #{DuplicateUrlReport.count} URLs from the duplicate URL scan - #{Time.now}"
+  $stdout.puts "Finished adding #{PidApp::DuplicateUrlReport.count} URLs from the duplicate URL scan - #{Time.now}"
 end
