@@ -1,13 +1,13 @@
 # -----------------------------------------------------------------------------------------------   
-# Represents the output of a scheduled report record that checks to see if the URL target returns > HTTP 200 
+# Represents a record from a scheduled report that looks for duplicate URLs
 #
 # These reports are executed by a scheduled cron job on the server
 # -----------------------------------------------------------------------------------------------   
-class InvalidUrlReport
+class DuplicateUrlReport
   include DataMapper::Resource
   
   property :id, Serial, :key => true
-  property :http_code, Integer, :required => true
+  property :other_pids, Text, :required => true
   property :last_checked, Time, :required => false
   
   def self.flush!

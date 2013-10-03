@@ -55,6 +55,23 @@
     <% end %>
     
     
+    <% if !@pid.invalid_url_report.nil? %>
+      <% msg_name = 'edit_pid_invalid_url_500' %>
+    
+      <% if @pid.invalid_url_report.http_code.between?(300, 399) %>
+        <% msg_name = 'edit_pid_invalid_url_300' %>
+      <% elsif @pid.invalid_url_report.http_code.between?(400, 499) %>
+        <% msg_name = 'edit_pid_invalid_url_400' %>
+      <% end %>
+      
+      <label>&nbsp;</label><span class="form_informational errors" style="width: 80%;"><%= HTML_CONFIG[msg_name].gsub('{status}', @pid.invalid_url_report.http_code.to_s).gsub('{last_checked}', @pid.invalid_url_report.last_checked.strftime("%m/%d/%Y")) %></span>
+    <% end %>
+    
+    <% if !@pid.duplicate_url_report.nil? %>
+      <label>&nbsp;</label><span class="form_informational errors" style="width: 80%;"><%= HTML_CONFIG['edit_pid_duplicate_url'].gsub('{others}', @pid.duplicate_url_report.other_pids).gsub('{last_checked}', @pid.duplicate_url_report.last_checked.strftime("%m/%d/%Y")) %></span>
+    <% end %>
+    
+    
     <% if @is_owner %>
       <% if @interested.size > 0 %>
         <label>&nbsp;</label><span class="form_informational" style="width: 80%;">&nbsp;</span>

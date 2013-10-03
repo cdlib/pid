@@ -193,7 +193,13 @@ admin_text_super:
 dead_pid_text:
   "The PID you are looking for is no longer active. Please contact you local administrator if you think that this is an error."
 
+edit_pid_duplicate_url: 'Warning The URL is also referenced (last checked on {last_checked}) by PID(s): {others}'
+
 edit_pid_interested_parties: "The interested groups listed above will be notified of any changes you make to this PID."
+
+edit_pid_invalid_url_300: 'Warning: This URL returned a "moved or redirect" message (HTTP status: {status}) on {last_checked}'
+edit_pid_invalid_url_400: 'Warning: This URL returned a "not found" message (HTTP status: {status}) on {last_checked}'
+edit_pid_invalid_url_500: 'Warning: This URL returned a "server error" message (HTTP status: {status}) on {last_checked}'
 
 edit_pid_not_owner: "You are not the owner of this PID and cannot make changes!<br /><br />If you think it should be updated please contact: {?}."
 

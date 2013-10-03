@@ -7,13 +7,15 @@ require 'dm-mysql-adapter'
 
 class PidApp
   
-  $stdout.puts "Starting invalid URL scan - #{Time.now}"
+  $stdout.puts "Starting duplicate URL scan - #{Time.now}"
   
   APP_CONFIG = YAML.load_file(File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
   DATABASE_CONFIG = YAML.load_file(File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
   SECURITY_CONFIG = YAML.load_file(File.exists?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
   
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+
+  hostname = "http://#{APP_CONFIG['host']}:#{APP_CONFIG['port'].to_s}/"
 
   args = {:adapter => DATABASE_CONFIG['db_adapter'],
           :host => DATABASE_CONFIG['db_host'],
@@ -33,13 +35,35 @@ class PidApp
   DataMapper::Model.raise_on_save_failure = true
   DataMapper.finalize.auto_upgrade!
   
-  # Clear out all of the old records
-  InvalidUrlReport.all.destroy
+  # Delete all of the old report results
+  $stdout.puts "...Deleting old duplicate records."
+  DuplicateUrlReport.all().destroy
   
   # Gather all of the PIDs that are active and loop through them verifying their URLs
-  Pid.all(:deactivated => false).each do |pid|  
-    pid.verify_url
+  Pid.all(:deactivated => false).each do |pid|    
+    dups = Pid.all(:url => pid.url, :deactivated => false, :id.not => pid.id)
+    
+    pids = []
+    # Loopo through the duplicate URLs
+    dups.each do |dup|      
+      # If any duplicates were found add them to the pid as duplicates
+      pids << "<a href='#{hostname}link/#{dup.id}'>#{dup.id}</a>"
+    end
+
+    begin
+      
+      unless pids.empty?
+        pid.mutable = true
+        pid.duplicate_url_report = DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
+        pid.save
+        pid.mutable = false
+      end
+      
+    rescue Exception => e
+      puts "Failed to save duplicate information: #{e.message} - #{pid.id}"
+    end
   end
   
-  $stdout.puts "Finished adding #{DuplicateUrlReport.count} URLs from the invalid URL scan - #{Time.now}"
+  $stdout.puts "Finished adding #{DuplicateUrlReport.count} URLs from the duplicate URL scan - #{Time.now}"
+  
 end

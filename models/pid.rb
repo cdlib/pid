@@ -36,6 +36,7 @@ class Pid
   
   belongs_to :group
   belongs_to :invalid_url_report, :required => false
+  belongs_to :duplicate_url_report, :required => false
   
   property :id, Serial, :key => true
 
@@ -169,7 +170,7 @@ class Pid
         pid
         
       rescue Exception => e     
-        t.rollback       
+        t.rollback   
         raise PidException, e.message
       end
       

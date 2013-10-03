@@ -115,37 +115,22 @@ class PidApp < Sinatra::Application
       shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
       
       if current_user.super
-        pids = Pid.all(:deactivated => false)
+        pids = Pid.all(:deactivated => false, :duplicate_url_report.not => nil)
         
       # If the user manages groups show the pids for all of those groups
       elsif !Maintainer.all(:user => current_user).empty?
         Maintainer.all(:user => current_user).each do |maintainer| 
-          (Pid.all(:deactivated => false, :group => maintainer.group)).each{ |pid| pids << pid }   
+          (Pid.all(:deactivated => false, :group => maintainer.group, :duplicate_url_report.not => nil)).each{ |pid| pids << pid }   
         end
           
       else
-        pids = Pid.all(:deactivated => false, :group => current_user.group)
+        pids = Pid.all(:deactivated => false, :group => current_user.group, :duplicate_url_report.not => nil)
       end
       
       dups = {}
       
       pids.each do |pid|
-        occurences = Pid.all(:url => pid.url, :id.not => pid.id)
-        
-        if occurences
-          dups[pid.url] = occurences.join(", "){ |it| it.id }
-        end
-        
-      #  if dups[pid.url].nil?
-      #    occurences = shorty.get(pid.url)        
-
-      #    if occurences
-      #      vals = JSON.parse(occurences)
-      #      if vals.size > 1
-      #        dups[pid.url] = vals
-      #      end
-      #    end
-      #  end
+        dups[pid.url] = pid.duplicate_url_report.other_pids unless pid.duplicate_url_report.nil?
       end
       
     rescue Exception => e

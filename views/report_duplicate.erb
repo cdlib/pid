@@ -32,16 +32,11 @@
   var i = 1;
   $.each($.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>'), function(url, pids) {
       
-    col = ""
-    $.each(pids, function(idx, pid) {
-      col += '<a href="/link/' + pid + '" class="letterpress">' + pid + '</a>, '
-    });
-      
     $("table tr:last").after("<tr>" +
                               "<td>" + i + ")</td>" + 
                               "<td><a href=\"" + url + "\" target=\"_blank\" class=\"underline\" title=\"" + url + "\">" +
                                             ((url.length > 80) ? url.substring(0, 79) + " ..." : url) + "</td>" +
-                              "<td>" + col + "</td>" +
+                              "<td>" + pids.replace(/%27/g, '') + "</td>" +
                              "</tr>");
     i++;
    });
