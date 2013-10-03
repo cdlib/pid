@@ -9,3 +9,5 @@ vendor
 conf/*.yml
 conf/*.conf
 log/*_log
+log/*.pid
+log/*.out
