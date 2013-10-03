@@ -2,8 +2,10 @@ $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/sho
 require 'shortcake'
 require "net/http"
 require "yaml"
-require "data_mapper"
+require 'dm-core'
 require 'dm-mysql-adapter'
+require 'dm-transactions'
+require 'dm-timestamps'
 
 class PidApp
   
@@ -28,9 +30,7 @@ class PidApp
     DataMapper.setup(:default, args)
 
     # load controllers and models
-    Dir.glob("models/*.rb").each { |r| 
-      require_relative r
-    }
+    Dir.glob("models/*.rb").each { |r| require_relative r }
 
     # finalize database models
     DataMapper::Model.raise_on_save_failure = true
@@ -38,11 +38,11 @@ class PidApp
   
     # Delete all of the old report results
     $stdout.puts "...Deleting old duplicate records."
-    PidApp::DuplicateUrlReport.all().destroy
+    DuplicateUrlReport.all().destroy
   
     # Gather all of the PIDs that are active and loop through them verifying their URLs
-    PidApp::Pid.all(:deactivated => false).each do |pid|    
-      dups = PidApp::Pid.all(:url => pid.url, :deactivated => false, :id.not => pid.id)
+    Pid.all(:deactivated => false).each do |pid|    
+      dups = Pid.all(:url => pid.url, :deactivated => false, :id.not => pid.id)
     
       pids = []
       # Loopo through the duplicate URLs
@@ -55,7 +55,7 @@ class PidApp
       
         unless pids.empty?
           pid.mutable = true
-          pid.duplicate_url_report = PidApp::DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
+          pid.duplicate_url_report = DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
           pid.save
           pid.mutable = false
         end
@@ -69,5 +69,5 @@ class PidApp
     puts "A fatal exception occurred! - #{e.message}"
   end
   
-  $stdout.puts "Finished adding #{PidApp::DuplicateUrlReport.count} URLs from the duplicate URL scan - #{Time.now}"
+  $stdout.puts "Finished adding #{DuplicateUrlReport.count} URLs from the duplicate URL scan - #{Time.now}"
 end
