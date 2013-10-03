@@ -1,7 +1,10 @@
 <section id="duplicate_report">
   <h3><%= HTML_CONFIG['header_report_duplicate'] %></h3>
+
+  <div class="form_informational">This report is processed every Saturday night and scans all active PIDs.<br />Your manager can designate domains that should not be scanned due to contractual agreements made with the University (e.g. do not scan URLs starting with 'http://www.google.com').<br />PIDs that are modified or minted during the week will also appear on this report.</div>
   
   <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+
   
   <% unless @json == '{}' %>
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
