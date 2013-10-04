@@ -1,4 +1,7 @@
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
+require 'rubygems'
+require 'bundler/setup'
+
 require 'shortcake'
 require "net/http"
 require 'data_mapper'
