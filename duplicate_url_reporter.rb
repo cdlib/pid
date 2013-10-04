@@ -62,6 +62,10 @@ class PidApp
       begin
       
         unless pids.empty?
+          # Add the originating PID to the list of duplicates
+          pids.join << "<a href='#{hostname}link/#{pid.id}'>#{pid.id}</a>"
+          
+          # Save the record
           pid.mutable = true
           pid.duplicate_url_report = DuplicateUrlReport.new(:other_pids => pids.join(', '), :last_checked => Time.now)
           pid.save
