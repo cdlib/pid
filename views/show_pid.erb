@@ -68,7 +68,7 @@
     <% end %>
     
     <% if !@pid.duplicate_url_report.nil? %>
-      <label>&nbsp;</label><span class="form_informational errors" style="width: 80%;"><%= HTML_CONFIG['edit_pid_duplicate_url'].gsub('{others}', @pid.duplicate_url_report.other_pids).gsub('{last_checked}', @pid.duplicate_url_report.last_checked.strftime("%m/%d/%Y")) %></span>
+      <label>&nbsp;</label><span class="form_informational errors" style="width: 80%;"><%= HTML_CONFIG['edit_pid_duplicate_url'].gsub('{others}', @pid.duplicate_url_report.other_pids.gsub(", #{@pid.id}", '')).gsub('{last_checked}', @pid.duplicate_url_report.last_checked.strftime("%m/%d/%Y")) %></span>
     <% end %>
     
     
