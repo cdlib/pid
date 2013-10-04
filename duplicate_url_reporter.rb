@@ -63,7 +63,7 @@ class PidApp
       
         unless pids.empty?
           # Add the originating PID to the list of duplicates
-          pids.join << "<a href='#{hostname}link/#{pid.id}'>#{pid.id}</a>"
+          pids << "<a href='#{hostname}link/#{pid.id}'>#{pid.id}</a>"
           
           # Save the record
           pid.mutable = true
