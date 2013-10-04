@@ -2,14 +2,17 @@ $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/sho
 require 'rubygems'
 require 'bundler/setup'
 
-require 'shortcake'
+require 'yaml'
 require "net/http"
+
 require 'data_mapper'
 require 'dm-sqlite-adapter'
 require 'dm-mysql-adapter'
 require 'dm-transactions'
 require 'dm-timestamps'
+
 require 'redis'
+require 'shortcake'
 
 class PidApp
   
