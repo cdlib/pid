@@ -53,6 +53,12 @@ hr {
 .ok { background:     url('../ok_15.png') no-repeat center; }
 .not_ok { background: url('../notok_15.png') no-repeat center; }
 
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 #main {
   position:            relative;
   margin:              35px 0 0 55px;

@@ -1,15 +1,15 @@
 <section id="user_login">
-	<h3><%= HTML_CONFIG['header_login'] %></h3>
-	
-	<form action="/user/login" method="post">
-		<label><%= HTML_CONFIG['form_userid'] %></label><input type="text" name="login" id="login" value="<%= @userid %>" />
-		<label><%= HTML_CONFIG['form_password'] %></label><input type="password" name="password" id="password" />
-		<label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_login'] %>" />
-		<label>&nbsp;</label><a class="letterpress" href="/user/forgot"><%= HTML_CONFIG['link_to_forgotten_password'] %></a>
-	</form>
-	
+  <h3><%= HTML_CONFIG['header_login'] %></h3>
+  
+  <form action="/user/login" method="post">
+    <label class="clearfix"><%= HTML_CONFIG['form_userid'] %></label><input type="text" name="login" id="login" value="<%= @userid %>" />
+    <label class="clearfix"><%= HTML_CONFIG['form_password'] %></label><input type="password" name="password" id="password" />
+    <label class="clearfix">&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_login'] %>" />
+    <label class="clearfix">&nbsp;</label><a class="letterpress" href="/user/forgot"><%= HTML_CONFIG['link_to_forgotten_password'] %></a>
+  </form>
+  
 </section>
 
 <section class="errors">
-	<%= @msg %>
+  <%= @msg %>
 </section>
