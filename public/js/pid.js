@@ -17,31 +17,24 @@ function validate(required_flds, email_flds, url_flds, must_match_flds){
   try {
     // Process the REQUIRED fields
     $.each(required_flds, function(idx, val) {
-      if(typeof $("#" + val) != 'undefined'){
-        if($("#" + val).val().trim() == ''){
-          ret += $("label[for='" + val + "']").html().replace(':', '') + " cannot be blank!<br />";
-        }
-      }
+      if($.trim($("#" + val).val()) == '')
+      ret += $("label[for='" + val + "']").html().replace(':', '') + " cannot be blank!<br />";
     });
 
     // Process the EMAIL fields
     $.each(email_flds, function(idx, val) {
-      if(typeof $("#" + val) != 'undefined'){
-        if( $("#" + val).val().trim() != '' ){
-          if( !REGEX_EMAIL.test( $("#" + val).val().trim() ) ) {
-            ret += $("label[for='" + val + "']").html().replace(':', '') + " is not a valid email address!<br />";
-          }
+      if($.trim($("#" + val).val()) != '' ){
+        if( !REGEX_EMAIL.test( $("#" + val).val().trim() ) ) {
+          ret += $("label[for='" + val + "']").html().replace(':', '') + " is not a valid email address!<br />";
         }
       }
     });
 
     // Process the URL fields
     $.each(url_flds, function(idx, val) {
-      if(typeof $("#" + val) != 'undefined'){
-        if( $("#" + val).val().trim() != '' ){
-          if( !REGEX_URL.test( $("#" + val).val().trim() ) ) {
-            ret += $("label[for='" + val + "']").html().replace(':', '') + " is not valid (make sure you include the http:// or https://)!<br />";
-          }
+      if($.trim($("#" + val).val()) != '' ){
+        if( !REGEX_URL.test( $("#" + val).val().trim() ) ) {
+          ret += $("label[for='" + val + "']").html().replace(':', '') + " is not valid (make sure you include the http:// or https://)!<br />";
         }
       }
     });
@@ -51,19 +44,17 @@ function validate(required_flds, email_flds, url_flds, must_match_flds){
       var prev = '', labels = '', failed = false;
 
       $.each(matchers, function(idx, val){
-        if(typeof $("#" + val) != 'undefined'){
-          if(labels != ''){
-            labels += " and "
-          }
-          // Record the labels of each input for the failure message
-          labels += $("label[for='" + val + "']").html().replace(':', '')
-
-          // If the input's value doesn't match it's predecessor, its a failure
-          if(prev != '' && prev != $("#" + val).val().trim()){
-            failed = true;
-          }
-          prev = $("#" + val).val()
+        if(labels != ''){
+          labels += " and "
         }
+        // Record the labels of each input for the failure message
+        labels += $("label[for='" + val + "']").html().replace(':', '')
+
+        // If the input's value doesn't match it's predecessor, its a failure
+        if(prev != '' && prev != $.trim($("#" + val).val())){
+          failed = true;
+        }
+        prev = $("#" + val).val()
       });
 
       if(failed){
