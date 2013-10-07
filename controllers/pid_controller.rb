@@ -208,53 +208,63 @@ class PidApp < Sinatra::Application
     # Limit the search results based on the value in the config
     args = {}
     
-    # Set the search criteria based on the user's input
-    args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
-    args[:username] = User.get(@params[:userid]).login unless @params[:userid].empty?
-  
-    args[:deactivated] = (@params[:active] == '0') ? true : false unless @params[:active].empty?
-  
-    args[:modified_at.gte] = "#{@params[:modified_low]} 00:00:00" unless @params[:modified_low].empty?
-    args[:modified_at.lte] = "#{@params[:modified_high]} 23:59:59" unless @params[:modified_high].empty?
-  
-    args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" unless @params[:created_low].empty?
-    args[:created_at.lte] = "#{@params[:created_high]} 23:59:59" unless @params[:created_high].empty?
-
-    # If the user specified that they want to see only the interested party items
-    if @params[:interesteds].to_s == '1'
-      pids = []
+    if @params[:pid_set].empty?
     
-      # Determine the starting and ending pid ids
-      first = !@params[:pid_low].empty? ? @params[:pid_low] : Pid.first(args).id
-      last = !@params[:pid_high].empty? ? @params[:pid_high] : Pid.last(args).id
+      # Set the search criteria based on the user's input
+      args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
+      args[:username] = User.get(@params[:userid]).login unless @params[:userid].empty?
+  
+      args[:deactivated] = (@params[:active] == '0') ? true : false unless @params[:active].empty?
+  
+      args[:modified_at.gte] = "#{@params[:modified_low]} 00:00:00" unless @params[:modified_low].empty?
+      args[:modified_at.lte] = "#{@params[:modified_high]} 23:59:59" unless @params[:modified_high].empty?
+  
+      args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" unless @params[:created_low].empty?
+      args[:created_at.lte] = "#{@params[:created_high]} 23:59:59" unless @params[:created_high].empty?
+
+      # If the user specified that they want to see only the interested party items
+      if @params[:interesteds].to_s == '1'
+        pids = []
+    
+        # Determine the starting and ending pid ids
+        first = !@params[:pid_low].empty? ? @params[:pid_low] : Pid.first(args).id
+        last = !@params[:pid_high].empty? ? @params[:pid_high] : Pid.last(args).id
       
-      # Loop through the interested parties
-      Interested.all(:group => current_user.group).each do |interest|
-        # If the user specified a pid range we need to adhere to it
-        pids << interest.pid.id if interest.pid.id >= first.to_i and interest.pid.id <= last.to_i
-      end
+        # Loop through the interested parties
+        Interested.all(:group => current_user.group).each do |interest|
+          # If the user specified a pid range we need to adhere to it
+          pids << interest.pid.id if interest.pid.id >= first.to_i and interest.pid.id <= last.to_i
+        end
 
-      # Loop through the collected pids
-      pids.each do |pid|
-        args[:id] = pid
+        # Loop through the collected pids
+        pids.each do |pid|
+          args[:id] = pid
     
-        watched = Pid.first(args)
+          watched = Pid.first(args)
         
-        # Add the pid to the results if it was found
-        results << watched unless watched.nil?
-      end
+          # Add the pid to the results if it was found
+          results << watched unless watched.nil?
+        end
             
-    else
-      args[:id.gte] = @params[:pid_low] unless @params[:pid_low].empty?
-      args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
-
-      # Filter the results to the user's group unless the user is an admin
-      if !Maintainer.all(:user => current_user).empty? and !current_user.super and !current_user.read_only
-        Maintainer.all(:user => current_user).each{ |maintainer| (Pid.all(args) & Pid.all(:group => maintainer.group)).each{ |pid| results << pid } }
       else
-        args[:group] = current_user.group unless current_user.super or current_user.read_only
+        args[:id.gte] = @params[:pid_low] unless @params[:pid_low].empty?
+        args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
+
+        # Filter the results to the user's group unless the user is an admin
+        if !Maintainer.all(:user => current_user).empty? and !current_user.super and !current_user.read_only
+          Maintainer.all(:user => current_user).each{ |maintainer| (Pid.all(args) & Pid.all(:group => maintainer.group)).each{ |pid| results << pid } }
+        else
+          args[:group] = current_user.group unless current_user.super or current_user.read_only
       
-        results = Pid.all(args)
+          results = Pid.all(args)
+        end
+      end
+    else
+      pids = @params[:pid_set].split(',')
+      
+      pids.each do |pid|
+        rslt = Pid.first(:id => pid.to_s.gsub(' ', '').gsub("\r", '').gsub("\n", ''))
+        results << rslt unless rslt.nil?
       end
     end
     

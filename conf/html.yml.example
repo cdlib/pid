@@ -38,7 +38,8 @@ header_report_invalid_skipped: 'The following domains cannot be scanned due to c
 header_report_maintenance_criteria: 'PID maintenance report criteria'
 header_report_maintenance_results: 'PID maintenance report results'
 header_reset_password: 'Reset your password'
-header_search_criteria: 'Search criteria'
+header_search_criteria: 'Or use the following search criteria'
+header_search_pid_set: 'Find a specific group of PIDs'
 header_search_results: 'Search results'
 header_skip_check_add: 'Add a new domain'
 header_skip_check_list: 'Domains that we cannot run link validation against'
@@ -90,6 +91,7 @@ form_old_url: 'Old URL:'
 form_password: 'Password:'
 form_pid: 'PID:'
 form_pid_range: 'PID Range:'
+form_pid_set: 'PIDs (separated by commas):'
 form_url: 'URL:'
 form_urls: 'URL(s):'
 form_userid: 'User Id:'
@@ -111,6 +113,7 @@ report_no_activity: 'No duplicate PIDs were found.'
 
 # Create pid textarea tooltip
 create_pids_tooltip: 'One URL per line. Each URL should include the protocol (e.g. http://)'
+pid_set_tooltip: 'Your PIDs should be separated by commas.'
 
 # Batch processing
 batch_duplicate_url_log: 'The following URL(s) are already in use by the following PID(s)'

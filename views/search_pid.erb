@@ -1,7 +1,12 @@
 <section id="search_criteria">
-  <h3><%= HTML_CONFIG['header_search_criteria'] %></h3>
-  
   <form action="/link/search" method="post">
+    <h3><%= HTML_CONFIG['header_search_pid_set'] %></h3>
+    
+    <label><%= HTML_CONFIG['form_pid_set'] %></label>
+    <textarea id="pid_set" name="pid_set" style="height: 80px; width: 60%" title="<%= HTML_CONFIG['pid_set_tooltip'] %>"><%= params[:pid_set] %></textarea>
+    
+    <h3><%= HTML_CONFIG['header_search_criteria'] %></h3>
+    
     <label><%= HTML_CONFIG['form_url'] %></label>
     <input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
     <div><%= HTML_CONFIG['form_search_url_instruction'] %></div>
@@ -153,7 +158,7 @@
   $("#submit").click( function(){
     $("#spinner").show();
     $(".errors").html("");
-		$("#search_results").hide();
+    $("#search_results").hide();
   });
 
   $("#reset").click( function() {

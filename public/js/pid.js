@@ -82,6 +82,7 @@ function reset_form_criteria(err_msg){
 
       $("#pid_low").val(defaults.pid_low);
       $("#pid_high").val(defaults.pid_high);
+      $("#pid_set").val('');
 
       $("#created_low").val(defaults.created_low);
       $("#created_high").val(defaults.created_high);
