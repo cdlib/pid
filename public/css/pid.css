@@ -146,7 +146,7 @@ form span.form_informational a {
 form label { 
   position:            relative;
   float:              left;
-  clear:              left;
+  clear:              both;
   
   width:              20%;
 }
