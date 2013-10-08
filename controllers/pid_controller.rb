@@ -117,7 +117,7 @@ class PidApp < Sinatra::Application
     @interested = []
     
     if !params[:csv].nil?
-      if params[:csv][:type] == 'text/csv'
+#      if params[:csv][:type] == 'text/csv'
 
         begin
           # Loop through the items in the CSV
@@ -186,9 +186,9 @@ class PidApp < Sinatra::Application
           @msg = "#{MESSAGE_CONFIG['batch_process_failure']}<br /><br />#{e.message}"
         end
 
-      else
-        @msg = MESSAGE_CONFIG['invalid_file_type']
-      end
+#      else
+#        @msg = MESSAGE_CONFIG['invalid_file_type']
+#      end
     else
       @msg = MESSAGE_CONFIG['no_file_selected']
     end
