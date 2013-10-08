@@ -16,7 +16,7 @@ class PidApp < Sinatra::Application
   MESSAGE_CONFIG = YAML.load_file(File.exists?("conf/message.yml") ? "conf/message.yml" : 'conf/message.yml.example')
   HTML_CONFIG = YAML.load_file(File.exists?("conf/html.yml") ? "conf/html.yml" : 'conf/html.yml.example')
 
-  URI_REGEX = /[fh]t{1,2}ps?:\/\/[\p{L}\-_\.~%\/-]+(:[0-9]+)?(\/[\p{L}\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+  URI_REGEX = /[fh]t{1,2}ps?:\/\/[\p{L}\-_\.]+(:[0-9]+)?(\/[\p{L}\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
   args = {:adapter => DATABASE_CONFIG['db_adapter'],
           :host => DATABASE_CONFIG['db_host'],

@@ -42,7 +42,7 @@
         <% @interested.each do |interest| %>
           <tr>
             <td><a href="/link/<%= interest.id %>" class="letterpress"><%= interest.id %></a></td>
-            <td><a href="<%= interest.url %>" class="underline" target="_blank"><%= interest.url %></a></td>
+            <td style="width: 80%;"><a href="<%= interest.url %>" class="underline" target="_blank"><%= interest.url %></a></td>
           </tr>
       <% end %>
     </table>
@@ -59,7 +59,7 @@
         <% @dead_urls.each do |pid| %>
           <tr>
             <td><a href="/link/<%= pid.id %>" class="letterpress"><%= pid.id %></a></td>
-            <td><a href="<%= pid.url %>" class="underline" target="_blank"><%= pid.url %></a></td>
+            <td style="width: 80%;"><a href="<%= pid.url %>" class="underline" target="_blank"><%= pid.url %></a></td>
           </tr>
       <% end %>
     </table>
@@ -76,7 +76,7 @@
         <% @successes.each do |success| %>
           <tr>
             <td><a href="/link/<%= success.id %>" class="letterpress"><%= success.id %></a></td>
-            <td><a href="<%= success.url %>" class="underline" target="_blank"><%= success.url %></a></td>
+            <td style="width: 80%;"><a href="<%= success.url %>" class="underline" target="_blank"><%= success.url %></a></td>
           </tr>
       <% end %>
     </table>
