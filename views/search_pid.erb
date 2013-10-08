@@ -176,8 +176,10 @@
   function changePage(){
     $("#spinner").show();
     
+    var page = parseInt($("#current_page").val());
+    
     // Get the paginated subset of json data and rebuild the table
-    buildResultsTable(paginate_json($.parseJSON($("#data").val()), parseInt($("#current_page").val())));
+    buildResultsTable(paginate_json($.parseJSON($("#data").val()), page), page - 1);
 
     // Rebuild the pagination navigation
     pagination_build_nav($("table"), parseInt($("#current_page").val()));
@@ -185,8 +187,11 @@
     $("#spinner").hide();
   }
   
-  function buildResultsTable(json){
+  function buildResultsTable(json, current_page){
     var i = 1;
+    if(!isNaN(current_page)){
+      i = (current_page * <%= APP_CONFIG['search_results_limit'] %>) + 1;
+    }
     
     $("table").find('tr:not(.page_nav):gt(0)').remove();
     
