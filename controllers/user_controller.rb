@@ -326,8 +326,18 @@ class PidApp < Sinatra::Application
       halt(403)
     end
     
+    @groups = (current_user.super) ? Group.all : []
+    
+    if !current_user.super
+      Maintainer.all(:user => current_user).each do |maint|
+       @groups << maint.group 
+      end
+    end
+    
+    @groups = nil if @groups.count <= 1
+    
+    @params = {:group => current_user.group.id}
     @super = current_user.super
-    @groups = Group.all if current_user.super
     @params = (params) ? params : {}
     
     erb :new_user  

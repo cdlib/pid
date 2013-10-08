@@ -40,7 +40,7 @@
 
 <img src="/spinner.gif" id="spinner" />
 
-<section class="errors">
+<section id="message" name="message" class="message">
   <%= @msg %>
 </section>
 
@@ -78,13 +78,17 @@
     var validation = validate(["login", "name", "email", "group", "password", "confirm"], ["email"], [], [ ["password", "confirm"] ]);
       
     $("#spinner").show();
-    $(".errors").html("");
+    $("#message").html("");
     
     // If there were validation errors display them and cancel the submit
     if( validation != '' ){
       event.preventDefault();
-      $(".errors").html(validation);
+			$("#message").removeClass("message");
+      $("#message").addClass("errors");
+      $("#message").html(validation);
     }
+    
+    $("#spinner").hide();
   });
     
 </script>
