@@ -161,7 +161,7 @@
     $("#search_results").hide();
   });
 
-  $("#reset").click( function() {
+  $("#reset").click( function(event) {
     event.preventDefault();
     reset_form_criteria('<%= HTML_CONFIG['unable_to_load_criteria_defaults'] %>');
   });

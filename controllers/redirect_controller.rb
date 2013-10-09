@@ -1,3 +1,4 @@
+require 'uri'
 
 class PidApp < Sinatra::Application
   redis = Redis.new
