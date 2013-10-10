@@ -23,7 +23,7 @@
     <select id="userid" name="userid">
     <option value=""></option>
       <% params[:users].each do |user| %>
-        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name.gsub("'", "&apos;") %> (<%= user.login %> - <%= user.group.id %>)</option>
+        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name.gsub("'", "&apos;") %> (<%= user.login %> - <%= user.group.id unless user.group.nil? %>)</option>
       <% end %>
     </select>
     
