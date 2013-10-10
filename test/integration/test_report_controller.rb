@@ -69,8 +69,12 @@ class TestReportController < Test::Unit::TestCase
   end
   
 # -----------------------------------------------------------------------------------------------
+=begin
+# TODO: Need a better idea here since the commercial URLs used may or may not validate at any point in time
   def test_get_invalid_urls_report
     security_check_basic("/report/invalid", "get", nil)
+
+    Pid.all(:deactivated => false).each { |pid| pid.verify_url }
 
     post '/user/login', {:login => @user.login, :password => @pwd}
     get '/report/invalid'
@@ -81,10 +85,34 @@ class TestReportController < Test::Unit::TestCase
     assert_equal 7, json.size, "Expected 7 results but found #{json.size}}"
     get '/user/logout'
   end
+=end
   
 # -----------------------------------------------------------------------------------------------
   def test_get_duplicate_urls_report
-    # The system does not allow duplicates to be created. Need to do direct mysql to add some to test this
+    security_check_basic("/report/inactive", "get", nil)
+
+    # Report is run on a schedule so we need to force the creation of the record
+    pid1 = Pid.first(:url => 'http://www.huffingtonpost.com')
+    pid2 = Pid.first(:url => 'http://www.huffingtonpost.com')
+    
+    pid1.mutable = true
+    pid1.duplicate_url_report = DuplicateUrlReport.new(:other_pids => "#{pid2.id},", :last_checked => Time.now)
+    pid1.save
+    pid1.mutable = false
+    
+    pid2.mutable = true
+    pid2.duplicate_url_report = DuplicateUrlReport.new(:other_pids => "#{pid1.id},", :last_checked => Time.now)
+    pid2.save
+    pid2.mutable = false
+    
+    post '/user/login', {:login => @user.login, :password => @pwd}
+    get '/report/duplicate'
+    assert last_response.ok?, "Expected a 200 but got a #{last_response.status}!"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_report_duplicate']), 'Did not get the duplicate report!'
+    json_txt = Nokogiri::HTML(last_response.body).search('#data').first['value']
+    json = JSON.parse(json_txt)
+    assert_equal 1, json.size, "Expected 1 result but found #{json.size}}"
+    get '/user/logout'
   end
   
 # -----------------------------------------------------------------------------------------------

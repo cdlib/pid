@@ -179,8 +179,12 @@ class PidApp < Sinatra::Application
       # If the PID high range is less than the low range, swap them 
       params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high].to_i < params[:pid_low].to_i
       
+      # Load the list of groups
+      params[:groups] = Group.all
+      
       # Load the list of users available to the user
-      params[:users] = (current_user.super or current_user.read_only) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
+      params[:users] = User.all
+      #params[:users] = (current_user.super or current_user.read_only) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
       
       # If the user is a maintainer add the user ids for any other users they may manage
       Maintainer.all(:user => current_user).each do |maint|
@@ -189,7 +193,7 @@ class PidApp < Sinatra::Application
         end
       end
       params[:users].sort!{ |x,y| x.login <=> y.login }
-      
+      params[:groups].sort!{ |x,y| x.id <=> y.id }
       
       params
     end

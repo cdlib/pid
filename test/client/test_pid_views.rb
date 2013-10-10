@@ -69,14 +69,22 @@ class PidClientTestApp < Test::Unit::TestCase
     trs = page.all("tr")
     assert_equal 3, trs.size, "Expected 2 results but found #{trs.size - 1} on URL search for testme.abc"
 
-  # wilcard match ALL urls
+  # wilcard match ALL url should fail becuase not enough criteria
     fill_in 'url', with: '.abc'
     click_button 'submit'
     
     trs = page.all("tr")
-    assert_equal 5, trs.size, "Expected 4 results but found #{trs.size - 1} on URL search for .abc"
+    assert_equal 1, trs.size, "Expected 0 results but found #{trs.size - 1} on URL search for .abc"
     fill_in 'url', with: ''
     
+    # wilcard match ALL url should fail becuase not enough criteria
+    fill_in 'url', with: 'http://'
+    click_button 'submit'
+    
+    trs = page.all("tr")
+    assert_equal 6, trs.size, "Expected 5 results but found #{trs.size - 1} on URL search for http://"
+    fill_in 'url', with: ''
+      
     # Search for PID ranges
     fill_in 'pid_low', with: '2'
     fill_in 'pid_high', with: '3'
@@ -111,22 +119,14 @@ class PidClientTestApp < Test::Unit::TestCase
     # Search for inactive
     Pid.first(:url => 'http://test.cdlib.abc').revise(:dead_pid_url => 'http://www.google.com', :deactivated => true, :group => @group)
     select "No", :from => 'active'
+    fill_in 'url', with: 'http://'
     click_button 'submit'
     
     trs = page.all("tr")
     assert_equal 2, trs.size, "Expected 1 result but found #{trs.size - 1} on search for inactive pids"
     select '', :from => 'active'
     
-    # Search as Maintainer of multiple groups and as super admin
     visit '/user/logout'
-    login(@mgr.login, @pwd)
-    
-    visit '/link/search'
-    fill_in 'url', with: '.abc'
-    click_button 'submit'
-    
-    trs = page.all("tr")
-    assert_equal 6, trs.size, "Expected 5 results but found #{trs.size - 1} on URL search for .abc as a Maintainer of multiple groups!"
   end
   
   def test_search_pid_auto_populate

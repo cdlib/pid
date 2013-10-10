@@ -11,11 +11,19 @@
     <input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
     <div><%= HTML_CONFIG['form_search_url_instruction'] %></div>
     
-    <label><%= HTML_CONFIG['form_userid'] %></label>
+    <label><%= HTML_CONFIG['form_group'] %></label>
+    <select id="groupid" name="groupid">
+    <option value=""></option>
+      <% params[:groups].each do |group| %>
+        <option value="<%= group.id %>" <%= 'selected="true"' if group.id.to_s == params[:groupid] %>><%= group.name.gsub("'", "&apos;") %></option>
+      <% end %>
+    </select>
+    
+    <label><%= HTML_CONFIG['form_modified_by'] %></label>
     <select id="userid" name="userid">
     <option value=""></option>
       <% params[:users].each do |user| %>
-        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name.gsub("'", "&apos;") %> (<%= user.login %>)</option>
+        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name.gsub("'", "&apos;") %> (<%= user.login %> - <%= user.group.id %>)</option>
       <% end %>
     </select>
     
@@ -72,6 +80,8 @@
       <h3><%= HTML_CONFIG['header_search_results'] %></h3>
     <% end %>
     
+    <span style="left"><%= HTML_CONFIG['search_text'] %><br /></span>
+    
     <% unless @json == '' %>
       <span style="left" id="rec_count"></span>
       <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
@@ -79,7 +89,7 @@
         <tr><th />
         <th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
         <th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
-        <th id="th_username"><a href="#"><%= HTML_CONFIG['th_userid'] %></a></th>
+        <th id="th_username"><a href="#"><%= HTML_CONFIG['th_last_modified_by'] %></a></th>
         <th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_modified_date'] %></a></th>
         <th id="th_deactivated"><a href="#"><%= HTML_CONFIG['th_active'] %></a></th></tr>
       </table>

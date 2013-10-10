@@ -64,33 +64,25 @@ class PidApp < Sinatra::Application
     @pid = Pid.get(params[:id])
     
     if @pid
-      # If the user's group owns the PID, the user is a super admin, the user has a read only account,
-      #      the user is a maintainer of the PID's group, or the user's group is an Interested Party
-      if current_user.group == @pid.group || current_user.super || current_user.read_only ||
-                                  !Maintainer.first(:group => @pid.group, :user => current_user).nil? ||
-                                  !Interested.first(:group => current_user.group, :pid => @pid).nil?
 
-        @groups = (current_user.super) ? Group.all : []
-        Maintainer.all(:user => current_user).each{ |maintain| @groups << maintain.group } unless current_user.super
-        @group = current_user.group
+      @groups = (current_user.super) ? Group.all : []
+      Maintainer.all(:user => current_user).each{ |maintain| @groups << maintain.group } unless current_user.super
+      @group = current_user.group
 
-        @interested = Interested.all(:pid => @pid)
+      @interested = Interested.all(:pid => @pid)
         
-        @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
-        @is_owner = true if Maintainer.first(:user => current_user, :group => @pid.group) || current_user.super
-        @is_owner = false if current_user.read_only
+      @is_owner = (current_user.group == @pid.group) ? true : false
+      @is_owner = true if Maintainer.first(:user => current_user, :group => @pid.group) || current_user.super
+      @is_owner = false if current_user.read_only
         
-        @owner = User.first(:login => @pid.username)
+      @owner = User.first(:login => @pid.username)
 
-        if params[:ajax] == "true"
-          erb :edit_pid_form, :layout => false
-        else
-          erb :show_pid
-        end
-
-      else        
-        halt(403)
+      if params[:ajax] == "true"
+        erb :edit_pid_form, :layout => false
+      else
+        erb :show_pid
       end
+
     else
       halt(404)
     end
@@ -122,7 +114,7 @@ class PidApp < Sinatra::Application
         begin
           # Loop through the items in the CSV
           CSV.foreach(params[:csv][:tempfile], :field_size_limit => APP_CONFIG['max_upload_csv_size']) do |row| 
-            id, url, cat, note = row
+            id, url, note = row
 
             # Strip off the last slash, the REGEX 
             if !url.nil?
@@ -134,7 +126,7 @@ class PidApp < Sinatra::Application
               # Make sure the URL is not missing
               if !url.nil?
               
-                result = mint_pid(url, 'Batch', note, request.ip)
+                result = mint_pid(url, 'Batch Minted', note, request.ip)
               
                 # If we successfully minted the PID
                 if result[:saved?]
@@ -164,7 +156,7 @@ class PidApp < Sinatra::Application
               if !pid.nil?
 
                 # Attempt to revise the PID
-                revision = revise_pid(pid, (url.nil?) ? pid.url : url, note, current_user.group, (url.nil?) ? "off" : "on")
+                revision = revise_pid(pid, (url.nil?) ? pid.url : url, 'Batch Modified', note, current_user.group, (url.nil?) ? "off" : "on")
                       
                 # If the revision was successful add it to the list otherwise record it as a failure
                 if revision[:saved?]
@@ -212,6 +204,7 @@ class PidApp < Sinatra::Application
     
       # Set the search criteria based on the user's input
       args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
+      args[:group_id] = @params[:groupid] unless @params[:groupid].empty?
       args[:username] = User.get(@params[:userid]).login unless @params[:userid].empty?
   
       args[:deactivated] = (@params[:active] == '0') ? true : false unless @params[:active].empty?
@@ -221,7 +214,7 @@ class PidApp < Sinatra::Application
   
       args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" unless @params[:created_low].empty?
       args[:created_at.lte] = "#{@params[:created_high]} 23:59:59" unless @params[:created_high].empty?
-
+      
       # If the user specified that they want to see only the interested party items
       if @params[:interesteds].to_s == '1'
         pids = []
@@ -250,14 +243,18 @@ class PidApp < Sinatra::Application
         args[:id.gte] = @params[:pid_low] unless @params[:pid_low].empty?
         args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
 
-        # Filter the results to the user's group unless the user is an admin
-        if !Maintainer.all(:user => current_user).empty? and !current_user.super and !current_user.read_only
-          Maintainer.all(:user => current_user).each{ |maintainer| (Pid.all(args) & Pid.all(:group => maintainer.group)).each{ |pid| results << pid } }
-        else
-          args[:group] = current_user.group unless current_user.super or current_user.read_only
-      
+        #Do not allow searches that are too broad.
+        if @params[:url].length > 4 or !@params[:userid].empty? or
+                            !@params[:modified_low].empty? or !@params[:modified_high].empty? or
+                            !@params[:created_low].empty? or !@params[:created_high].empty? or
+                            !@params[:pid_low].empty? or !@params[:pid_high].empty?
           results = Pid.all(args)
+          
+          @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
+        else
+          @msg = MESSAGE_CONFIG['pid_search_not_enough_criteria']
         end
+    
       end
     else
       pids = @params[:pid_set].split(',')
@@ -266,14 +263,17 @@ class PidApp < Sinatra::Application
         rslt = Pid.first(:id => pid.to_s.gsub(' ', '').gsub("\r", '').gsub("\n", ''))
         results << rslt unless rslt.nil?
       end
+      
+      @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
     end
     
     @has_interesteds = !Interested.first(:group => current_user.group).nil?
     
     @json = results.to_json
       
-    @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
-    
+    @manages = []
+    Maintainer.all(:user => current_user).each{ |maint| @manages << maint.group.id }
+
     erb :search_pid
   end
 
@@ -300,7 +300,7 @@ class PidApp < Sinatra::Application
           # If the group passed in cannot be found just use the PID's existing group
           group = (Group.first(:id => params[:group]).nil?) ? @pid.group : Group.first(:id => params[:group])
           
-          revision = revise_pid(@pid, url, params[:notes], group, params[:active])
+          revision = revise_pid(@pid, url, 'User Modified', params[:notes], group, params[:active])
           @msg = revision[:msg]
         end
       
@@ -309,7 +309,7 @@ class PidApp < Sinatra::Application
           
         @interested = Interested.all(:pid => @pid)
         
-        @is_owner = Interested.first(:group => current_user.group, :pid => @pid).nil? ? true : false
+        @is_owner = (current_user.group == @pid.group) ? true : false
         @is_owner = true if Maintainer.first(:user => current_user, :group => @pid.group) || current_user.super
         @is_owner = false if current_user.read_only
         
@@ -340,16 +340,13 @@ class PidApp < Sinatra::Application
     
     params[:new_urls].lines do |line|
       
-      change_category = (request.referrer == "#{hostname}link/new") ? 'User_Entered' : 'Batch'
-      
       # Strip off the line breaks from the form
       url = line.strip.gsub("\r\n", '').gsub("\n", '')
       # Strip off the last slash, the REGEX 
       url = url[0..(url.size())] if url[url.size() -1] == '/'
       
       unless url.empty?
-        
-        result = mint_pid(url, change_category, nil, request.ip)
+        result = mint_pid(url, 'User Minted', nil, request.ip)
         
         # If we successfully minted the PID
         if result[:saved?]
@@ -440,7 +437,7 @@ private
   end
   
 # --------------------------------------------------------------------------------------------------------------
-  def revise_pid(pid, url, notes, group, active)
+  def revise_pid(pid, url, change_category, notes, group, active)
     saved = false
     
     # If the pid belongs to the current user's group or the current user is a Maintainer of the Pid's group or the current user is a super admin
@@ -454,6 +451,7 @@ private
           
           pid.revise({:url => (url.nil?) ? pid.url : url,
                       :deactivated => (active == "on") ? false : true,
+                      :change_category => (change_category.nil?) ? pid.change_category : change_category,
                       :notes => (notes.nil?) ? pid.notes : notes,
                       :group => (group.nil?) ? pid.group : group,
                       :username => current_user.login,

@@ -22,7 +22,7 @@
     <hr />
   </section>
 
-  <section class="errors">
+  <section class="message">
     <%= @msg %>
   </section>
 
@@ -31,7 +31,7 @@
       <h3><%= HTML_CONFIG['batch_duplicate_url_log'] %></h3>
     
       <% @interested.each do |pid| %>
-         <%= pid.url %> - <%= HTML_CONFIG['form_pid'] %> <%= pid.id.to_s %><br />
+				 <%= pid.url %> - <%= HTML_CONFIG['form_pid'] %> <a href="/link/<%= pid.id.to_s %>" class="letterpress"><%= pid.id.to_s %></a><br />
       <% end %>
       <br />
     <% end %>
@@ -40,7 +40,7 @@
       <h3><%= HTML_CONFIG['batch_mint_log'] %></h3>
     
       <% @mints.each do |mint| %>
-        <%= HTML_CONFIG['form_pid'] %><%= mint.id.to_s %> - <%= mint.url %><br />
+        <%= HTML_CONFIG['form_pid'] %><a href="/link/<%= mint.id.to_s %>" class="letterpress"><%= mint.id.to_s %></a> - <%= mint.url %><br />
       <% end %>
       <br />
     <% end %>
@@ -49,7 +49,7 @@
       <h3><%= HTML_CONFIG['batch_revision_log'] %></h3>
     
       <% @revisions.each do |revision| %>
-         <%= HTML_CONFIG['form_pid'] %><%= revision.id.to_s %> - <%= (revision.deactivated ? 'Inactive' : 'Active') %> - <%= revision.url %><br />
+         <%= HTML_CONFIG['form_pid'] %><a href="/link/<%= revision.id.to_s %>" class="letterpress"><%= revision.id.to_s %></a> - <%= (revision.deactivated ? 'Inactive' : 'Active') %> - <%= revision.url %><br />
          <% end %>
     <% end %>
     

@@ -13,7 +13,7 @@ class PidApp < Sinatra::Application
 
 
   get '/PID/:shortcode' do
-    url = shorty.get(params[:shortcode])    
+    url = shorty.get(params[:shortcode])
     url.nil? ? 404 : redirect(url)
   end
 

@@ -19,7 +19,7 @@ header_login: 'Login'
 header_manage_maintainers: 'Users who can manage this group'
 header_manage_users: 'Users that belong to this group'
 header_not_found: 'The page you requested could not be found'
-header_pid_edit: 'Update PIDs'
+header_pid_edit: 'Batch modify PIDs'
 header_pid_history: 'History'
 header_pid_inactive: 'Inactive!'
 header_pid_register: 'Mint a new PID'
@@ -27,7 +27,7 @@ header_pid_register_dead_url: 'The following PID(s) were created but the URL see
 header_pid_register_duplicate_url: 'The following PID(s) are already defined for the following URL(s)'
 header_pid_register_success: 'Successfully created the following PID(s)'
 header_pid_view: 'PID:'
-header_reports: 'Reporting'
+header_reports: 'PID maintenance reports'
 header_report_duplicate: 'Duplicate URLs'
 header_report_inactive: 'Inactive reports'
 header_report_invalid: 'Invalid URLs'
@@ -39,8 +39,8 @@ header_report_maintenance_criteria: 'PID maintenance report criteria'
 header_report_maintenance_results: 'PID maintenance report results'
 header_reset_password: 'Reset your password'
 header_search_criteria: 'Or use the following search criteria'
-header_search_pid_set: 'Find a specific group of PIDs'
-header_search_results: 'Search results'
+header_search_pid_set: 'Find an individual PID or specific group of PIDs'
+header_search_results: 'Search results - click on the PID number to view or update'
 header_skip_check_add: 'Add a new domain'
 header_skip_check_list: 'Domains that we cannot run link validation against'
 header_unauthorized: 'You do not permission to do that'
@@ -208,13 +208,13 @@ edit_pid_not_owner: "You are not the owner of this PID and cannot make changes!<
 
 edit_pid_text:
   "Select the CSV file that contains your changes. The file should be in the following format (without headers!): <br /><br />
-  &nbsp;&nbsp;PID Id, New URL, Change Category, Notes<br /><br /><br />
+  &nbsp;&nbsp;PID Id, New URL, Notes<br /><br /><br />
   To edit a PID you would include both the PID Id and the new URL<br />
-  &nbsp;&nbsp;1234,http://www.newsite.org/pageA,Sample,Sample Edit PID<br /><br />
+  &nbsp;&nbsp;1234,http://www.newsite.org/pageA,Sample Edit PID<br /><br />
   To mint a new PID you would leave the PID Id blank.<br />
-  &nbsp;&nbsp;,http://www.somesite.com/page,Sample,Sample Mint New PID<br /><br />
+  &nbsp;&nbsp;,http://www.somesite.com/page,Sample Mint New PID<br /><br />
   To deactivate a PID you would leave its URL blank. (This will not actually delete the URL, just deactivate the PID)<br />
-  &nbsp;&nbsp;1234,,Sample,Sample Deactivation<br /><br />"
+  &nbsp;&nbsp;1234,,Sample Deactivation<br /><br />"
 
 edit_pid_text_2:
   "- The PID Id column should only contain the PID's number, not the entire URL. (e.g. 1234 not /PID/1234)<br /><br />
@@ -247,7 +247,7 @@ reports_text:
     <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
   </ul>"
 
-search_text: 'This utility will only return 5,000 results at a time. If your search returned 5,000 PIDs, you should refine your criteria.'
+search_text: 'You may click on any of the column headers below to sort the results.'
 
 unauthorized_text:
   "You don't have the necessary permission to perform that action. <br /><br />Please speak with your local administrator if you feel that 

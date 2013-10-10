@@ -81,11 +81,12 @@ class TestPidController < Test::Unit::TestCase
     security_check_basic("/link/#{pid.id}", "get", nil)
     check_login_for_each_user_type("/link/#{pid.id}", PidApp::HTML_CONFIG['header_pid_view'])
     
-    # User cannot see a PID that does not belong to them so should get a 403
+    # User can see a PID that does not belong to them
     post '/user/login', {:login => @user2.login, :password => @pwd}
     get "/link/#{pid.id}"
-    assert_equal 403, last_response.status, "Was expecting a 403 because the user should not have access to that PID!"
-    assert last_response.body.include?(PidApp::HTML_CONFIG['header_unauthorized']), "Was not sent to the unauthorized page!"
+    assert last_response.ok?, "User did not receive a 200 status code trying to view a PID they do not manage, got a #{last_response.status}"
+    assert last_response.body.include?(PidApp::HTML_CONFIG['header_pid_view']), "User could not get to the PID's page!"
+    assert !last_response.body.include?('<input type="submit"'), "The user was able to see the submit button but they don't own the PID!"
     
     pid = Pid.first(:url => 'http://www.google.com')
 
@@ -171,7 +172,9 @@ class TestPidController < Test::Unit::TestCase
     
     time_check = Time.now
     
-    args = {:userid => '',
+    args = {:pid_set => '',
+            :userid => '',
+            :groupid => '',
             :active => 'off',
             :pid_low => '',
             :pid_high => '',
@@ -180,26 +183,38 @@ class TestPidController < Test::Unit::TestCase
             :created_low => '',
             :created_high => '',
             :interesteds => '0'}
-            
-    # Keep in mind that the JSON data of the test page generates the results table via JQuery
-    # so we must parse the json object to determine the number of records returned!
     
-    args[:url] = 'http://'
-    
-    # Make sure users can only see their group's PIDs and ones that they are Interested in 
+    # Make sure users can see all pids
+    args[:url] = '.com'
     post '/user/login', {:login => @user.login, :password => @pwd}
     post '/link/search', args # expecting 3 results
     assert last_response.ok?, "Search returned no results for the User! #{last_response.status}"
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_search_not_enough_criteria']), "Was able to run a search with not enough criteria!"
+    
+    # Make sure users can see all pids
+    args[:url] = 'http://'
+    post '/link/search', args # expecting 3 results
+    assert last_response.ok?, "Search returned no results for the User! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
-    assert_equal 3, json.size, "Expected 3 results for User but found #{json.size}"
+    assert_equal 6, json.size, "Expected 6 results for User but found #{json.size}"
     get '/user/logout'
     
-    # Make sure the user 2 only find their one PID
+    # Make sure a search for specific PIDs returns only those PIDs
+    args[:pid_set] = '1,3'
+    post '/user/login', {:login => @mgr.login, :password => @pwd}
+    post '/link/search', args # expecting 4 results
+    assert last_response.ok?, "Search returned no results for the Maintainer! #{last_response.status}"
+    json = convert_html_to_json(last_response.body)
+    assert_equal 2, json.size, "Expected 2 results for Maintainer but found #{json.size}"
+    args[:pid_set] = ''
+    get '/user/logout'
+    
+    # Make sure the user 2 finds all PIDs 
     post '/user/login', {:login => @user2.login, :password => @pwd}
     post '/link/search', args # expecting 1 results
     assert last_response.ok?, "Search returned no results for the User 2! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
-    assert_equal 1, json.size, "Expected 1 result for User 2 but found #{json.size}"
+    assert_equal 6, json.size, "Expected 6 result for User 2 but found #{json.size}"
     
     # Make sure the user 2 finds their interested party PID
     args[:interesteds] = '1'
@@ -210,12 +225,12 @@ class TestPidController < Test::Unit::TestCase
     args[:interesteds] = '0'
     get '/user/logout'
     
-    # Make sure maintainer can see the PIDs for all groups they maintain
+    # Make sure maintainer can see all PIDs
     post '/user/login', {:login => @mgr.login, :password => @pwd}
     post '/link/search', args # expecting 4 results
     assert last_response.ok?, "Search returned no results for the Maintainer! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
-    assert_equal 4, json.size, "Expected 4 results for Maintainer but found #{json.size}"
+    assert_equal 6, json.size, "Expected 6 results for Maintainer but found #{json.size}"
     get '/user/logout'
     
     # Make sure admin can see ALL PIDs
@@ -231,6 +246,15 @@ class TestPidController < Test::Unit::TestCase
     assert last_response.ok?, "Search returned no results for the specific url search! #{last_response.status}"
     json = convert_html_to_json(last_response.body)
     assert_equal 1, json.size, "Expected 1 results for the specific url search but found #{json.size}"
+    
+    # Search by group
+    args[:url] = 'http://'
+    args[:groupid] = @group.id
+    post '/link/search', args # expecting 3 results
+    assert last_response.ok?, "Search returned no results for the specific group search! #{last_response.status}"
+    json = convert_html_to_json(last_response.body)
+    assert_equal 3, json.size, "Expected 3 results for the specific group search but found #{json.size}"
+    args[:groupid] = ''
     args[:url] = ''
     
     # Search by user
@@ -312,9 +336,10 @@ class TestPidController < Test::Unit::TestCase
     pid = Pid.first(:url => 'http://www.google.com')
     
     post '/user/login', {:login => @user.login, :password => @pwd}
-    put "/link/#{pid.id}", {:url => 'http://news.yahoo.com/', :active => 'on'}
+    put "/link/#{pid.id}", {:url => 'http://www.pandora.com/', :active => 'on'}
     assert last_response.ok?, "User did not get a 200 after updating a PID, got a #{last_response.status}!"
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_update_success']), "Did not receive the success message!"
+    passed = true if last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_update_success']) or last_response.body.include?('is returning an HTTP')
+    assert passed, "Did not receive the success message! #{last_response.body}"
 
     # Bad URL format
     put "/link/#{pid.id}", {:url => 'mail.yahoo.com/', :active => 'on'}
