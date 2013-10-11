@@ -5,12 +5,36 @@
   
   <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
 
+  <div>
+    <form method="POST" action="/report/duplicate">
+      <label for="groupid"><%= HTML_CONFIG['form_group'] %></label>
+      <select name="groupid" id="groupid">
+        <option value=""></option>
+        <% @groups.each do |group| %>
+          <option value="<%= group.id %>" <%= 'selected="true"' if group.id.to_s == params[:groupid] %>><%= group.name.gsub("'", "&apos;") %></option>
+        <% end %>
+      </select>
+      
+      <label>&nbsp;</label><input type="submit" name="submit" id="submit" value="<%= HTML_CONFIG['button_search'] %>" />
+    </form>
+  </div>
+</section>
+
+<section class="errors">
+  <%= @msg %>
+</section>
+
+<img src="/spinner.gif" id="spinner" style="top: 225px;" />
   
+<section id="duplicate_report_results">
   <% unless @json == '{}' %>
+    <span style="left" id="rec_count"></span>
     <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
     <table>
-      <tr><th /><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
+      <tr><th />
+        <th for="th_url"><%= HTML_CONFIG['th_url'] %></th>
+        <th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
     </table>
     
     <input type="hidden" id="data" value='<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>' />
@@ -25,15 +49,16 @@
     
 </section>
 
-<section class="errors">
-  <%= @msg %>
-</section>
-
 <script type="text/javascript">
+  $("#spinner").hide();
+  
+  $("#submit").click( function(e){ $("#spinner").show(); });
+  
+  var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
   
   // Add a line to the table for each item in the JSON
   var i = 1;
-  $.each($.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>'), function(url, pids) {
+  $.each(json, function(url, pids) {
       
     $("table tr:last").after("<tr>" +
                               "<td>" + i + ")</td>" + 
@@ -43,9 +68,15 @@
                              "</tr>");
     i++;
    });
+   
+   $("#rec_count").html((i - 1) + " records found");
   
   // convert the JSON into a CSV output
-  $(".download").click( function(){
+  $(".download").click( function(e){
+    e.preventDefault();
+    
+    $("#spinner").show();
+
     var hdrs = '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
                 '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,';
     
@@ -59,7 +90,9 @@
         max_pids = pids.length;
       }
       
-      $.each(pids, function(idx, pid) {
+      pid_vals = pids.replace(/<a href=%27http:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?\/link\/[0-9]+%27>/g, '').replace(/<\/a>/g, '').split(',')
+
+      $.each(pid_vals, function(idx, pid) {
         lines += pid + ',';
       });
       
@@ -72,6 +105,8 @@
     
     hdrs += '\r\n';
     
+    $("#spinner").hide();
+
     window.open("data: text/csv;charset=utf-8," + encodeURIComponent(hdrs + lines));
   });
 

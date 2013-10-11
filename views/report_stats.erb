@@ -2,38 +2,12 @@
   <h3><%= HTML_CONFIG['header_report_maintenance_criteria'] %></h3>
   
   <form action="/report/stats" method="post">
-    <label><%= HTML_CONFIG['form_url'] %></label>
-    <input type="text" id="url" name="url" style="width: 350px;" value="<%= params[:url] %>" />
-    <div><%= HTML_CONFIG['form_search_url_instruction'] %></div>
-    
-    <label><%= HTML_CONFIG['form_userid'] %></label>
-    <select id="userid" name="userid">
-    <option value=""></option>
-      <% params[:users].each do |user| %>
-        <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name %> (<%= user.login %>)</option>
-      <% end %>
-    </select>
-    
-    <label><%= HTML_CONFIG['form_pid_range'] %></label>
-    <input type="number" id="pid_low" name="pid_low" value="<%= params[:pid_low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <label><%= HTML_CONFIG['form_date_range'] %></label>
+    <input type="date" id="start_date" name="start_date" value="<%= params[:start_date] %>" style="width: 150px;" />
     <div> - </div> 
-    <input type="number" id="pid_high" name="pid_high" value="<%= params[:pid_high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
-    <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:pid_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:pid_max] %>)</div>
-    
-    <label><%= HTML_CONFIG['form_created_date_range'] %></label>
-    <input type="date" id="created_low" name="created_low" value="<%= params[:created_low] %>" style="width: 150px;" />
-    <div> - </div> 
-    <input type="date" id="created_high" name="created_high" value="<%= params[:created_high] %>" style="width: 150px;" />
-    <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:created_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:created_max] %>)</div>
-    
-    <label><%= HTML_CONFIG['form_modified_date_range'] %></label>
-    <input type="date" id="modified_low" name="modified_low" value="<%= params[:modified_low] %>" style="width: 150px;" />
-    <div> - </div> 
-    <input type="date" id="modified_high" name="modified_high" value="<%= params[:modified_high] %>" style="width: 150px;" />
-    <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:modified_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:modified_max] %>)</div>
+    <input type="date" id="end_date" name="end_date" value="<%= params[:end_date] %>" style="width: 150px;" />
     
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
-    <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
   
 </section>
@@ -41,6 +15,8 @@
 <section class="errors">
   <%= @msg %>
 </section>
+
+<img src="/spinner.gif" id="spinner" style="top: 350px;" />
 
 <% if request.request_method == "POST" %>
   
@@ -53,15 +29,12 @@
       <span style="left" id="rec_count"></span>
       <button class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-      <img src="/spinner.gif" id="spinner" />
       <table>
         <tr><th />
-          <th id="th_id"><a href="#"><%= HTML_CONFIG['th_pid'] %></a></th>
-          <th id="th_url"><a href="#"><%= HTML_CONFIG['th_url'] %></a></th>
-          <th id="th_username"><a href="#"><%= HTML_CONFIG['th_last_modified_by'] %></a></th>
-          <th id="th_modified_at"><a href="#"><%= HTML_CONFIG['th_last_activity'] %></a></th>
-          <th id="th_deactivated"><a href="#"><%= HTML_CONFIG['th_active'] %></a></th>
-          <th id="th_versions"><a href="#"><%= HTML_CONFIG['th_number_modifications'] %></a></th></tr>
+          <th><a href="#"><%= HTML_CONFIG['th_group'] %></a></th>
+          <th style="text-align: left;"><a href="#"><%= HTML_CONFIG['th_number_created'] %></a></th>
+          <th style="text-align: left;"><a href="#"><%= HTML_CONFIG['th_number_modified'] %></a></th>
+          <th style="text-align: left;"><a href="#"><%= HTML_CONFIG['th_number_deactivated'] %></a></th>
       </table>
     
       <input type="hidden" id="data" value='<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>' />
@@ -80,104 +53,36 @@
   var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
   $("#data").val('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
 
-  // Setup table pagination
-  paginate_init(<%= APP_CONFIG['search_results_limit'] %>, json.length);
-  
-  // Filter the json dataset for the current page
-  var json_subset = paginate_json(json, 1);
-  
-  $("#rec_count").html(json.length + " records found");
-  
   // Add a line to the table for each item in the JSON
-  buildResultsTable(json_subset);
-  
-  // Build the pagination navigation line
-  pagination_build_nav($("table"), 1);
-  
-  
-  $("th:not(.pagination)").click( function() {
-    $("#spinner").show();
-    
-    // Sort the entire json dataset
-    var sorted = sort_json_data($.parseJSON($("#data").val()), $(this).attr('id').replace('th_', ''));
-    
-    $("#data").val(JSON.stringify(sorted));
-    
-    // Get the paginated subset of json data and rebuild the table
-    buildResultsTable(paginate_json(sorted, parseInt($("#current_page").val())));
-
-    // Rebuild the pagination navigation
-    pagination_build_nav($("table"), parseInt($("#current_page").val()));
-
-    $("#spinner").hide();
-  });
-  
-  
-  $("th.pagination").click( function() {    
-    changePage();
-  });
+  buildResultsTable(json);
   
   // convert the JSON into a CSV output
   $(".download").click( function(){
-    var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
-                '<%= HTML_CONFIG['th_url'].gsub(':', '') %>,' +
-                '<%= HTML_CONFIG['th_last_modified_by'].gsub(':', '') %>,' +
-                '<%= HTML_CONFIG['th_last_modified_on'].gsub(':', '') %>,' +
-                '<%= HTML_CONFIG['th_change_category'].gsub(':', '') %>,' +
-                '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>,' +
-                '<%= HTML_CONFIG['th_active'].gsub(':', '') %>,' +
-                '<%= HTML_CONFIG['th_number_modifications'].gsub(':', '') %>\r\n';
+    var lines = '<%= HTML_CONFIG['th_group'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_number_created'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_number_modified'].gsub(':', '') %>,' +
+                '<%= HTML_CONFIG['th_number_deactivated'].gsub(':', '') %>\r\n';
     
-    $.each($.parseJSON($("#data").val()), function(idx, pid) {
-      lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
-                  pid.change_category + '", "' + pid.notes + '", ' + (pid.deactivated ? false : true) + ', ' +
-                  pid.versions.length + '\r\n';
+    $.each($.parseJSON($("#data").val()), function(idx, rec) {
+      lines += '"' + rec.group + '",' + rec.created + ',' + rec.modified + ', ' + rec.deactivated + '\r\n';
     });
     
     window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
   });
   
-  $("#submit").click( function(){
-    $("#spinner").show();
-  });
-  
-  $("#reset").click( function() {
-    event.preventDefault();
-    reset_form_criteria('<%= HTML_CONFIG['unable_to_load_criteria_defaults'] %>');
-  });
-
-  // Required by the pagination controls since rebuilding the nav tr would lose the above th.pagination click event
-  function changePage(){
-    $("#spinner").show();
-    
-    // Get the paginated subset of json data and rebuild the table
-    buildResultsTable(paginate_json($.parseJSON($("#data").val()), parseInt($("#current_page").val())));
-
-    // Rebuild the pagination navigation
-    pagination_build_nav($("table"), parseInt($("#current_page").val()));
-
-    $("#spinner").hide();
-  }
+  $("#submit").click( function(){ $("#spinner").show(); });
 
   function buildResultsTable(json){
     var i = 1;
     
-    $("table").find('tr:not(.page_nav):gt(0)').remove();
-    
-    $.each(json, function(idx, pid) {
-    
-      var dt = new Date(pid.modified_at);
-      var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
-    
+    $.each(json, function(idx, rec) {
+        
       $("table tr:last").after("<tr>" +
                                 "<td>" + i + ")</td>" + 
-                                "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
-                                "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
-                                              ((pid.url.length > 70) ? pid.url.substring(0, 69) + " ..." : pid.url) + "</td>" +
-                                "<td>" + pid.username + "</td>" +
-                                "<td>" + modified + "</td>" +
-                                "<td class=\"center\">" + (pid.deactivated ? "<span class=\"red bold\"><%= HTML_CONFIG['td_false'] %></span>" : "<%= HTML_CONFIG['td_true'] %>") + "</td>" +
-                                "<td class=\"center\">" + pid.versions.length + "</td>" +
+                                "<td>" + rec.group + "</td>" +
+                                "<td>" + rec.created + "</td>" +
+                                "<td>" + rec.modified + "</td>" +
+                                "<td>" + rec.deactivated + "</td>" +
                               "</tr>");
       i++;
     });

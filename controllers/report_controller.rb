@@ -15,20 +15,22 @@ class PidApp < Sinatra::Application
   get '/report/inactive' do
     pids = []
     
+    @groups = Group.all
+    @json = [].to_json
+    @msg = ""
+    
+    erb :report_inactive
+  end
+    
+# ---------------------------------------------------------------
+# Get the list of inactive PIDs for the group specified
+# ---------------------------------------------------------------
+  post '/report/inactive' do
     begin
-      # If the user is a super user, get all of the inactive PIDs otherwise just the ones for their group
-      if current_user.super
-        pids = Pid.all(:deactivated => true)
-        
-      # If the user manages groups show the pids for all of those groups
-      elsif !Maintainer.all(:user => current_user).empty?
-        Maintainer.all(:user => current_user).each do |maintainer|  
-          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
-        end
-        
-      else
-        pids = Pid.all(:deactivated => true, :group => current_user.group)
-      end
+      args = {:group => Group.first(:id => params[:groupid]), :deactivated => true }
+      args[:modified_at.gte] = "#{params[:modified_low]} 00:00:00" unless params[:modified_low].empty?
+      
+      pids = Pid.all(args)
       
     rescue Exception => e
       @msg = "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
@@ -38,15 +40,35 @@ class PidApp < Sinatra::Application
       logger.error "#{current_user.login} - #{@msg}: #{e.message}"
     end
 
+    @groups = Group.all
+    
     @json = pids.to_json
 
     erb :report_inactive
   end
 
 # ---------------------------------------------------------------
-# Get the list of PIDs with invalid URLs
+# Get the invalid URL report
 # ---------------------------------------------------------------
   get '/report/invalid' do
+    @moved = [].to_json
+    @not_found = [].to_json
+    @error = [].to_json
+    
+    @groups = Group.all
+    @skips = SkipCheck.all()
+    
+    @msg = ""
+    
+    puts "#{@moved}"
+    
+    erb :report_invalid
+  end
+  
+# ---------------------------------------------------------------
+# Get the list of PIDs with invalid URLs for the specified group
+# ---------------------------------------------------------------
+  post '/report/invalid' do
     pids = []
     moved = []
     not_found = []
@@ -54,19 +76,8 @@ class PidApp < Sinatra::Application
     @msg = ""
     
     begin
-      # If the user is a super user, get all of the PIDs otherwise just the ones for their group
-      if current_user.super
-        pids = Pid.all(:deactivated => false, :invalid_url_report.not => nil )
-        
-      # If the user manages groups show the pids for all of those groups
-      elsif !Maintainer.all(:user => current_user).empty?
-        Maintainer.all(:user => current_user).each do |maintainer| 
-          (Pid.all(:deactivated => false, :invalid_url_report.not => nil) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
-        end
-          
-      else
-        pids = Pid.all(:group => current_user.group, :deactivated => false, :invalid_url_report.not => nil)
-      end
+      
+      pids = Pid.all(:group => Group.first(:id => params[:groupid]), :invalid_url_report.not => nil)
       
       pids.each do |pid|
         
@@ -100,6 +111,8 @@ class PidApp < Sinatra::Application
     @moved = moved.to_json
     @not_found = not_found.to_json
     @error = error.to_json
+    
+    @groups = Group.all
     @skips = SkipCheck.all()
     
     erb :report_invalid
@@ -109,23 +122,22 @@ class PidApp < Sinatra::Application
 # Get a list of duplicate PIDs
 # ---------------------------------------------------------------
   get '/report/duplicate' do
+    @json = {}.to_json
+    @msg = ""
+    @groups = Group.all
+    
+    erb :report_duplicate
+  end
+
+# ---------------------------------------------------------------
+# Get a list of duplicate PIDs for the specified group
+# ---------------------------------------------------------------
+  post '/report/duplicate' do
     pids = []
     
     begin
-      shorty = Shortcake.new('pid', {:host => 'localhost', :port => 6379})
       
-      if current_user.super
-        pids = Pid.all(:deactivated => false, :duplicate_url_report.not => nil)
-        
-      # If the user manages groups show the pids for all of those groups
-      elsif !Maintainer.all(:user => current_user).empty?
-        Maintainer.all(:user => current_user).each do |maintainer| 
-          (Pid.all(:deactivated => false, :group => maintainer.group, :duplicate_url_report.not => nil)).each{ |pid| pids << pid }   
-        end
-          
-      else
-        pids = Pid.all(:deactivated => false, :group => current_user.group, :duplicate_url_report.not => nil)
-      end
+      pids = Pid.all(:group => Group.first(:id => params[:groupid]), :duplicate_url_report.not => nil)
       
       dups = {}
       
@@ -141,9 +153,9 @@ class PidApp < Sinatra::Application
     end
     
     @json = dups.to_json
+    @groups = Group.all
     
     erb :report_duplicate
-    
   end
   
 # ---------------------------------------------------------------
@@ -152,8 +164,6 @@ class PidApp < Sinatra::Application
   get '/report/stats' do
     @json = [].to_json
 
-    @params = get_search_defaults(params)
-    
     erb :report_stats
   end
   
@@ -162,52 +172,85 @@ class PidApp < Sinatra::Application
 # ---------------------------------------------------------------
   post '/report/stats' do
     results = []
-    @params = get_search_defaults(params)
     
-    pids = []
-    args = {}
-      
-    # Set the search criteria based on the user's input
-    args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
-    args[:username] = User.get(@params[:userid]).login unless @params[:userid].empty?
+    start_date = params[:start_date].empty? ? nil : "#{params[:start_date]} 00:00:00"
+    end_date = params[:end_date].empty? ? "#{Time.now.to_s}" : "#{params[:end_date]} 00:00:00"
     
-    args[:id.gte] = @params[:pid_low] unless @params[:pid_low].empty?
-    args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
-    
-    args[:modified_at.gte] = "#{@params[:modified_low]} 00:00:00" unless @params[:modified_low].empty?
-    args[:modified_at.lte] = "#{@params[:modified_high]} 23:59:59" unless @params[:modified_high].empty?
-    
-    args[:created_at.gte] = "#{@params[:created_low]} 00:00:00" unless @params[:created_low].empty?
-    args[:created_at.lte] = "#{@params[:created_high]} 23:59:59" unless @params[:created_high].empty?
+    if !start_date.nil?
 
-    # Filter the results to the user's group unless the user is an admin
-    if !current_user.super
-    
-      # If the user manages groups show the pids for all of those groups
-      if !Maintainer.all(:user => current_user).empty?
-        Maintainer.all(:user => current_user).each do |maintainer| 
+      puts "#{start_date} - #{end_date}"
+
+      Group.all.each do |group|
+        puts "#{group.id} << #{Pid.all(:group => group.id, :modified_at.gte => start_date, :modified_at.lte => end_date).length} modified"
         
-          (Pid.all(:deactivated => true) & Pid.all(:group => maintainer.group)).each{ |pid| pids << pid } 
-        end
-      else
-        args[:group] = current_user.group 
-    
-        pids = Pid.all(args)
+        results << {:group => group.id,
+                    :modified => Pid.all(:group => group, :modified_at.gte => start_date, :modified_at.lte => end_date).count,
+                    :created => Pid.all(:group => group, :created_at.gte => start_date, :created_at.lte => end_date).count,
+                    :deactivated => Pid.all(:group => group, :modified_at.gte => start_date, :modified_at.lte => end_date, :deactivated => true).count
+                  }
       end
-    end
       
-    pids.each do |pid|
-      results << {:id => pid.id, :url => pid.url, :username => pid.username, :created_at => pid.created_at, :modified_at => pid.modified_at,
-                  :notes => pid.notes, :change_category => pid.change_category, :deactivated => pid.deactivated,
-                  :versions => PidVersion.all(:pid => pid, :created_at.gte => "#{params[:modified_low]} 00:00:00",
-                                              :created_at.lte => "#{params[:modified_high]} 23:59:59", :order => [:created_at.desc])}
     end
-      
+    
     @json = results.to_json
-    404 if results.empty?
     
     erb :report_stats
   end
+
+# ---------------------------------------------------------------
+# Get the modification details report
+# ---------------------------------------------------------------
+  get '/report/mods' do
+    @json = [].to_json
+    @groups = Group.all
+    
+    erb :report_mods
+  end
+  
+# ---------------------------------------------------------------
+# Get the modification details report for the specified criteria
+# ---------------------------------------------------------------
+  post '/report/mods' do
+    results = []
+    
+    start_date = params[:start_date].empty? ? nil : "#{params[:start_date]} 00:00:00"
+    end_date = params[:end_date].empty? ? "#{Time.now.to_s}" : "#{params[:end_date]} 00:00:00"
+    
+    if !start_date.nil?
+      pids = Pid.all(:group => Group.first(:id => params[:groupid]), :modified_at.gte => start_date, :modified_at.lte => end_date)
+      
+      pids.each do |pid|
+        prior = pid.pid_versions[pid.pid_versions.length - 2]
+        
+        # Skip items that only had their note changed!
+        if pid.url != prior.url or pid.deactivated != prior.deactivated or pid.group != prior.group
+          
+          types = ""
+          types = 'URL change<br />' if pid.url != prior.url
+          types += "Moved from group #{prior.group}<br/>" if pid.group != prior.group
+          types += 'deactivation' if (pid.deactivated != prior.deactivated) and pid.deactivated
+          
+          # If there is only 1 version then this was minted during the time period specified
+          types = 'minted' if pid.pid_versions.length == 1
+          
+          results << {:id => pid.id,
+                      :modified_on => pid.modified_at,
+                      :username => pid.username,
+                      :types =>  types,
+                      :current_url => pid.url,
+                      :prior_url => prior.url,
+                      :active => (pid.deactivated) ? 'No' : 'Yes'}
+        end
+      end
+      
+    end
+    
+    @json = results.to_json
+    @groups = Group.all
+    
+    erb :report_mods
+  end
+  
 
 # ---------------------------------------------------------------
 # Reload the default criteria for the reports

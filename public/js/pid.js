@@ -79,6 +79,7 @@ function reset_form_criteria(err_msg){
       
       $("#url").val('');
       $("#userid").val('');
+      $("#groupid").val('');
 
       $("#pid_low").val(defaults.pid_low);
       $("#pid_high").val(defaults.pid_high);
@@ -90,6 +91,8 @@ function reset_form_criteria(err_msg){
       $("#modified_high").val(defaults.modified_high);
       $("#accessed_low").val(defaults.accessed_low);
       $("#accessed_high").val(defaults.accessed_high);
+
+      $("#interesteds").val('');
 
       $("#active").val('');
     },

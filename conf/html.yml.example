@@ -29,14 +29,17 @@ header_pid_register_success: 'Successfully created the following PID(s)'
 header_pid_view: 'PID:'
 header_reports: 'PID maintenance reports'
 header_report_duplicate: 'Duplicate URLs'
-header_report_inactive: 'Inactive reports'
-header_report_invalid: 'Invalid URLs'
+header_report_inactive_criteria: 'Find inactive PIDs for a specific group'
+header_report_inactive_results: 'Inactive PIDs'
+header_report_invalid: 'PIDs with an invalid URL'
 header_report_invalid_error: 'The following URLs are returning a server error'
 header_report_invalid_moved: 'The following URLs are working but are redirected to another URL which may or may not be correct'
 header_report_invalid_not_found: 'The following URLs are returning a not found message'
 header_report_invalid_skipped: 'The following domains cannot be scanned due to contractual agreements established with the hosting company'
 header_report_maintenance_criteria: 'PID maintenance report criteria'
 header_report_maintenance_results: 'PID maintenance report results'
+header_report_modifications_criteria: 'Modification details criteria'
+header_report_modifications_results: 'Modification details results'
 header_reset_password: 'Reset your password'
 header_search_criteria: 'Or use the following search criteria'
 header_search_pid_set: 'Find an individual PID or specific group of PIDs'
@@ -70,6 +73,8 @@ form_confirm_password: 'Confirm:'
 form_created_by: 'Created by:'
 form_created_date: 'Created Date:'
 form_created_date_range: 'Created Date Range:'
+form_date_range: 'Date Range:'
+form_deactivated_since: 'Deactivated From:'
 form_description: 'Description:'
 form_domain: 'Domain'
 form_email: 'Email:'
@@ -148,6 +153,7 @@ button_file_upload: 'Choose File'
 th_active: 'Active?'
 th_affiliation: 'Affiliation'
 th_change_category: 'Change Category'
+th_change_types: 'Changes'
 th_created_on: 'Created On'
 th_deactivated_by: 'Deactivated By'
 th_deactivated_on: 'Deactivated On'
@@ -167,7 +173,11 @@ th_maintainers: '# of Managers'
 th_modified_date: 'Updated'
 th_name: 'Full Name'
 th_notes: 'Notes'
+th_number_created: 'Created'
+th_number_deactivated: 'Deactivated'
+th_number_modified: 'Modified'
 th_number_modifications: '# Times Modified'
+th_old_url: 'Prior URL'
 th_pid: 'PID'
 th_url: 'URL'
 th_userid: 'User Id'
@@ -238,13 +248,15 @@ new_pids_text:
 
 not_found_text: 'The page you requested could not be found.'
   
+report_modifications_text: "Click on the PID number to view the modification details.<br /><br />The CSV download displays the current and prior URL along with the user id."
+
 reports_text: 
   "Please select on of the following reports below:
   <ul>
-    <li><a href='/report/inactive' class='letterpress'>Inactive PIDs</a></li>
     <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URLs</a></li>
     <li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a></li>
     <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
+    <li><a href='/report/mods' class='letterpress'>PID modification details</a></li>
   </ul>"
 
 search_text: 'You may click on any of the column headers below to sort the results.'

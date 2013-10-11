@@ -1,50 +1,81 @@
 <section id="invalid_report">
   <h3><%= HTML_CONFIG['header_report_invalid'] %></h3>
 
-  <div class="form_informational">This report is processed every Saturday night and scans all active PIDs.</div>
+  <div class="form_informational">This report is processed every Saturday night and scans only active PIDs.</div>
   
   <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+
+  <div>
+    <form method="POST" action="/report/invalid">
+      <label for="groupid"><%= HTML_CONFIG['form_group'] %></label>
+      <select name="groupid" id="groupid">
+        <option value=""></option>
+        <% @groups.each do |group| %>
+          <option value="<%= group.id %>" <%= 'selected="true"' if group.id.to_s == params[:groupid] %>><%= group.name.gsub("'", "&apos;") %></option>
+        <% end %>
+      </select>
+      
+      <label>&nbsp;</label><input type="submit" name="submit" id="submit" value="<%= HTML_CONFIG['button_search'] %>" />
+    </form>
+  </div>
+</section>
+
+<section class="errors">
+  <%= @msg %>
+</section>
+
+<img src="/spinner.gif" id="spinner" style="top: 350px;" />
+
+
+<section id="invalid_report_results">  
+  <h3><%= HTML_CONFIG['header_report_invalid_results'] %></h3>
   
-  <% if @error.empty? && @not_found.empty? && @moved.empty? %>
-    <article id="no_results"><%= HTML_CONFIG['report_no_activity'] %></article>
+  <% if @error.length > 2 %>
+    <h4><%= HTML_CONFIG['header_report_invalid_error'] %></h4>
+    <button id="error" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-  <% else %>
-    <% unless @error.empty? %>
-      <h4><%= HTML_CONFIG['header_report_invalid_error'] %></h4>
-      <button id="error" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+    <table id="error_table">
+      <thead><tr><th />
+          <th id="error_th_id"><%= HTML_CONFIG['th_pid'] %></th>
+          <th id="error_th_url"><%= HTML_CONFIG['th_url'] %></th>
+          <th id="error_th_username"><%= HTML_CONFIG['th_userid'] %></th>
+          <th id="error_th_modified_at"><%= HTML_CONFIG['th_modified_date'] %></th></tr></thead>
+          <tbody></tbody>
+    </table>
     
-      <table id="error_table">
-        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-            <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-      </table>
-    
-      <input type="hidden" id="error_json" value='<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>' />
-    <% end %>
+    <input type="hidden" id="error_json" value='<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>' />
+  <% end %>
   
-    <% unless @not_found.empty? %>
-      <h4><%= HTML_CONFIG['header_report_invalid_not_found'] %></h4>
-      <button id="not_found" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+  <% if @not_found.length > 2 %>
+    <h4><%= HTML_CONFIG['header_report_invalid_not_found'] %></h4>
+    <button id="not_found" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-      <table id="not_found_table">
-        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-            <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-      </table>
+    <table id="not_found_table">
+      <thead><tr><th />
+        <th id="not_found_th_id"><%= HTML_CONFIG['th_pid'] %></th>
+        <th id="not_found_th_url"><%= HTML_CONFIG['th_url'] %></th>
+        <th id="not_found_th_username"><%= HTML_CONFIG['th_userid'] %></th>
+        <th id="not_found_th_modified_at"><%= HTML_CONFIG['th_modified_date'] %></th></tr></thead>
+        <tbody></tbody>
+    </table>
     
-      <input type="hidden" id="not_found_json" value='<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>' />
-    <% end %>
+    <input type="hidden" id="not_found_json" value='<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>' />
+  <% end %>
     
-    <% unless @moved.empty? %>
-      <h4><%= HTML_CONFIG['header_report_invalid_moved'] %></h4>
-      <button id="moved" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
+  <% if @moved.length > 2 %>
+    <h4><%= HTML_CONFIG['header_report_invalid_moved'] %></h4>
+    <button id="moved" class="download"><%= HTML_CONFIG['button_csv_download'] %></button>
     
-      <table id="moved_table">
-        <tr><th /><th><%= HTML_CONFIG['th_pid'] %></th><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_userid'] %></th>
-            <th><%= HTML_CONFIG['th_modified_date'] %></th></tr>
-      </table>
+    <table id="moved_table">
+      <thead><tr><th />
+        <th id="moved_th_id"><%= HTML_CONFIG['th_pid'] %></th>
+        <th id="moved_th_url"><%= HTML_CONFIG['th_url'] %></th>
+        <th id="moved_th_username"><%= HTML_CONFIG['th_userid'] %></th>
+        <th id="moved_th_modified_at"><%= HTML_CONFIG['th_modified_date'] %></th></tr></thead>
+        <tbody></tbody>
+    </table>
     
-      <input type="hidden" id="moved_json" value='<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>' />
-    <% end %>
-    
+    <input type="hidden" id="moved_json" value='<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>' />
   <% end %>
   
   <h4><%= HTML_CONFIG['header_report_invalid_skipped'] %></h4>
@@ -61,36 +92,56 @@
   
 </section>
 
-<section class="errors">
-  <%= @msg %>
-</section>
-
-
 <script type="text/javascript">
+  $("#spinner").hide();
   
-  // Add a line to the table for each item in the JSON
-  var i = 1;
-  
-  function processJSON(name, json) {
-    $.each($.parseJSON(json), function(idx, pid) {
-      var dt = new Date(pid.modified_at);
-      var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
-    
-      $("#" + name + "_table tr:last").after("<tr>" +
-                              "<td>" + i + ")</td>" + 
-                              "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
-                              "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
-                                            ((pid.url.length > 80) ? pid.url.substring(0, 79) + " ..." : pid.url) + "</td>" +
-                              "<td>" + pid.username + "</td>" +
-                              "<td>" + modified + "</td>" +
-                            "</tr>");
-      i++;
-    });
-  }
+  $("#submit").click( function(e){ $("#spinner").show(); });
   
   processJSON('error', '<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>');
   processJSON('not_found', '<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>');
   processJSON('moved', '<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>');
+  
+  function processJSON(name, json) {
+    // Add a line to the table for each item in the JSON
+    var i = 1;
+    var rows = "";
+    
+    $("#" + name + "_table tbody").html('');
+    
+    $.each($.parseJSON(json), function(idx, pid) {
+      var dt = new Date(pid.modified_at);
+      var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
+    
+      rows += "<tr>" +
+                "<td>" + i + ")</td>" + 
+                "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
+                "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
+                             ((pid.url.length > 80) ? pid.url.substring(0, 79) + " ..." : pid.url) + "</td>" +
+                "<td>" + pid.username + "</td>" +
+                "<td>" + modified + "</td>" +
+              "</tr>";
+      i++;
+    });
+    
+    $("#" + name + "_table tbody").html(rows);
+  }
+
+  $("th").click( function(e) {
+    $("#spinner").show();
+    
+    var col = $(this).attr('id').replace('moved_th_', '').replace('not_found_th_', '').replace('error_th_', '');
+    var table = $(this).attr('id').match(/moved_/) ? 'moved' : $(this).attr('id').match(/not_found_/) ? 'not_found' : 'error';
+    
+    // Sort the entire json dataset
+    var sorted = sort_json_data($.parseJSON($("#" + table + "_data").val()), col);
+    
+    $("#" + table + "_data").val(JSON.stringify(sorted));
+    
+    // Get the paginated subset of json data and rebuild the table
+    processJSON(table, JSON.stringify(sorted));
+
+    $("#spinner").hide();
+  });
 
   // convert the JSON into a CSV output
   $(".download").click( function(){
@@ -105,8 +156,6 @@
       lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
                   pid.change_category + '", "' + pid.notes + '"\r\n';
     });
-    
-    alert(lines);
     
     window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
   });
