@@ -24,7 +24,7 @@
   <%= @msg %>
 </section>
 
-<img src="/spinner.gif" id="spinner" style="top: 225px;" />
+<img src="/spinner.gif" id="spinner" style="top: 525px;" />
   
 <section id="duplicate_report_results">
   <% unless @json == '{}' %>
@@ -61,7 +61,7 @@
   $.each(json, function(url, pids) {
       
     $("table tr:last").after("<tr>" +
-                              "<td>" + i + ")</td>" + 
+                              "<td>" + i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ")</td>" + 
                               "<td><a href=\"" + url + "\" target=\"_blank\" class=\"underline\" title=\"" + url + "\">" +
                                             ((url.length > 80) ? url.substring(0, 79) + " ..." : url) + "</td>" +
                               "<td>" + pids.replace(/%27/g, '') + "</td>" +

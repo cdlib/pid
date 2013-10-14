@@ -22,7 +22,7 @@
     <label><%= HTML_CONFIG['form_modified_by'] %></label>
     <select id="userid" name="userid">
     <option value=""></option>
-      <% params[:users].each do |user| %>
+      <% params[:users].sort{|x,y| x.name <=> y.name}.each do |user| %>
         <option value="<%= user.id %>" <%= 'selected="true"' if user.id.to_s == params[:userid] %>><%= user.name.gsub("'", "&apos;") %> (<%= user.login %> - <%= user.group.id unless user.group.nil? %>)</option>
       <% end %>
     </select>
@@ -64,7 +64,7 @@
     <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
 
-  <img src="/spinner.gif" id="spinner" style="top: 350px;" />
+  <img src="/spinner.gif" id="spinner" style="top: 450px;" />
 </section>
 
 <section class="errors">
@@ -114,7 +114,7 @@
   // Setup table pagination
   paginate_init(<%= APP_CONFIG['search_results_limit'] %>, json.length);
   
-  $("#rec_count").html(json.length + " records found");
+  $("#rec_count").html(json.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + " records found");
   
   // Filter the json dataset for the current page
   var json_subset = paginate_json(json, 1);
@@ -210,7 +210,7 @@
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear() + " " + dt.getHours() + ":" + dt.getMinutes()
   
       $("table tr:last").after('<tr class="result_row">' +
-                                '<td>' + i + ')</td>' + 
+                                '<td>' + i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ')</td>' + 
                                 '<td><a href="/link/' + pid.id + '" class="letterpress">' + pid.id + '</a></td>' +
                                 '<td><a href="' + pid.url + '" target="_blank" class="underline" title="' + pid.url + '">' +
                                             ((pid.url.length > 70) ? pid.url.substring(0, 69) + ' ...' : pid.url) + '</a></td>' +

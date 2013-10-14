@@ -184,6 +184,7 @@ class PidApp < Sinatra::Application
       
       # Load the list of users available to the user
       params[:users] = User.all
+      
       #params[:users] = (current_user.super or current_user.read_only) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
       
       # If the user is a maintainer add the user ids for any other users they may manage

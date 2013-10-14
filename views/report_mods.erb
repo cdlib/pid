@@ -26,7 +26,7 @@
   <%= @msg %>
 </section>
 
-<img src="/spinner.gif" id="spinner" style="top: 350px;" />
+<img src="/spinner.gif" id="spinner" style="top: 325px;" />
 
 <% if request.request_method == "POST" %>
   
@@ -66,7 +66,7 @@
   var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
   $("#data").val('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
 
-	$("#rec_count").html(json.length + " records found");
+	$("#rec_count").html(json.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + " records found");
 
   // Add a line to the table for each item in the JSON
   buildResultsTable(json);
@@ -121,7 +121,7 @@
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
 			
       rows += "<tr>" +
-                  "<td>" + i + ")</td>" + 
+                  "<td>" + i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ")</td>" + 
 									"<td><a href=\"/link/" + rec.id + "\" class=\"letterpress\">" + rec.id + "</a></td>" +
                   "<td>" + modified + "</td>" +
                   "<td>" + rec.types + "</td>" +

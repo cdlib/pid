@@ -16,7 +16,7 @@
   <%= @msg %>
 </section>
 
-<img src="/spinner.gif" id="spinner" style="top: 350px;" />
+<img src="/spinner.gif" id="spinner" style="top: 325px;" />
 
 <% if request.request_method == "POST" %>
   
@@ -78,11 +78,11 @@
     $.each(json, function(idx, rec) {
         
       $("table tr:last").after("<tr>" +
-                                "<td>" + i + ")</td>" + 
+                                "<td>" + i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ")</td>" + 
                                 "<td>" + rec.group + "</td>" +
-                                "<td>" + rec.created + "</td>" +
-                                "<td>" + rec.modified + "</td>" +
-                                "<td>" + rec.deactivated + "</td>" +
+                                "<td>" + rec.created.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + "</td>" +
+                                "<td>" + rec.modified.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + "</td>" +
+                                "<td>" + rec.deactivated.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + "</td>" +
                               "</tr>");
       i++;
     });

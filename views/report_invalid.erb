@@ -24,7 +24,7 @@
   <%= @msg %>
 </section>
 
-<img src="/spinner.gif" id="spinner" style="top: 350px;" />
+<img src="/spinner.gif" id="spinner" style="top: 500px;" />
 
 
 <section id="invalid_report_results">  
@@ -113,7 +113,7 @@
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
     
       rows += "<tr>" +
-                "<td>" + i + ")</td>" + 
+                "<td>" + i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ")</td>" + 
                 "<td><a href=\"/link/" + pid.id + "\" class=\"letterpress\">" + pid.id + "</a></td>" +
                 "<td><a href=\"" + pid.url + "\" target=\"_blank\" class=\"underline\" title=\"" + pid.url + "\">" +
                              ((pid.url.length > 80) ? pid.url.substring(0, 79) + " ..." : pid.url) + "</td>" +

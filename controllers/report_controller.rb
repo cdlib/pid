@@ -59,9 +59,7 @@ class PidApp < Sinatra::Application
     @skips = SkipCheck.all()
     
     @msg = ""
-    
-    puts "#{@moved}"
-    
+
     erb :report_invalid
   end
   
@@ -177,12 +175,7 @@ class PidApp < Sinatra::Application
     end_date = params[:end_date].empty? ? "#{Time.now.to_s}" : "#{params[:end_date]} 00:00:00"
     
     if !start_date.nil?
-
-      puts "#{start_date} - #{end_date}"
-
       Group.all.each do |group|
-        puts "#{group.id} << #{Pid.all(:group => group.id, :modified_at.gte => start_date, :modified_at.lte => end_date).length} modified"
-        
         results << {:group => group.id,
                     :modified => Pid.all(:group => group, :modified_at.gte => start_date, :modified_at.lte => end_date).count,
                     :created => Pid.all(:group => group, :created_at.gte => start_date, :created_at.lte => end_date).count,
@@ -227,7 +220,7 @@ class PidApp < Sinatra::Application
           
           types = ""
           types = 'URL change<br />' if pid.url != prior.url
-          types += "Moved from group #{prior.group}<br/>" if pid.group != prior.group
+          types += "Moved from group #{prior.group}<br/>" if pid.group.id != prior.group
           types += 'deactivation' if (pid.deactivated != prior.deactivated) and pid.deactivated
           
           # If there is only 1 version then this was minted during the time period specified
