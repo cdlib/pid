@@ -425,6 +425,9 @@ class PidApp < Sinatra::Application
     erb :show_user
   end
   
+  get '/' do
+    erb :login
+  end
   
 # --------------------------------------------------------------------------------------------------------------
 # AJAX helper methods

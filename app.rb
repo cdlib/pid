@@ -33,7 +33,7 @@ class PidApp < Sinatra::Application
     set :session_secret, 'test_redis_secret'
   end    
 
-  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/dead" : APP_CONFIG['dead_pid_url']
+  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/inactive" : APP_CONFIG['dead_pid_url']
 
   enable :sessions # enable cookie-based sessions
   

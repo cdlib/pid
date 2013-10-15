@@ -3,7 +3,7 @@ organization_name: 'California Digital Library'
 application_name: 'PID Service'
 
 # The url that the system should direct users to when an inactive PID is requested
-dead_pid_url: 'http://www.cdlib.org/services/collections/scp/docs/deactivatedpids.html'  #http://localhost:3000/link/dead  <- Default
+dead_pid_url: 'http://localhost:3000/link/inactive' 
 
 # The server and port where the main PID application will be hosted (comment out the port if you do not need to specify)
 host: 'localhost'

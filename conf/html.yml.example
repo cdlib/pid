@@ -204,7 +204,9 @@ admin_text_super:
   </ul>"
 
 dead_pid_text:
-  "The PID you are looking for is no longer active. Please contact you local administrator if you think that this is an error."
+  "The resource you requested is no longer available.<br />
+   The issuing agency has either removed the resource from the Web or has moved it without providing a forwarding address.<br /><br />
+   If you know the current location for the resource or have questions, please contact <a href='email@domain.com'>Contact Email</a>"
 
 edit_pid_duplicate_url: 'Warning The URL is also referenced (last checked on {last_checked}) by PID(s): {others}'
 

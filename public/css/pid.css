@@ -59,6 +59,12 @@ hr {
   clear: both;
 }
 
+#dead_pid h3 { margin: 0 0 40px 0; }
+#dead_pid a {
+  color:               #666;
+  text-decoration:     underline;
+}
+
 #main {
   position:            relative;
   margin:              35px 0 0 55px;

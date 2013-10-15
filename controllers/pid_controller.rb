@@ -5,11 +5,13 @@ class PidApp < Sinatra::Application
 # Dead PID page
 # --------------------------------------------------------------------------------------------------------------  
   get '/link/dead' do    
-    erb :dead_pid, :layout => false
+    @hide_nav = true
+    erb :dead_pid
   end
   
   get '/link/inactive' do
-    erb :dead_pid, :layout => false
+    @hide_nav = true
+    erb :dead_pid
   end
   
 # ---------------------------------------------------------------
