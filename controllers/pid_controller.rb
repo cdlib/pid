@@ -534,7 +534,7 @@ private
                        
           # Check to see if the PID's URL is retuirning an http 200
           good_url = pid.verify_url
-          if good_url >= 400
+          if good_url >= 400 or !pid.invalid_url_report.nil?
             msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', good_url.to_s)
           else
             msg = MESSAGE_CONFIG['pid_mint_success']

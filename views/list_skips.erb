@@ -35,22 +35,28 @@
     
     domain = $(this).children().first().val();
     
-    $.ajax({
-      url:      '/skip',
-      type:     'delete',
-      data:     {'domain': domain}, 
-      success:  function(data) {
-        $("body").html(data);
-      },
-      error: function(xhr, status, error) {
-        if(xhr.status == 401){
-          window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
-        }else{
-          $("#errors").html(xhr.responseText);
-        }
-      },
-      complete: {}
-    });
-    
+		var answer = confirm('Are you sure you want to delete ' + domain + '?\nThe system will begin validating all URLs associated with that domain.\n\nClick Ok to delete the domain.');
+		
+		if(answer){
+		
+      $.ajax({
+        url:      '/skip',
+        type:     'delete',
+        data:     {'domain': domain}, 
+        success:  function(data) {
+          $("body").html(data);
+        },
+        error: function(xhr, status, error) {
+          if(xhr.status == 401){
+            window.location.replace('<%= hostname[0, hostname.length - 1] %><%= SECURITY_CONFIG['target_after_logout'] %>');
+          }else{
+            $("#errors").html(xhr.responseText);
+          }
+        },
+        complete: {}
+      });
+    }else{
+			return false;
+		}
   });
 </script>
