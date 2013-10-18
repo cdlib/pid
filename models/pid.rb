@@ -206,7 +206,7 @@ class Pid
         res.code.to_i
         
       rescue Exception => e
-        logger.error "Unable to verify URL #{self.url}\n#{e.message}"
+        $stdout.puts "Failure verifying URL #{e.message} - #{self.url}"
         404
       end
           
