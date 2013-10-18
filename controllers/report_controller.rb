@@ -172,7 +172,7 @@ class PidApp < Sinatra::Application
     results = []
     
     start_date = params[:start_date].empty? ? nil : "#{params[:start_date]} 00:00:00"
-    end_date = params[:end_date].empty? ? "#{Time.now.to_s}" : "#{params[:end_date]} 00:00:00"
+    end_date = params[:end_date].empty? ? "#{Time.now.to_s}" : "#{params[:end_date]} 23:59:59"
     
     if !start_date.nil?
       Group.all.each do |group|
@@ -207,7 +207,7 @@ class PidApp < Sinatra::Application
     results = []
     
     start_date = params[:start_date].empty? ? nil : "#{params[:start_date]} 00:00:00"
-    end_date = params[:end_date].empty? ? "#{Time.now.to_s}" : "#{params[:end_date]} 00:00:00"
+    end_date = params[:end_date].empty? ? "#{Time.now.to_s}" : "#{params[:end_date]} 23:59:59"
     
     if !start_date.nil?
       pids = Pid.all(:group => Group.first(:id => params[:groupid]), :modified_at.gte => start_date, :modified_at.lte => end_date)
