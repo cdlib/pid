@@ -84,11 +84,11 @@
       <label>&nbsp;</label><span class="form_informational" style="width: 80%;">&nbsp;</span>
       <label>&nbsp;</label>
       <span class="errors form_informational" style="width: 80%;">
-				<% if !@owner.nil? %>
-        	<%= HTML_CONFIG['edit_pid_not_owner'].gsub('{?}', '<a href="mailto:' + @owner.email + '">' + @owner.name + '</a>') %>
-				<% else %>
-				<%= HTML_CONFIG['edit_pid_not_owner'].gsub('{?}', 'the manager of ' + @pid.group.id ) %>
-				<% end %>
+        <% if !@owner.nil? %>
+          <%= HTML_CONFIG['edit_pid_not_owner'].gsub('{?}', '<a href="mailto:' + @owner.email + '">' + @owner.name + '</a>') %>
+        <% else %>
+        <%= HTML_CONFIG['edit_pid_not_owner'].gsub('{?}', 'the manager of ' + @pid.group.id ) %>
+        <% end %>
       </span>
     <% end %>
   </form>

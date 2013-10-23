@@ -92,7 +92,7 @@ function reset_form_criteria(err_msg){
       $("#accessed_low").val(defaults.accessed_low);
       $("#accessed_high").val(defaults.accessed_high);
 
-      $("#interesteds").val('0');
+      $("#interesteds").val(0);
 
       $("#active").val('');
     },

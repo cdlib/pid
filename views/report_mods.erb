@@ -1,7 +1,7 @@
 <section id="report_modifications">
   <h3><%= HTML_CONFIG['header_report_modifications_criteria'] %></h3>
-	
-	<a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
+  
+  <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
   
   <form action="/report/mods" method="post">
     <label for="groupid"><%= HTML_CONFIG['form_group'] %></label>
@@ -11,13 +11,15 @@
         <option value="<%= group.id %>" <%= 'selected="true"' if group.id.to_s == params[:groupid] %>><%= group.name.gsub("'", "&apos;") %></option>
       <% end %>
     </select>
-		
+    
     <label><%= HTML_CONFIG['form_date_range'] %></label>
     <input type="date" id="start_date" name="start_date" value="<%= params[:start_date] %>" style="width: 150px;" />
     <div> - </div> 
     <input type="date" id="end_date" name="end_date" value="<%= params[:end_date] %>" style="width: 150px;" />
+    <div>(<%= HTML_CONFIG['form_date_format'] %></div>
     
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
+    <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
   </form>
   
 </section>
@@ -43,11 +45,11 @@
         <thead><tr><th />
           <th id="th_id"><%= HTML_CONFIG['th_pid'] %></th>
           <th id="th_modified_on"><%= HTML_CONFIG['th_modified_date'] %></th>
-					<th id="th_types"><%= HTML_CONFIG['th_change_types'] %></th>
-					<th id="th_current_url"><%= HTML_CONFIG['th_url'] %></th>
-					<th id="th_active"><%= HTML_CONFIG['th_active'] %></th>
+          <th id="th_types"><%= HTML_CONFIG['th_change_types'] %></th>
+          <th id="th_current_url"><%= HTML_CONFIG['th_url'] %></th>
+          <th id="th_active"><%= HTML_CONFIG['th_active'] %></th>
           </tr></thead>
-					<tbody></tbody>
+          <tbody></tbody>
       </table>
     
       <input type="hidden" id="data" value='<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>' />
@@ -66,30 +68,30 @@
   var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
   $("#data").val('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
 
-	$("#rec_count").html(json.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + " records found");
+  $("#rec_count").html(json.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + " records found");
 
   // Add a line to the table for each item in the JSON
   buildResultsTable(json);
   
   // convert the JSON into a CSV output
   $(".download").click( function(){
-		$("#spinner").show();
-		
+    $("#spinner").show();
+    
     var lines = '<%= HTML_CONFIG['th_pid'].gsub(':', '') %>,' +
                 '<%= HTML_CONFIG['th_modified_date'].gsub(':', '') %>,' +
                 '<%= HTML_CONFIG['th_userid'].gsub(':', '') %>,' +
                 '<%= HTML_CONFIG['th_change_types'].gsub(':', '') %>, ' +
-								'<%= HTML_CONFIG['th_url'].gsub(':', '') %>, ' +
-								'<%= HTML_CONFIG['th_old_url'].gsub(':', '') %>, ' +
-								'<%= HTML_CONFIG['th_active'].gsub(':', '') %>\r\n';
+                '<%= HTML_CONFIG['th_url'].gsub(':', '') %>, ' +
+                '<%= HTML_CONFIG['th_old_url'].gsub(':', '') %>, ' +
+                '<%= HTML_CONFIG['th_active'].gsub(':', '') %>\r\n';
     
     $.each($.parseJSON($("#data").val()), function(idx, rec) {
       lines += '' + rec.id + ',' + rec.modified_on + ',"' + rec.username + '", "' + rec.types.replace(/<br[\s]?\/>/g, ' and ') + '", "' +
-				 						rec.current_url + '", "' + rec.prior_url + '", "' + rec.active + '"\r\n';
+                     rec.current_url + '", "' + rec.prior_url + '", "' + rec.active + '"\r\n';
     });
     
-		$("#spinner").hide();
-		
+    $("#spinner").hide();
+    
     window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
   });
   
@@ -109,31 +111,39 @@
 
     $("#spinner").hide();
   });
-	
+  
+  $("#reset").click( function(e){
+    e.preventDefault();
+    
+    $("#groupid").val('');
+    $("#start_date").val('');
+    $("#end_date").val('');
+  });
+  
   function buildResultsTable(json){
     var i = 1;
     rows = ""
-		
-		$("#table tbody").html('');
-		
+    
+    $("#table tbody").html('');
+    
     $.each(json, function(idx, rec) {
       var dt = new Date(rec.modified_on);
       var modified = "" + (dt.getMonth() + 1) + "/" + dt.getDate() + "/" + dt.getFullYear()
-			
+      
       rows += "<tr>" +
                   "<td>" + i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ")</td>" + 
-									"<td><a href=\"/link/" + rec.id + "\" class=\"letterpress\">" + rec.id + "</a></td>" +
+                  "<td><a href=\"/link/" + rec.id + "\" class=\"letterpress\">" + rec.id + "</a></td>" +
                   "<td>" + modified + "</td>" +
                   "<td>" + rec.types + "</td>" +
                   '<td><a href="' + rec.current_url + '" target="_blank" class="underline" title="' + rec.current_url + '">' +
                               ((rec.current_url.length > 70) ? rec.current_url.substring(0, 69) + ' ...' : rec.current_url) + '</a></td>' +
-									"<td>" + rec.active + "</td>" +
+                  "<td>" + rec.active + "</td>" +
                "</tr>";
       i++;
     });
-		
-		$("table tbody").html(rows);
-		
+    
+    $("table tbody").html(rows);
+    
     return i;
   }
 </script>
