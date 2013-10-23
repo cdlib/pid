@@ -259,10 +259,10 @@ class PidApp < Sinatra::Application
     
       end
     else
-      pids = @params[:pid_set].split(',')
-      
-      pids.each do |pid|
-        rslt = Pid.first(:id => pid.to_s.gsub(' ', '').gsub("\r", '').gsub("\n", ''))
+      params[:pid_set].lines do |line|
+        pid = line.gsub("\r\n", '').gsub("\n", '')
+
+        rslt = Pid.first(:id => pid.gsub(' ', ''))
         results << rslt unless rslt.nil?
       end
       

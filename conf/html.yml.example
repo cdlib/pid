@@ -96,7 +96,7 @@ form_old_url: 'Old URL:'
 form_password: 'Password:'
 form_pid: 'PID:'
 form_pid_range: 'PID Range:'
-form_pid_set: 'PIDs (separated by commas):'
+form_pid_set: 'PIDs (one per line):'
 form_url: 'URL:'
 form_urls: 'URL(s):'
 form_userid: 'User Id:'
@@ -208,7 +208,7 @@ dead_pid_text:
    The issuing agency has either removed the resource from the Web or has moved it without providing a forwarding address.<br /><br />
    If you know the current location for the resource or have questions, please contact <a href='email@domain.com'>Contact Email</a>"
 
-edit_pid_duplicate_url: 'Warning The URL is also referenced (last checked on {last_checked}) by PID(s): {others}'
+edit_pid_duplicate_url: 'This URL is also assigned to PID(s) {others} - (last checked on {last_checked})'
 
 edit_pid_interested_parties: "The interested groups listed above will be notified of any changes you make to this PID."
 
