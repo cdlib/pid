@@ -190,11 +190,7 @@ class Pid
         uri = URI.parse(self.url)
         
         req = Net::HTTP.new(uri.host, uri.port)
-        if uri.path.empty?
-          res = req.request_get(url)
-        else
-          res = req.request_head(uri.path) 
-        end
+        res = req.request_get(self.url)
           
         if res.code.to_i >= 300 and res.code.to_i != 302
           self.invalid_url_report = InvalidUrlReport.new(:http_code => res.code.to_i,
@@ -210,6 +206,7 @@ class Pid
         res.code.to_i
         
       rescue Exception => e
+        $stdout.puts "Failure verifying URL #{e.message} - #{self.url}"
         404
       end
           

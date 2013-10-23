@@ -66,7 +66,6 @@ class PidApp < Sinatra::Application
     @pid = Pid.get(params[:id])
     
     if @pid
-
       @groups = (current_user.super) ? Group.all : []
       Maintainer.all(:user => current_user).each{ |maintain| @groups << maintain.group } unless current_user.super
       @group = current_user.group
