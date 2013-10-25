@@ -54,18 +54,7 @@ class TestReportController < Test::Unit::TestCase
 
 # -----------------------------------------------------------------------------------------------  
   def test_get_inactive_pids_report
-    security_check_basic("/report/inactive", "get", nil)
 
-    Pid.first(:url => 'http://www.huffingtonpost.com').revise({:deactivated => true, :dead_pid_url => dead_pid_url, :group => @group})
-    Pid.first(:url => 'http://www.dailybeast.com').revise({:deactivated => true, :dead_pid_url => dead_pid_url, :group => @group})
-
-    post '/user/login', {:login => @user.login, :password => @pwd}
-    get '/report/inactive'
-    assert last_response.ok?, "Expected a 200 but got a #{last_response.status}!"
-    assert last_response.body.include?(PidApp::HTML_CONFIG['header_report_inactive']), 'Did not get the inactive report!'
-    json = convert_html_to_json(last_response.body)
-    assert_equal 2, json.size, "Expected 2 results but found #{json.size}"
-    get '/user/logout'
   end
   
 # -----------------------------------------------------------------------------------------------
@@ -89,30 +78,7 @@ class TestReportController < Test::Unit::TestCase
   
 # -----------------------------------------------------------------------------------------------
   def test_get_duplicate_urls_report
-    security_check_basic("/report/inactive", "get", nil)
 
-    # Report is run on a schedule so we need to force the creation of the record
-    pid1 = Pid.first(:url => 'http://www.huffingtonpost.com')
-    pid2 = Pid.first(:url => 'http://www.huffingtonpost.com')
-    
-    pid1.mutable = true
-    pid1.duplicate_url_report = DuplicateUrlReport.new(:other_pids => "#{pid2.id},", :last_checked => Time.now)
-    pid1.save
-    pid1.mutable = false
-    
-    pid2.mutable = true
-    pid2.duplicate_url_report = DuplicateUrlReport.new(:other_pids => "#{pid1.id},", :last_checked => Time.now)
-    pid2.save
-    pid2.mutable = false
-    
-    post '/user/login', {:login => @user.login, :password => @pwd}
-    get '/report/duplicate'
-    assert last_response.ok?, "Expected a 200 but got a #{last_response.status}!"
-    assert last_response.body.include?(PidApp::HTML_CONFIG['header_report_duplicate']), 'Did not get the duplicate report!'
-    json_txt = Nokogiri::HTML(last_response.body).search('#data').first['value']
-    json = JSON.parse(json_txt)
-    assert_equal 1, json.size, "Expected 1 result but found #{json.size}}"
-    get '/user/logout'
   end
   
 # -----------------------------------------------------------------------------------------------

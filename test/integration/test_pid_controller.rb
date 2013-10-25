@@ -200,7 +200,7 @@ class TestPidController < Test::Unit::TestCase
     get '/user/logout'
     
     # Make sure a search for specific PIDs returns only those PIDs
-    args[:pid_set] = '1,3'
+    args[:pid_set] = "1\r\n3"
     post '/user/login', {:login => @mgr.login, :password => @pwd}
     post '/link/search', args # expecting 4 results
     assert last_response.ok?, "Search returned no results for the Maintainer! #{last_response.status}"
