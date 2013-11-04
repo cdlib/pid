@@ -44,8 +44,17 @@ def spawn_object(obj, csv_row)
         
     # If the item is a user id, load the user object 
     elsif ['user', 'user_id', 'userid'].include?(prop)
-      params[prop] = (prop == 'user') ? User.get(csv_row[prop]) : User.get(csv_row[prop]).id unless User.get(csv_row[prop]).nil?
-      
+      # If this is not a user then assume its a group and grab the first mainatiner's id
+      if User.first(:login => csv_row[prop]).nil? 
+        # If its not a group use the default user
+        if !Group.first(:id => csv_row[prop]).nil?
+          params[prop] = (prop == 'user') ? Maintainer.first(:group => Group.first(:id => csv_row[prop])).user : Maintainer.first(:group => Group.first(:id => csv_row[prop])).user.id
+        else
+          params[prop] = User.first(:login => seed_config['default_user_login'])
+        end
+      else
+          params[prop] = (prop == 'user') ? User.first(:login => csv_row[prop]) : User.first(:login => csv_row[prop]).id unless User.first(:login => csv_row[prop]).nil?
+      end
     # if the item is in the list, make sure that its in lower case
     elsif ['username', 'email', 'change_category'].include?(prop)
       params[prop] = csv_row[prop].downcase
