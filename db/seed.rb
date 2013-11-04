@@ -28,7 +28,7 @@ versions_file = File.open(csv_dir + seed_config['pid_file'].to_s, 'r')
 
 #TODO Fix issue with null URLs getting through to pid.revise
 
-def spawn_object(obj, csv_row)
+def spawn_object(obj, csv_row, default_user)
   params = {}
   
   # Loop through the items in the CSV
@@ -80,7 +80,7 @@ $stdout.puts '.... sowing groups'
 # ---------------------------------------------------------------
 i = 0; j = 0
 CSV.foreach(groups_file, :headers => true) do |row|
-  group = spawn_object(Group, row)
+  group = spawn_object(Group, row, seed_config['default_user_login'])
   
   if group.valid?
     begin
@@ -114,7 +114,7 @@ $stdout.puts '.... sowing users'
 # ---------------------------------------------------------------
 i = 0; j = 0
 CSV.foreach(users_file, :headers => true) do |row|
-  user = spawn_object(User, row)
+  user = spawn_object(User, row, seed_config['default_user_login'])
   
   if user.password.nil?
     user.password = seed_config['default_password']
@@ -152,7 +152,7 @@ $stdout.puts '.... connecting maintainers to their groups'
 # ---------------------------------------------------------------
 i = 0; j = 0
 CSV.foreach(maintainers_file, :headers => true) do |row|
-  maintainer = spawn_object(Maintainer, row)
+  maintainer = spawn_object(Maintainer, row, seed_config['default_user_login'])
   
   if maintainer.valid?
     begin
@@ -189,7 +189,7 @@ begin
   dead_pid_url = config['dead_pid_url']
   
   CSV.foreach(versions_file, :headers => true) do |row|
-    incoming = spawn_object(Pid, row)
+    incoming = spawn_object(Pid, row, seed_config['default_user_login'])
 
     params = incoming.attributes.clone.merge({:is_seed => true})
   
