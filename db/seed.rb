@@ -50,7 +50,7 @@ def spawn_object(obj, csv_row, default_user)
         if !Group.first(:id => csv_row[prop]).nil?
           params[prop] = (prop == 'user') ? Maintainer.first(:group => Group.first(:id => csv_row[prop])).user : Maintainer.first(:group => Group.first(:id => csv_row[prop])).user.id
         else
-          params[prop] = User.first(:login => seed_config['default_user_login'])
+          params[prop] = User.first(:login => default_user)
         end
       else
           params[prop] = (prop == 'user') ? User.first(:login => csv_row[prop]) : User.first(:login => csv_row[prop]).id unless User.first(:login => csv_row[prop]).nil?
