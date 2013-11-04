@@ -45,7 +45,7 @@ def spawn_object(obj, csv_row, default_user)
     # If the item is a user id, load the user object 
     elsif ['user', 'user_id', 'userid'].include?(prop)
       # If this is not a user then assume its a group and grab the first mainatiner's id
-      if User.first(:login => csv_row[prop]).nil? 
+      if User.first(:login => csv_row[prop]).nil? && User.first(:id => csv_row[prop]).nil?
         # If its not a group use the default user
         if !Group.first(:id => csv_row[prop]).nil?
           params[prop] = (prop == 'user') ? Maintainer.first(:group => Group.first(:id => csv_row[prop])).user : Maintainer.first(:group => Group.first(:id => csv_row[prop])).user.id
