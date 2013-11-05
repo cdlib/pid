@@ -57,7 +57,7 @@ def spawn_object(obj, csv_row, default_user)
           params[prop] = (prop == 'user') ? User.get(csv_row[prop]) : User.get(csv_row[prop]).id unless User.get(csv_row[prop]).nil?
       end
     # if the item is in the list, make sure that its in lower case
-    elsif ['username', 'email', 'change_category', 'notes'].include?(prop)
+    elsif ['username', 'email', 'change_category'].include?(prop)
       params[prop] = csv_row[prop].downcase
       
     # If the incoming value is 'null' (case insensitive) then just set it to nil 
