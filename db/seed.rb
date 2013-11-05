@@ -7,10 +7,11 @@ debug = seed_config['debug_on']
 
 # If the config specifies that we should flush the tables
 if seed_config['flush_tables']
-  Pid.flush!
+  InvalidUrlReport.flush!
   DuplicateUrlReport.flush!
-  Maintainer.flush!
   Interested.flush!
+  Pid.flush!
+  Maintainer.flush!
   User.flush!
   Group.flush!
 end

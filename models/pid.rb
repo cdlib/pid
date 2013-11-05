@@ -20,7 +20,7 @@ class PidVersion
   property :username, String, :length => 20, :format => /[a-z]{3,20}/, :required => true
   property :group, String, :length => 20
   property :created_at, DateTime, :required => true
-  property :notes, String, :length => 250
+  property :notes, String, :length => 250, :required => false
   property :host, String, :length => 30
   
   validates_format_of :url, :with => PidApp::URI_REGEX
@@ -60,7 +60,7 @@ class Pid
     }
   property :created_at, DateTime, :required => true, :index => true
   property :modified_at, DateTime, :required => true, :index => true
-  property :notes, String, :length => 250
+  property :notes, String, :length => 250, :required => false
   property :host, String, :length => 30
   
   validates_format_of :url, :with => PidApp::URI_REGEX  
