@@ -39,9 +39,9 @@
     
     <label><%= HTML_CONFIG['form_notes'] %></label>
     <% if @is_owner %>
-      <input type="text" id="notes" name="notes" value="<%= @pid.notes %>" style="width: 450px;" />
+      <input type="text" id="notes" name="notes" value="<%= (@pid.notes.nil?) "" : @pid.notes %>" style="width: 450px;" />
     <% else %>
-      <span class="form_informational" style="width: 80%;"><%= @pid.notes %></span>
+      <span class="form_informational" style="width: 80%;"><%= (@pid.notes.nil?) "" : @pid.notes %></span>
     <% end %>
     
     <% if @interested.size > 0 %>
@@ -121,7 +121,7 @@
         <span class="form_informational"><%= version.created_at.strftime("%a %b %e %k:%M:%S %Y") %></span>
         <label><%= HTML_CONFIG['form_change_category'] %></label><span class="form_informational"><%= version.change_category %></span>
         <label><%= HTML_CONFIG['form_active'] %></label><span class="form_informational"><%= (version.deactivated) ? "No" : "Yes" %></span>
-        <label><%= HTML_CONFIG['form_notes'] %></label><span class="form_informational" style="width: 80%;"><%= (version.notes) %></span>
+        <label><%= HTML_CONFIG['form_notes'] %></label><span class="form_informational" style="width: 80%;"><%= (version.notes.nil?) ? "" : version.notes %></span>
       </form>
       
       <hr />
