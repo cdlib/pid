@@ -54,7 +54,7 @@ def spawn_object(obj, csv_row, default_user)
           params[prop] = User.first(:login => default_user)
         end
       else
-          params[prop] = (prop == 'user') ? User.first(:login => csv_row[prop]) : User.first(:login => csv_row[prop]).id unless User.first(:login => csv_row[prop]).nil?
+          params[prop] = (prop == 'user') ? User.get(csv_row[prop]) : User.get(csv_row[prop]).id unless User.get(csv_row[prop]).nil?
       end
     # if the item is in the list, make sure that its in lower case
     elsif ['username', 'email', 'change_category', 'notes'].include?(prop)
