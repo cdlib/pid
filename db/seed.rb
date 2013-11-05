@@ -245,7 +245,7 @@ begin
       if params[:url]
         # Set the created date and the notes if they weren't passed in the csv record
         params[:created_at] = params[:modified_at]
-        params[:notes] = "" if params[:notes].nil?
+        params[:notes] = "" if params[:notes].nil? || params[:notes].downcase == 'null'
       
         begin
           new_pid = Pid.mint(params)
