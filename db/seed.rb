@@ -8,11 +8,11 @@ debug = seed_config['debug_on']
 # If the config specifies that we should flush the tables
 if seed_config['flush_tables']
   Pid.flush!
+  DuplicateUrlReport.flush!
   Maintainer.flush!
   Interested.flush!
   User.flush!
   Group.flush!
-  SkipCheck.flush!
 end
 
 # Load the CSV Files
@@ -56,7 +56,7 @@ def spawn_object(obj, csv_row, default_user)
           params[prop] = (prop == 'user') ? User.first(:login => csv_row[prop]) : User.first(:login => csv_row[prop]).id unless User.first(:login => csv_row[prop]).nil?
       end
     # if the item is in the list, make sure that its in lower case
-    elsif ['username', 'email', 'change_category'].include?(prop)
+    elsif ['username', 'email', 'change_category', 'notes'].include?(prop)
       params[prop] = csv_row[prop].downcase
       
     # If the incoming value is 'null' (case insensitive) then just set it to nil 
@@ -244,7 +244,7 @@ begin
       if params[:url]
         # Set the created date and the notes if they weren't passed in the csv record
         params[:created_at] = params[:modified_at]
-        params[:notes] = 'Transferred from legacy system.' if params[:notes].nil?
+        params[:notes] = "" if params[:notes].nil?
       
         begin
           new_pid = Pid.mint(params)
