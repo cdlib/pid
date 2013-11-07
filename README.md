@@ -9,33 +9,21 @@ This is a prototype of a revised version of the PURL Server. It implements a cor
   The source code is managed by Git and is located at: [https://github.com/cdlib/shortcake](https://github.com/cdlib/shortcake)
 
 ###DEPENDENCIES:
-  It is recommended that you install the following gems to get the application running on
-  your system with bundler: bundler install
-
   Redis and SQLite must be installed!
+  You also need a mysql DB.
 
 ###INSTALLATION:
-1. Download the source from Github
-2. Install Ruby 1.9.x
-3. Run bundler to retrieve the necessary gems `bundle install`
-4. Remove the '.example' extension from all of the /conf/*.yml.example files.
-5. Modify the /conf/db.yml and /conf/security.yml files according to your environment.
-6. Run the tests: `rake test`
-7. Create the db if it does not exist (rack's orm will take care of the creation of your tables when you first run the application)
-8. Run the app: `thin -R config.ru start`
-9. Navigate to the url specified in the console (e.g. http://localhost:3000/link)
-10. Login with the default admin's credentials
-11. Navigate to the users page and create your user accounts
-12. Deactivate the default admin account and/or change its password
+  Following the instructions outlined in Redmine:
+      https://redmine.cdlib.org/wiki/purl-service/Purl_20
 
 ####REDIS Commands:
   To start redis: `rake redis:start`
   To stop redis: `rake redis:stop`
     
-####Running THE Application:
-  To run the application (without legacy data): `thin -R config.ru start`
+####Running The Application:
+  To run the application: `thin -R config.ru start`
     
-  To run the application (with a subset of your legacy system's data. See below for details): `thin -R config.ru -e 'seeded' start`
+  To run the application and seed the DB with a subset of your legacy system's data (See below for details): `thin -R config.ru -e 'seeded' start`
 
 ####Testing Commands:    
   To run the all tests: `rake test`
@@ -54,10 +42,10 @@ This is a prototype of a revised version of the PURL Server. It implements a cor
   
   The PIDs file should include all historical information about a PID on separate lines. the lines should appear in chronological order: 
   For example:
-* id,url,modified_at,username,change_category
-* 123,http://www.google.com/,2000-04-19 13:43:10,jdoe,BATCH
-* 123,http://www.google.com/search?q=ruby+format+date&oq=ruby+format+date,2000-10-18 14:33:25,jdoe,USER_ENTERED
-* 123,http://www.google.com/search?q=ruby+config,2007-11-14 15:03:03,jdoe,USER_ENTERED
+* id,url,modified_at,username,change_category, notes
+* 123,http://www.google.com/,2000-04-19 13:43:10,jdoe,BATCH,null
+* 123,http://www.google.com/search?q=ruby+format+date&oq=ruby+format+date,2000-10-18 14:33:25,jdoe,USER_ENTERED,Testing
+* 123,http://www.google.com/search?q=ruby+config,2007-11-14 15:03:03,jdoe,USER_ENTERED,null
 
   In the example above, the first line will create the initial PID record, and all subsequent lines will 'revise' the PID. Each revision will
   update the url, change_category, modified_at, and deactivated (should the URL be null) status of the PID record, and then add itself to the

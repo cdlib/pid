@@ -1,2 +1,2 @@
-id,url,modified_at,username,change_category
-123,http://www.google.com,2005-01-01 15:15:15,jdoe,User_Entered
+id,url,modified_at,username,change_category,notes
+123,http://www.google.com,2005-01-01 15:15:15,jdoe,User_Entered,Test note
