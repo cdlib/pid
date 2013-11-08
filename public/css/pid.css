@@ -36,6 +36,10 @@ hr {
   color:              #005695;
 }
 
+ul.faq {
+list-style-type:      none;
+}
+
 .right { float:        right; }
 .left { float:        left; }
 .center { text-align: center; }

@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <title>California Digital Library - PID Service FAQ</title>
+    
+    <link rel="stylesheet" type="text/css" href="/css/pid.css" />
+    <!--[if (lt IE 10)|(gt IE 10)]><link rel="stylesheet" type="text/css" href="/css/ie.css" media="screen" /><![endif]--> 
+  </head>
+  
+  <body>
+    <div id="main">
+      <header>
+        <img src="/logo-260x130.png" border="0" alt="PID Service" title="PID Service" />
+              
+        <h2 style="display: inline; margin-left: 45px; vertical-align: 50px;">PID Service</h2>
+      </header>
+
+			<section id="faq_list">
+			  <h3>Frequently Asked Questions (FAQ)</h3>
+  
+				<h4>General</h4>
+				<ul class="faq">
+					<li>
+						<ul>
+							<li><strong>Q)&nbsp;</strong>What is an Interested Party?</li>
+							<li><strong>A)&nbsp;</strong>Each PID is maintained/owned by a particular group. An interested party is a group that does not maintain a PID but makes use of the PID and is concerned with any modifications made to it. When you attempt to mint a new PID that points to a URL that is already in use by another PID, the system will provide you with that PIDs information and assign your group as an interested party of that PID (unless your group already maintains that PID).</li>
+						</ul>
+					</li>
+					<li>
+						<ul>
+							<li><strong>Q)&nbsp;</strong>If the system allows Interested Parties why is it telling me there are duplicate PIDs out there for my URL?</li>
+							<li><strong>A)&nbsp;</strong>PIDs that were moved over from the old PURL Service may contain duplicate URLs. This can also occur when you update an existing PIDs URL. The interested party concept only happens when you mint a new PID.</li>
+						</ul>
+					</li>
+					<li>
+						<ul>
+							<li><strong>Q)&nbsp;</strong>Why is the system telling me that my PIDs URL is invalid?</li>
+							<li><strong>A)&nbsp;</strong>The PID service attempts to validate the URLs behind the PIDs in the system. This validation process occurs when you mint or update your PID as well and during a scheduled process that runs every weekend. The validation process will designate a PIDs URL as invalid when the attempt to access the URL returns an error. The most common errors are: 404 - Page not found, 402 - Unauthorized and 500 - Server error.<br />Please note that your group's manager maintains a list of domains that are exempt from this validation process.</li>
+						</ul>
+					</li>
+					<li>
+						<ul>
+							<li><strong>Q)&nbsp;</strong>How do I update a PID that does not belong to my group?</li>
+							<li><strong>A)&nbsp;</strong>Contact the manager of the PIDs group and request the change.</li>
+						</ul>
+					</li>
+				</ul>
+	
+				<h4>Browser Related</h4>
+				<ul class="faq">
+					<li>
+						<ul>
+							<li><strong>Q)&nbsp;</strong>Why don't the labels and input boxes line up in my browser?</li>
+							<li><strong>A)&nbsp;</strong>The Internet Explorer (IE) browser does not currently display the PID service screens properly. Please use Firefox, Google Chrome, or Safari when working with the site.</li>
+						</ul>
+					</li>
+					<li>
+						<ul>
+							<li><strong>Q)&nbsp;</strong>Why is there no date selector appearing in my browser?</li>
+							<li><strong>A)&nbsp;</strong>Certain browsers handle dates differently. Currently, Google Chrome is the only browser that displays dates with a date selection box automatically.</li>
+						</ul>
+					</li>
+					<li>
+						<ul>
+							<li><strong>Q)&nbsp;</strong>Why don't my searches based on a date range work properly?</li>
+							<li><strong>A)&nbsp;</strong>Certain browsers handle dates differently. If your search for 01/01/2013 - 01/10/2013 returns results from January 1st through October 1st your browser is treating the date as dd/mm/yyyy instead of mm/dd/yyyy. If you are experiencing this issue try using the yyyy-mm-dd format. This format works properly across all browsers.</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
+			
+		</div>
+	</body>
+</html>
