@@ -130,7 +130,13 @@ class TestUserController < Test::Unit::TestCase
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_forgotten_password']), 'Did not get to the administration page!'
     
     # Should redirect to main page when already logged in
-    post '/user/login', { :login => @adm.login, :password => @pwd }
+    begin
+      post '/user/login', { :login => @adm.login, :password => @pwd }
+    rescue Exception => e
+put "encountered: #{e.inspect}"      
+      assert e.errno == 'ECONNREFUSED'
+    end
+    
     get "/user/forgot"
     assert last_response.redirect?, "Was not redirected to the main page #{last_response.status}"
     assert last_response.location.include?(PidApp::SECURITY_CONFIG['target_after_login']), "Did not get redirected to the main page!"
