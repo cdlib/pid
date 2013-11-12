@@ -209,11 +209,11 @@ class PidApp < Sinatra::Application
     # If the app config file specifies that we should use smtp, add the smtp args
     if APP_CONFIG['email_method'].downcase == 'smtp'
       args[:via] = :smtp
-      args[:smtp] = {:host => APP_CONFIG['smtp_host'],
+      args[:smtp] = {:address => APP_CONFIG['smtp_host'],
                      :port => APP_CONFIG['smtp_port'],
-                     :user => APP_CONFIG['smtp_user'],
+                     :user_name => APP_CONFIG['smtp_user'],
                      :password => APP_CONFIG['smtp_pwd'],
-                     :auth => :plain,
+                     :authentication => :plain,
                      :domain => APP_CONFIG['smtp_domain']}
     end
 
