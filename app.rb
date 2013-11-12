@@ -31,6 +31,7 @@ class PidApp < Sinatra::Application
   configure :test do
     args = "sqlite::memory:"
     set :session_secret, 'test_redis_secret'
+    TEST_MODE = true
   end    
 
   DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/inactive" : APP_CONFIG['dead_pid_url']
@@ -216,10 +217,8 @@ class PidApp < Sinatra::Application
                             :authentication => :plain,
                             :domain => APP_CONFIG['smtp_domain']}
     end
-
-puts "emailing with the following args: #{args.inspect}" 
-
-    Pony.mail args
+  
+    Pony.mail args unless TEST_MODE
   end
   
 end
