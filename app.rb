@@ -91,8 +91,7 @@ class PidApp < Sinatra::Application
     shorty.flushall!
     Pid.all.each do |pid| 
       begin
-        shorty.create(pid.id.to_s, (pid.deactivated ? 
-            "http://#{APP_CONFIG['host']}#{':' + APP_CONFIG['port'].to_s unless APP_CONFIG['port'].nil? }/link/dead"  : pid.url))
+        shorty.create(pid.id.to_s, (pid.deactivated ? APP_CONFIG['dead_pid_url'] : pid.url))
       rescue Exception => e
         $stdout.puts "something happened while rebuilding the Redis DB for PID #{pid.id}: #{e.message}"
       end
