@@ -209,12 +209,12 @@ class PidApp < Sinatra::Application
     # If the app config file specifies that we should use smtp, add the smtp args
     if APP_CONFIG['email_method'].downcase == 'smtp'
       args[:via] = :smtp
-      args[:smtp] = {:address => APP_CONFIG['smtp_host'],
-                     :port => APP_CONFIG['smtp_port'],
-                     :user_name => APP_CONFIG['smtp_user'],
-                     :password => APP_CONFIG['smtp_pwd'],
-                     :authentication => :plain,
-                     :domain => APP_CONFIG['smtp_domain']}
+      args[:via_options] = {:address => APP_CONFIG['smtp_host'],
+                            :port => APP_CONFIG['smtp_port'],
+                            :user_name => APP_CONFIG['smtp_user'],
+                            :password => APP_CONFIG['smtp_pwd'],
+                            :authentication => :plain,
+                            :domain => APP_CONFIG['smtp_domain']}
     end
 
     Pony.mail args

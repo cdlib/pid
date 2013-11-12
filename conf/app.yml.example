@@ -23,7 +23,7 @@ max_upload_csv_size: 10240   #10MB
 email_sender_address: 'system@domain.org'
 
 # The type of email we're using (smtp or sendmail)
-email_method: 'smtp'
+email_method: 'sendmail'
 
 # Smtp settings if we're using that
 smtp_host: 'server.domain.org'
