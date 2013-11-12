@@ -217,6 +217,8 @@ class PidApp < Sinatra::Application
                             :domain => APP_CONFIG['smtp_domain']}
     end
 
+puts "emailing with the following args: #{args.inspect}" 
+
     Pony.mail args
   end
   
