@@ -48,6 +48,9 @@ class PidApp
   
     pids = File.open("/apps/purl/webapp/conf/redis_update.csv")
   
+    # establish a connection to the REDIS database
+    @@shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
+  
     $stdout.puts "Processing file"
   
     # process the file of ids, urls
