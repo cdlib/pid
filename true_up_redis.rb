@@ -51,7 +51,7 @@ class PidApp
     Pid.all.each do |pid| 
       url = pid.nil? ? APP_CONFIG['dead_pid_url'] : (pid.deactivated ? APP_CONFIG['dead_pid_url'] : pid.url.to_s) 
       
-      @@shorty.create_or_update(pid.id.to_s, url) if url != old_url
+      @@shorty.create_or_update(pid.id.to_s, url)
     end
     
   rescue Exception => e
