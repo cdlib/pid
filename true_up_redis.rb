@@ -51,7 +51,7 @@ class PidApp
     Pid.all.each do |pid| 
       url = pid.nil? ? APP_CONFIG['dead_pid_url'] : (pid.deactivated ? APP_CONFIG['dead_pid_url'] : pid.url.to_s) 
       
-      old_url = shorty.get(pid.id)
+      old_url = @@shorty.get(pid.id)
       
 puts "old_url != url for #{pid.id} - #{old_url} != #{url}" if url != old_url
       
