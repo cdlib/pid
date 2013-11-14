@@ -17,12 +17,13 @@
         <h2 style="display: inline; margin-left: 45px; vertical-align: 50px;"><%= APP_CONFIG['application_name'] %></h2>
       </header>
     
-      <% if !@hide_nav %>
-        <nav>
-          <div class="nav_spacer">
-            <ul>
-              <li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
-              <li class="grey">|</li>
+      <nav>
+        <div class="nav_spacer">
+          <ul>
+            <li class="navy"><%= Time.new.strftime("%b %d %Y") %></li>
+            <li class="grey">|</li>
+      
+            <% if !@hide_nav %>
               <li><a href="/link"><%= HTML_CONFIG['nav_home'] %></a></li>
               <li class="grey">|</li>
               <li><a href="/link/search"><%= HTML_CONFIG['nav_pid_search'] %></a></li>
@@ -46,11 +47,18 @@
               <% end %>
               
               <li><a href="/user/logout" class="navy"><%= HTML_CONFIG['nav_logout'] %></a></li>
-            </ul>
-          </div>
-        </nav>
-      <% end %>
+            
+            <% else %>
+              <li><a href="/public/search"><%= HTML_CONFIG['nav_public_search'] %></a></li>
+              <li class="grey">|</li>
+            
+              <li><a href="/user/login" class="navy"><%= HTML_CONFIG['nav_login'] %></a></li>
+            <% end %>
 
+          </ul>
+        </div>
+      </nav>
+      
       <%= yield %>
       
     </div>

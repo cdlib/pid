@@ -387,6 +387,83 @@ class PidApp < Sinatra::Application
 
     erb :new_pid
   end
+  
+  
+# ---------------------------------------------------------------
+# Display the PIDs search form
+# ---------------------------------------------------------------  
+  get '/public/search' do
+    @json = [].to_json
+    @groups = Group.all
+    @hide_nav = true
+    
+    erb :public_search_pid
+  end
+    
+# ---------------------------------------------------------------  
+# Process the public search form
+# ---------------------------------------------------------------
+  post '/public/search' do
+    results = []
+    
+    # Limit the search results based on the value in the config
+    args = {}
+    
+    if @params[:pid_set].empty?
+    
+      # Set the search criteria based on the user's input
+      args[:url.like] = '%' + @params[:url] + '%' unless @params[:url].empty?
+      args[:group_id] = @params[:groupid] unless @params[:groupid].empty?
+  
+      args[:deactivated] = (@params[:active] == '0') ? true : false unless @params[:active].empty?
+      
+      args[:id.gte] = @params[:pid_low] unless @params[:pid_low].empty?
+      args[:id.lte] = @params[:pid_high] unless @params[:pid_high].empty?
+
+      #Do not allow searches that are too broad.
+      if @params[:url].length > 4 or (!@params[:pid_low].empty? and !@params[:pid_high].empty?)
+        results = Pid.all(args)
+          
+        @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
+      else
+        @msg = MESSAGE_CONFIG['pid_search_not_enough_criteria']
+      end
+    
+    else
+      params[:pid_set].lines do |line|
+        pid = line.gsub("\r\n", '').gsub("\n", '')
+
+        rslt = Pid.first(:id => pid.gsub(' ', ''))
+        results << rslt unless rslt.nil?
+      end
+      
+      @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
+    end
+    
+    @json = results.to_json
+    @groups = Group.all
+    @hide_nav = true
+    
+    erb :public_search_pid
+  end  
+  
+# ---------------------------------------------------------------
+# Display the specified PID for a public audience
+# ---------------------------------------------------------------  
+  get '/public/:id' do
+    @pid = Pid.get(params[:id])
+    
+    if @pid
+      @user = User.first(:login => @pid.username)
+      @hide_nav = true
+
+      erb :public_show_pid
+
+    else
+      halt(404)
+    end
+  end
+  
 
 # --------------------------------------------------------------------------------------------------------------
 # Security checks

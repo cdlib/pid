@@ -478,6 +478,7 @@ class PidApp < Sinatra::Application
   error 401 do
     @msg = MESSAGE_CONFIG['session_expired']
     @msg if request.xhr?
+    @hide_nav = true
     erb :login unless request.xhr?
   end
 
