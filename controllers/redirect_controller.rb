@@ -7,7 +7,14 @@ class PidApp < Sinatra::Application
 
   get %r{/PID/([0-9]{1,12}/.+)} do
     shortcode, code, partial = request.fullpath.match(CODE_AND_PARTIAL).to_a 
+    
     url = shorty.get(code)
+    
+    if !url.nil?
+      # if the last character of the url is a ['?', '&', '='] then remove the 1st character of the partial, which is a '/'
+      partial = partial[1..partial.length] if ["?", "&", "="].include?(url.last)
+    end
+    
     url.nil? ? 404 : redirect(url + partial.to_s)
   end
 
