@@ -1,10 +1,12 @@
 # Navigation bar links
 nav_admin: 'Administration'
 nav_home: 'Home'
+nav_login: 'Login'
 nav_logout: 'Logout'
 nav_pid_search: 'Find PIDs'
 nav_pid_update: 'Batch PIDs'
 nav_pid_create: 'Mint PIDs'
+nav_public_search: 'Find PIDs'
 nav_reports: 'Reports'
 nav_user: 'Profile'
 
