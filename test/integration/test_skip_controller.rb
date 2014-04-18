@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestSkipController < Test::Unit::TestCase
+class TestSkipController < Minitest::Test
   include Rack::Test::Methods
 
   def app

@@ -3,7 +3,7 @@ require 'open-uri'
 require 'nokogiri'
 require 'json'
 
-class TestReportController < Test::Unit::TestCase
+class TestReportController < Minitest::Test
   include Rack::Test::Methods
 
   def app

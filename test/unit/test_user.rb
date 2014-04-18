@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestUser < Test::Unit::TestCase
+class TestUser < Minitest::Test
   
   def setup
     Pid.flush!
@@ -23,19 +23,19 @@ class TestUser < Test::Unit::TestCase
     assert !User.first(:login => @user.login).salt.nil?, "No password salt was generated!"
     
     # Make sure we cannot save a duplicate Login Id
-    assert_raise(DataMapper::SaveFailureError){ User.new(:login => @user.login, :name => 'Test', :email => 'test@example.org', :password => @pwd).save }
+    assert_raises(DataMapper::SaveFailureError){ User.new(:login => @user.login, :name => 'Test', :email => 'test@example.org', :password => @pwd).save }
     
     # Make sure we cannot save a User without a login
-    assert_raise(DataMapper::SaveFailureError){ User.new(:name => 'Test User', :email => 'test@example.org', :password => @pwd).save }
+    assert_raises(DataMapper::SaveFailureError){ User.new(:name => 'Test User', :email => 'test@example.org', :password => @pwd).save }
     
     # Make sure we cannot save a User without a name
-    assert_raise(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :email => 'test@example.org', :password => @pwd).save }
+    assert_raises(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :email => 'test@example.org', :password => @pwd).save }
     
     # Make sure we cannot save a User without an email
-    assert_raise(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :name => 'Test User', :password => @pwd).save }
+    assert_raises(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :name => 'Test User', :password => @pwd).save }
     
     # Make sure we cannot save a User with an invalid email
-    assert_raise(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :name => 'Test User', :email => 'test', :password => @pwd).save }
+    assert_raises(DataMapper::SaveFailureError){ User.new(:login => 'new_user', :name => 'Test User', :email => 'test', :password => @pwd).save }
   end
   
 # -----------------------------------------------------------------------------------------------   
@@ -50,25 +50,25 @@ class TestUser < Test::Unit::TestCase
     
     # Make sure we cannot save a duplicate Login Id
     user.login = "test_user"
-    assert_raise(DataMapper::SaveFailureError){ user.save }
+    assert_raises(DataMapper::SaveFailureError){ user.save }
     
     # Make sure we cannot save a User without a login
     user.login = ""
-    assert_raise(DataMapper::SaveFailureError){ user.save }
+    assert_raises(DataMapper::SaveFailureError){ user.save }
     user.login = "new_user"
     
     # Make sure we cannot save a User without a name
     user.name = ""
-    assert_raise(DataMapper::SaveFailureError){ user.save }
+    assert_raises(DataMapper::SaveFailureError){ user.save }
     user.name = "New Name"
     
     # Make sure we cannot save a User without an email
     user.email = ""
-    assert_raise(DataMapper::SaveFailureError){ user.save }
+    assert_raises(DataMapper::SaveFailureError){ user.save }
     
     # Make sure we cannot save a User with an invalid email
     user.email = "new"
-    assert_raise(DataMapper::SaveFailureError){ user.save }
+    assert_raises(DataMapper::SaveFailureError){ user.save }
     
   end
   

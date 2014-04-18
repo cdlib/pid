@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestSkipCheck < Test::Unit::TestCase
+class TestSkipCheck < Minitest::Test
   def setup
     Pid.flush!
     @group = Group.new(:id => 'TEST', :name => 'test_group')
@@ -14,7 +14,7 @@ class TestSkipCheck < Test::Unit::TestCase
     assert chk.save, 'Unable to create a new skip check!'
     
     # Make sure we cannot save a duplicate domain
-    assert_raise(DataObjects::IntegrityError){ SkipCheck.new(:domain => 'www.yahoo.com', :created_at => Time.now, :group => @group.id).save }
+    assert_raises(DataObjects::IntegrityError){ SkipCheck.new(:domain => 'www.yahoo.com', :created_at => Time.now, :group => @group.id).save }
   end
 
 # ----------------------------------------------------------------------------------------------- 

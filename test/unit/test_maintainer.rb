@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestMaintainer < Test::Unit::TestCase
+class TestMaintainer < Minitest::Test
   def setup
     Pid.flush!
     @group = Group.new(:id => 'TEST', :name => 'test_group')

@@ -13,6 +13,7 @@ gem 'pony'
 
 group :test do
   gem 'rack-test', :require => 'rack/test'
+  gem 'minitest'
   gem 'fakeredis'
   gem 'capybara'
   gem 'poltergeist'

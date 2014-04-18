@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestRedirectController < Test::Unit::TestCase
+class TestRedirectController < Minitest::Test
   include Rack::Test::Methods
 
   def app

@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestInterested < Test::Unit::TestCase
+class TestInterested < Minitest::Test
   def setup
     Pid.flush!
     @group = Group.new(:id => 'TEST', :name => 'test_group')
@@ -25,10 +25,10 @@ class TestInterested < Test::Unit::TestCase
     assert interested.save, 'Unable to create a new interested parties association!'
 
     # Make sure that we cannot add the owner of a PID as an interested party of that PID
-    assert_raise(DataMapper::SaveFailureError){ Interested.new(:pid => @pid, :group => @group).save }
+    assert_raises(DataMapper::SaveFailureError){ Interested.new(:pid => @pid, :group => @group).save }
     
     # Make sure we cannot add a duplicate
-    assert_raise(DataObjects::IntegrityError){ Interested.new(:pid => @pid, :group => @group2).save }
+    assert_raises(DataObjects::IntegrityError){ Interested.new(:pid => @pid, :group => @group2).save }
   end
 
 # ----------------------------------------------------------------------------------------------- 

@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestGroup < Test::Unit::TestCase
+class TestGroup < Minitest::Test
   def setup
     Pid.flush!
     @group = Group.new(:id => 'TEST', :name => 'test_group')
@@ -25,7 +25,7 @@ class TestGroup < Test::Unit::TestCase
     assert_equal 1, Group.count(:id => 'NEW'), "Unable to find the newly created group!"
     
     # Make sure we cannot save a duplicate
-    assert_raise(DataMapper::SaveFailureError){Group.new(:id => 'NEW', :name => 'New Group', 
+    assert_raises(DataMapper::SaveFailureError){Group.new(:id => 'NEW', :name => 'New Group', 
                     :description => 'This is a new group', :host => '127.0.0.1').save}
   end
 

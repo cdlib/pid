@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestPid < Test::Unit::TestCase
+class TestPid < Minitest::Test
   
   def setup
     Pid.flush!
@@ -29,7 +29,7 @@ class TestPid < Test::Unit::TestCase
       
     # Test an invalid URL 
     @params[:url] = 'www.cdlibs.org'
-    assert_raise(PidException){ Pid.mint(@params) }
+    assert_raises(PidException){ Pid.mint(@params) }
   end
   
 # -----------------------------------------------------------------------------------------------  
@@ -42,7 +42,7 @@ class TestPid < Test::Unit::TestCase
     assert_equal 'http://www.google.com', link.url
       
     # Test an invalid URL
-    assert_raise(PidException){ link.revise(:url => 'www.google.com', :group => @group, :notes => 'Test', :deactivated => false) }
+    assert_raises(PidException){ link.revise(:url => 'www.google.com', :group => @group, :notes => 'Test', :deactivated => false) }
   end
   
 # -----------------------------------------------------------------------------------------------  
@@ -52,7 +52,7 @@ class TestPid < Test::Unit::TestCase
     @params[:url] = 'http://www.google.com'
     Pid.mint(@params)
     @params[:url] = 'www.cdlibs.org'
-    assert_raise(PidException){ Pid.mint(@params) }
+    assert_raises(PidException){ Pid.mint(@params) }
       
     # Make sure that only the 2 valid PIDs were created
     assert_equal 2, Pid.all.size

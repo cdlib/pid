@@ -1,10 +1,10 @@
 $LOAD_PATH.unshift(File.absolute_path(File.dirname(__FILE__)))
 require_relative '../../test/test_helper'
-require 'test/unit'
+require 'minitest/autorun'
 require 'shortcake'
 require 'fakeredis'
 
-class TestShortcake < Test::Unit::TestCase
+class TestShortcake < Minitest::Test
   
     def app
       PidApp
@@ -26,7 +26,7 @@ class TestShortcake < Test::Unit::TestCase
       id = '1234'
       url = 'http://cdlib.org'
       @shorty.create(id, url)
-      assert_raise(CodeExists) { @shorty.create(id, url) }
+      assert_raises(CodeExists) { @shorty.create(id, url) }
     end
     
     def test_update
@@ -41,7 +41,7 @@ class TestShortcake < Test::Unit::TestCase
     def test_update_when_does_not_exist
       id = '1234'
       url_update = 'http://uclibs.org'
-      assert_raise(CodeDoesNotExist) { @shorty.update(id, url_update) }
+      assert_raises(CodeDoesNotExist) { @shorty.update(id, url_update) }
     end
     
     def test_create_or_update_when_create
@@ -63,7 +63,7 @@ class TestShortcake < Test::Unit::TestCase
     def test_delete_when_does_not_exist
       id = '1234'
       url_update = 'http://uclibs.org'
-      assert_raise(CodeDoesNotExist) { @shorty.update(id, url_update) }
+      assert_raises(CodeDoesNotExist) { @shorty.update(id, url_update) }
     end
     
     def test_delete
@@ -77,23 +77,23 @@ class TestShortcake < Test::Unit::TestCase
     end
     
     def test_init_must_pass_valid_namespace
-      assert_raise(ValidNSRequired) { Shortcake.new('', {:host => "localhost", :port => 9999}) }
-      assert_raise(ValidNSRequired) { Shortcake.new('iamtoolongtobeanamespace', {:host => "localhost", :port => 9999}) }
-      assert_raise(ValidNSRequired) { Shortcake.new('I_Have_Bad_Characters', {:host => "localhost", :port => 9999}) }
+      assert_raises(ValidNSRequired) { Shortcake.new('', {:host => "localhost", :port => 9999}) }
+      assert_raises(ValidNSRequired) { Shortcake.new('iamtoolongtobeanamespace', {:host => "localhost", :port => 9999}) }
+      assert_raises(ValidNSRequired) { Shortcake.new('I_Have_Bad_Characters', {:host => "localhost", :port => 9999}) }
       assert_equal true, true
     end
     
     def test_create_must_use_valid_code
       url = 'http://cdlib.org'
-      assert_raise(ValidCodeRequired) { @shorty.create('', url) }
-      assert_raise(ValidCodeRequired) { @shorty.create('iamtoolongtobeacode', url) }
-      assert_raise(ValidCodeRequired) { @shorty.create('bad_symbols', url) }
+      assert_raises(ValidCodeRequired) { @shorty.create('', url) }
+      assert_raises(ValidCodeRequired) { @shorty.create('iamtoolongtobeacode', url) }
+      assert_raises(ValidCodeRequired) { @shorty.create('bad_symbols', url) }
       assert_equal true, true
     end
     
     def test_create_must_use_valid_url
       id = '1234'
-      assert_raise(ValidURLRequired) { @shorty.create(id, 'i am not a url') }
+      assert_raises(ValidURLRequired) { @shorty.create(id, 'i am not a url') }
     end
     
     def test_get_all_codes_in_namespace

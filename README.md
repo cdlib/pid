@@ -12,6 +12,7 @@ This is a prototype of a revised version of the PURL Server. It implements a cor
 ###DEPENDENCIES:
   Redis and SQLite must be installed!
   You also need a mysql DB.
+  PhantomJS must be installed if you are running the test suite. 
 
 ###INSTALLATION:
   Following the instructions outlined in Redmine:

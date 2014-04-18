@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class PidClientTestApp < Test::Unit::TestCase
+class PidClientTestApp < Minitest::Test
   include Rack::Test::Methods
   include Capybara::DSL
   

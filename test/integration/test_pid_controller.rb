@@ -4,7 +4,7 @@ require 'open-uri'
 require 'nokogiri'
 require 'json'
 
-class TestPidController < Test::Unit::TestCase
+class TestPidController < Minitest::Test
   include Rack::Test::Methods
 
   def app
