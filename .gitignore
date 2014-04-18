@@ -1,4 +1,6 @@
 .bundle
+.ruby-version
+.tm_properties
 *.db
 *.csv
 *.rdb
