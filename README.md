@@ -4,6 +4,7 @@ This is a prototype of a revised version of the PURL Server. It implements a cor
 
 ###BUILD STATUS:
 [![Build Status](https://secure.travis-ci.org/cdlib/shortcake.png)](http://travis-ci.org/cdlib/shortcake)
+[![Dependency Status](https://gemnasium.com/elgalu/boolean_class.png)](https://gemnasium.com/elgalu/boolean_class)
 
 ####SOURCE:
   The source code is managed by Git and is located at: [https://github.com/cdlib/shortcake](https://github.com/cdlib/shortcake)
