@@ -508,7 +508,10 @@ private
           end
           
           # send an email 
-          send_email(recipients.join(";"), subject, body)
+          
+# Commenting out due to a change in the way we're using the security model so that this stops spamming
+# users. If you are deploying your own installation you may want to consider uncommenting this.
+#          send_email(recipients.join(";"), subject, body)
         end
       end
     end
