@@ -1,41 +1,68 @@
-##Name:     PID Service prototype a.k.a. Shortcake
-
-This is a prototype of a revised version of the PURL Server. It implements a core subset of the PURL spec, basically it's a tiny URL service with versioning. It is written in the ruby language and runs on the Sinatra platform (http://www.sinatrarb.com/). It uses SQLite as its primary database and Redis as the cached data store for PID redirects.
+# PURL Service (a.k.a PID Service)
 
 ###BUILD STATUS:
-[![Build Status](https://secure.travis-ci.org/cdlib/shortcake.png)](http://travis-ci.org/cdlib/shortcake)
-[![Dependency Status](https://gemnasium.com/cdlib/shortcake.png)](https://gemnasium.com/cdlib/shortcake)
+[![Build Status](https://secure.travis-ci.org/cdlib/PURL-Service.png)](http://travis-ci.org/cdlib/PURL-Service)
+[![Dependency Status](https://gemnasium.com/cdlib/PURL-Service.png)](https://gemnasium.com/cdlib/PURL-Service)
 
-####SOURCE:
-  The source code is managed by Git and is located at: [https://github.com/cdlib/shortcake](https://github.com/cdlib/shortcake)
+## Overview
 
-###DEPENDENCIES:
-  Redis and SQLite must be installed!
-  You also need a mysql DB.
-  PhantomJS must be installed if you are running the test suite. 
+The PURL service is a redesign of OCLC's old PURL service which became the Zephiera PURLZ service which eventually was absorbed into the Callimachus Project.
 
-###INSTALLATION:
-  Following the instructions outlined in Redmine:
-      https://redmine.cdlib.org/wiki/purl-service/Purl_20
+A PURL/PID is a Persistent URL that can be used in lieu of URLs that you think may change over time. 
 
-####REDIS Commands:
-  To start redis: `rake redis:start`
-  To stop redis: `rake redis:stop`
-    
-####Running The Application:
-  To run the application: `thin -R config.ru start`
-    
-  To run the application and seed the DB with a subset of your legacy system's data (See below for details): `thin -R config.ru -e 'seeded' start`
+It provides you with the ability to protect your systems and users from HTTP 404 errors caused by changes to URLs that are managed by organizations outside of your control.
 
-####Testing Commands:    
-  To run the all tests: `rake test`
-  To run only the controller, model, and redis tests: `rake tes_app`
-  To run only the client side tests: `rake test_client`
+The PURL system consists of two core functional areas:
+- **Link Resolver** - A component that translates calls to a PURL into the URL behind it. For example a user clicks on http://my.domain.edu/PID/1234 and the system redirects the user to http://some.site.org/path/to/file.html
+
+- **Administration Site** - A series of administration pages that allow you to search for PURLs, create/mint PURLs, update the URLs they point to, and manage users who can maintain PURLs.
+
+## When and Why would I use a PURL?
+ 
+You have a URL, http://some.site.org/path/to/file.html, to an article on a third party system and you would like to provide to your users on several different sites.
+
+You are concerned that the third party might move the article at some point in the future. To prevent this situation from causing you heartache, you decide to generate/mint a PURL, http://my.domain.edu/PID/1234, and associate it with http://some.site.org/path/to/file.html. You then place the link to the PURL on your sites in all of the places where you would normally have placed the third party URL.
+
+When the third party moves that article to http://some.site.org/new/path/to/same/file.html, you can simply update the link associated with your PURL rather than having to worry about finding all of the places you placed the link on your sites.
+
+## Dependencies
+
+- Ruby >= 1.9.3
+- Rubygems >= 2.0.7 and the Bundler gem
+- Redis >= 2.6.16 (link resolver uses in-memory Redis)
+- MySql DB to host the administration data
+- SQLite for testing
+- PhantomJS for testing 
+
+## Installation
+
+- Make sure all of the dependencies are installed
+- Make sure you have a MySQL database ready for this system to use (see below for SQL to create the DB)
+- > git clone https://github.com/cdlib/PURL-Service
+- Replace all of the ./config/*.yml.example with *.yml versions. The best way to do this is to create a local folder outside of the project and place your versions of the configuration files there. Then create symbolic links to those files in the ./config directory within this project. This will prevent your files from being changed when updating the project from GitHub.
+- > gem install bundler
+- > gem install extensions
+- > bundle install
+
+## Updating
+- If you did not place your versions of the yml config files into an external folder, you will want to back them up. then in the project folder run > git stash
+- > git pull origin master
+- Move your configuration files back into the project folder if necessary
+
+## Usage
+- Start Redis: > rake redis:start
+- Stop Redis: > rake redis:stop
+- Start the PURL Service > thin -R config.ru start -p [port]
+- To seed the MySQL DB with legacy data (See below for details) > thin -R config.ru -e 'seeded' start
+- Test everything > rake test
+- Test the non-UI components > rake test_app
+- Test the UI only > rake test_client
+
+## Database Structure
+
+TODO: Generate SQL statements to create tables and indexes  
   
-  To read all TODO, FIXME, and OPTIMIZE comments: `rake notes`
-  
-  
-####Seeding The Database With Legacy Data:
+###Seeding The Database With Legacy Data:
   **WARNING:** This process will wipe out all of the data in your tables if the flush_tables value is true in the /db/seed.yml file !!! 
 
   For seeding the database, the system is expecting your legacy csv data files to be found at ~/pid_legacy_db/ (this location can be modified 
