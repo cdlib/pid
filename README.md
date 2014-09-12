@@ -13,17 +13,17 @@ A PURL/PID is a Persistent URL that can be used in lieu of URLs that you think m
 It provides you with the ability to protect your systems and users from HTTP 404 errors caused by changes to URLs that are managed by organizations outside of your control.
 
 The PURL system consists of two core functional areas:
-- **Link Resolver** - A component that translates calls to a PURL into the URL behind it. For example a user clicks on http://my.domain.edu/PID/1234 and the system redirects the user to http://some.site.org/path/to/file.html
+- **Link Resolver** - A component that translates calls to a PURL into the URL behind it. For example a user clicks on my.domain.edu/PID/1234 and the system redirects the user to some.site.org/path/to/file.html
 
 - **Administration Site** - A series of administration pages that allow you to search for PURLs, create/mint PURLs, update the URLs they point to, and manage users who can maintain PURLs.
 
 ## When and Why would I use a PURL?
  
-You have a URL, http://some.site.org/path/to/file.html, to an article on a third party system and you would like to provide to your users on several different sites.
+You have a URL, some.site.org/path/to/file.html, to an article on a third party system and you would like to provide to your users on several different sites.
 
-You are concerned that the third party might move the article at some point in the future. To prevent this situation from causing you heartache, you decide to generate/mint a PURL, http://my.domain.edu/PID/1234, and associate it with http://some.site.org/path/to/file.html. You then place the link to the PURL on your sites in all of the places where you would normally have placed the third party URL.
+You are concerned that the third party might move the article at some point in the future. To prevent this situation from causing you heartache, you decide to generate/mint a PURL, my.domain.edu/PID/1234, and associate it with some.site.org/path/to/file.html. You then place the link to the PURL on your sites in all of the places where you would normally have placed the third party URL.
 
-When the third party moves that article to http://some.site.org/new/path/to/same/file.html, you can simply update the link associated with your PURL rather than having to worry about finding all of the places you placed the link on your sites.
+When the third party moves that article to some.site.org/new/path/to/same/file.html, you can simply update the link associated with your PURL rather than having to worry about finding all of the places you placed the link on your sites.
 
 ## Dependencies
 
