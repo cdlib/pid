@@ -1,29 +1,29 @@
-# PURL Service (a.k.a PID Service)
+# PID Service (a.k.a PURL Service)
 
 ###BUILD STATUS:
-[![Build Status](https://secure.travis-ci.org/cdlib/PURL-Service.png)](http://travis-ci.org/cdlib/PURL-Service)
-[![Dependency Status](https://gemnasium.com/cdlib/PURL-Service.png)](https://gemnasium.com/cdlib/PURL-Service)
+[![Build Status](https://secure.travis-ci.org/cdlib/pid.png)](http://travis-ci.org/cdlib/pid)
+[![Dependency Status](https://gemnasium.com/cdlib/pid.png)](https://gemnasium.com/cdlib/pid)
 
 ## Overview
 
-The PURL service is a redesign of OCLC's old PURL service which became the Zephiera PURLZ service which eventually was absorbed into the Callimachus Project.
+The PID service is a redesign of OCLC's old PURL service which became the Zephiera PURLZ service which eventually was absorbed into the Callimachus Project.
 
-A PURL/PID is a Persistent URL that can be used in lieu of URLs that you think may change over time. 
+A PID is a Persistent URL that can be used in lieu of URLs that you think may change over time. 
 
 It provides you with the ability to protect your systems and users from HTTP 404 errors caused by changes to URLs that are managed by organizations outside of your control.
 
-The PURL system consists of two core functional areas:
-- **Link Resolver** - A component that translates calls to a PURL into the URL behind it. For example a user clicks on my.domain.edu/PID/1234 and the system redirects the user to some.site.org/path/to/file.html
+The PID system consists of two core functional areas:
+- **Link Resolver** - A component that translates calls to a PID into the URL behind it. For example a user clicks on my.domain.edu/PID/1234 and the system redirects the user to some.site.org/path/to/file.html
 
-- **Administration Site** - A series of administration pages that allow you to search for PURLs, create/mint PURLs, update the URLs they point to, and manage users who can maintain PURLs.
+- **Administration Site** - A series of administration pages that allow you to search for PIDs, create/mint PIDs, update the URLs they point to, and manage users who can maintain PIDs.
 
-## When and Why would I use a PURL?
+## When and Why would I use a PID?
  
 You have a URL, some.site.org/path/to/file.html, to an article on a third party system and you would like to provide to your users on several different sites.
 
 You are concerned that the third party might move the article at some point in the future. To prevent this situation from causing you heartache, you decide to generate/mint a PURL, my.domain.edu/PID/1234, and associate it with some.site.org/path/to/file.html. You then place the link to the PURL on your sites in all of the places where you would normally have placed the third party URL.
 
-When the third party moves that article to some.site.org/new/path/to/same/file.html, you can simply update the link associated with your PURL rather than having to worry about finding all of the places you placed the link on your sites.
+When the third party moves that article to some.site.org/new/path/to/same/file.html, you can simply update the link associated with your PID rather than having to worry about finding all of the places you placed the link on your sites.
 
 ## Dependencies
 
@@ -38,7 +38,7 @@ When the third party moves that article to some.site.org/new/path/to/same/file.h
 
 - Make sure all of the dependencies are installed
 - Make sure you have a MySQL database ready for this system to use (see below for SQL to create the DB)
-- > git clone https://github.com/cdlib/PURL-Service
+- > git clone https://github.com/cdlib/pid
 - Replace all of the ./config/*.yml.example with *.yml versions. The best way to do this is to create a local folder outside of the project and place your versions of the configuration files there. Then create symbolic links to those files in the ./config directory within this project. This will prevent your files from being changed when updating the project from GitHub.
 - > gem install bundler
 - > gem install extensions
