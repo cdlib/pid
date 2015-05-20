@@ -19,9 +19,9 @@ class PidApp
   $stdout.puts "Starting specific PID update for Redis - #{Time.now}"
  
   begin 
-    APP_CONFIG = YAML.load_file(File.exists?("/apps/purl/webapp/conf/app.yml") ? "/apps/purl/webapp/conf/app.yml" : 'conf/app.yml.example')
-    DATABASE_CONFIG = YAML.load_file(File.exists?("/apps/purl/webapp/conf/db.yml") ? "/apps/purl/webapp/conf/db.yml" : 'conf/db.yml.example')
-    SECURITY_CONFIG = YAML.load_file(File.exists?("/apps/purl/webapp/conf/security.yml") ? "/apps/purl/webapp/conf/security.yml" : 'conf/security.yml.example')
+    APP_CONFIG = YAML.load_file(File.exists?("/apps/pid/webapp/conf/app.yml") ? "/apps/pid/webapp/conf/app.yml" : 'conf/app.yml.example')
+    DATABASE_CONFIG = YAML.load_file(File.exists?("/apps/pid/webapp/conf/db.yml") ? "/apps/pid/webapp/conf/db.yml" : 'conf/db.yml.example')
+    SECURITY_CONFIG = YAML.load_file(File.exists?("/apps/pid/webapp/conf/security.yml") ? "/apps/pid/webapp/conf/security.yml" : 'conf/security.yml.example')
   
     URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
@@ -44,9 +44,9 @@ class PidApp
     DataMapper::Model.raise_on_save_failure = true
     DataMapper.finalize.auto_upgrade!
   
-    $stdout.puts "Opening /apps/purl/webapp/conf/redis_update.csv"
+    $stdout.puts "Opening /apps/pid/webapp/conf/redis_update.csv"
   
-    pids = File.open("/apps/purl/webapp/conf/redis_update.csv")
+    pids = File.open("/apps/pid/webapp/conf/redis_update.csv")
   
     # establish a connection to the REDIS database
     @@shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
