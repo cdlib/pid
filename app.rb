@@ -218,7 +218,7 @@ class PidApp < Sinatra::Application
                             :domain => APP_CONFIG['smtp_domain']}
     end
   
-    Pony.mail args unless TEST_MODE
+    Pony.mail args #unless TEST_MODE
   end
   
 end
