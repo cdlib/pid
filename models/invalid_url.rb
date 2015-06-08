@@ -9,6 +9,7 @@ class InvalidUrlReport
   property :id, Serial, :key => true
   property :http_code, Integer, :required => true
   property :last_checked, Time, :required => false
+  belongs_to :pid, :required => false
   
   def self.flush!
     DataMapper.auto_migrate!(:default)

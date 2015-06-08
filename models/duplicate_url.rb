@@ -9,7 +9,8 @@ class DuplicateUrlReport
   property :id, Serial, :key => true
   property :other_pids, Text, :required => true
   property :last_checked, Time, :required => false
-  
+  belongs_to :pid, :required => false  
+ 
   def self.flush!
     DataMapper.auto_migrate!(:default)
   end
