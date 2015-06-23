@@ -5,6 +5,7 @@ $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/sho
 require 'shortcake'
 require "net/http"
 require 'pony'
+require 'tilt/erb'
 
 class PidApp < Sinatra::Application
   

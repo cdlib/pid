@@ -35,8 +35,8 @@ class Pid
   has n, :interesteds, :required => false     # Groups with an interest in the PID but are not the maintainers
   
   belongs_to :group
-# belongs_to :invalid_url_report, :required => false
-#  belongs_to :duplicate_url_report, :required => false
+  belongs_to :invalid_url_report, :required => false
+  belongs_to :duplicate_url_report, :required => false
   
   property :id, Serial, :key => true
 
