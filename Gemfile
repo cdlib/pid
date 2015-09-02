@@ -10,6 +10,9 @@ gem 'dm-timestamps'
 gem 'redis'
 gem 'thin'
 gem 'pony'
+gem 'activerecord', '~> 4.2.3'
+gem 'activerecord-mysql-adapter', '~> 0.0.1'
+gem 'mysql2'
 
 group :test do
   gem 'rack-test', :require => 'rack/test'
