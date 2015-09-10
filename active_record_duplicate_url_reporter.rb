@@ -6,7 +6,6 @@ require 'bundler/setup'
 require 'yaml'
 require "net/http"
 require 'active_record'
-require 'activerecord-reset-pk-sequence'
 
 $stdout.puts "Starting duplicate URL scan - #{Time.now}"
 
@@ -17,7 +16,7 @@ ENV['APP_ROOT'] ||= File.expand_path(File.dirname(__FILE__))
 # Setup Database
 app_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')))
 db_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example'))) 
-ActiveRecord::Base.establish_connection(db_config["activerecord_development"])
+ActiveRecord::Base.establish_connection(db_config["activerecord_db"])
 
 hostname = "http://#{app_config['host']}:#{app_config['port'].to_s}/"
 DUP_URL_REPORTS_TABLE = 'duplicate_url_reports'
