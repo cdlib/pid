@@ -12,3 +12,4 @@ conf/*.conf
 log/*_log
 log/*.pid
 log/*.out
+log/*.gz
