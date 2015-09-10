@@ -67,5 +67,5 @@ ActiveRecord::Base.connection.execute("ALTER TABLE #{DUP_URL_REPORTS_TABLE} AUTO
 end
 
 
-$stdout.puts "Stoping duplicate URL scan - #{Time.now}"
+$stdout.puts "Finished adding #{DuplicateUrlReport.count} URLs from the duplicate URL scan - #{Time.now}"
 
