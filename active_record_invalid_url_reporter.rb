@@ -48,14 +48,17 @@ InvalidUrlReport.delete_all
 ActiveRecord::Base.connection.execute("ALTER TABLE #{INVALID_URL_REPORTS_TABLE} AUTO_INCREMENT=1")
 
 
+$skipUrls = SkipCheck.all
+
+
 #call verify method
-class UpdateUrl
+#class UpdateUrl
    
 
     def verify_and_update(url, id)
 	skip= false      
        #make sure the domains are not added to one at scan  
-    	SkipCheck.all.each { |s| skip=true if url.downcase.include?(s.domain.downcase) }
+    	$skipUrls.all.each { |s| skip=true if url.downcase.include?(s.domain.downcase) }
 	
 	if !skip
 	begin
@@ -86,15 +89,16 @@ class UpdateUrl
 	  	200
 	  end 
       end	  
-end 
+#end 
 
-u = UpdateUrl.new
+#u = UpdateUrl.new
 
 #get all urls from pids table
 #count = 0
 @pid.all.each do |p|
 #	if (count < 20)
-		u.verify_and_update p.url, p.id
+#	u.verify_and_update p.url, p.id
+	verify_and_update p.url, p.id
 #	else
 #		abort("abort after 20...")
 #		exit 1
