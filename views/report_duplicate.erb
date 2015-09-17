@@ -34,7 +34,9 @@
     <table>
       <tr><th />
         <th for="th_url"><%= HTML_CONFIG['th_url'] %></th>
-        <th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
+        <th><%= HTML_CONFIG['th_duplicate_pids'] %></th>
+        <th><%= HTML_CONFIG['th_last_updated'] %></th>
+	</tr>
     </table>
     
     <input type="hidden" id="data" value='<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>' />
@@ -42,7 +44,10 @@
     
   <% else %>
     <table>
-      <tr><th /><th><%= HTML_CONFIG['th_url'] %></th><th><%= HTML_CONFIG['th_duplicate_pids'] %></th></tr>
+      <tr><th /><th><%= HTML_CONFIG['th_url'] %></th>
+	       <th><%= HTML_CONFIG['th_duplicate_pids'] %></th>
+	       <th><%= HTML_CONFIG['th_last_updated'] %></th>
+     </tr>
       <tr><td colspan="3"><%= HTML_CONFIG['report_no_activity'] %></td></tr>
   <% end %>
   
@@ -65,6 +70,7 @@
                               "<td><a href=\"" + url + "\" target=\"_blank\" class=\"underline\" title=\"" + url + "\">" +
                                             ((url.length > 80) ? url.substring(0, 79) + " ..." : url) + "</td>" +
                               "<td>" + pids.replace(/%27/g, '') + "</td>" +
+                              "<td>" + '<%= @last_updated %>' + "</td>" +
                              "</tr>");
     i++;
    });

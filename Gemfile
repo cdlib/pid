@@ -13,6 +13,7 @@ gem 'pony'
 gem 'activerecord', '~> 4.2.3'
 gem 'activerecord-mysql-adapter', '~> 0.0.1'
 gem 'mysql2', '0.3.20'
+gem 'public_suffix'
 
 group :test do
   gem 'rack-test', :require => 'rack/test'

@@ -112,7 +112,10 @@ class PidApp < Sinatra::Application
     
     @groups = Group.all
     @skips = SkipCheck.all()
-    
+	   
+    @last_edit_invalid = InvalidUrlReport.first(:last_checked.not => nil)	   
+    @last_updated_invalid =@last_edit_invalid.last_checked.to_s.gsub(/\s.+/, '') 
+ 
     erb :report_invalid
   end
   
@@ -152,7 +155,8 @@ class PidApp < Sinatra::Application
     
     @json = dups.to_json
     @groups = Group.all
-    
+    @last_edit = DuplicateUrlReport.first(:last_checked.not => nil)	   
+    @last_updated =@last_edit.last_checked.to_s.gsub(/\s.+/, '') 
     erb :report_duplicate
   end
   

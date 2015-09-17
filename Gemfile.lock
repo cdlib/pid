@@ -94,7 +94,7 @@ GEM
     json_pure (1.8.2)
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
-    mime-types (2.6.1)
+    mime-types (2.6.2)
     mini_portile (0.6.2)
     minitest (5.8.0)
     multi_json (1.11.2)
@@ -109,6 +109,7 @@ GEM
       websocket-driver (>= 0.2.0)
     pony (1.11)
       mail (>= 2.0)
+    public_suffix (1.5.1)
     rack (1.6.4)
     rack-protection (1.5.3)
       rack
@@ -153,6 +154,7 @@ DEPENDENCIES
   mysql2 (= 0.3.20)
   poltergeist
   pony
+  public_suffix
   rack
   rack-test
   rake

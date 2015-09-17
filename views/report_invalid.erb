@@ -1,7 +1,7 @@
 <section id="invalid_report">
   <h3><%= HTML_CONFIG['header_report_invalid'] %></h3>
 
-  <div class="form_informational">This report is processed every Saturday night and scans only active PIDs.</div>
+<div class="form_informational">This report is processed every Saturday night and scans only active PIDs. <font size="2" color="red">Last updated on - <%=@last_updated_invalid%></font> </div>
   
   <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
 
