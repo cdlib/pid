@@ -1,7 +1,7 @@
 <section id="duplicate_report">
   <h3><%= HTML_CONFIG['header_report_duplicate'] %></h3>
 
-  <div class="form_informational">This report is processed every Saturday night and scans all active PIDs.<br />Your manager can designate domains that should not be scanned due to contractual agreements made with the University (e.g. do not scan URLs starting with 'http://www.google.com').<br />PIDs that are modified or minted during the week will also appear on this report.</div>
+  <div class="form_informational">This report is processed every Saturday night and scans all active PIDs. <font size="2" color="red">Last updated on - <%=@last_updated%></font> <br />Your manager can designate domains that should not be scanned due to contractual agreements made with the University (e.g. do not scan URLs starting with 'http://www.google.com').<br />PIDs that are modified or minted during the week will also appear on this report.</div>
   
   <a href="/report" class="letterpress right"><%= HTML_CONFIG['link_to_reports'] %></a>
 
@@ -35,7 +35,6 @@
       <tr><th />
         <th for="th_url"><%= HTML_CONFIG['th_url'] %></th>
         <th><%= HTML_CONFIG['th_duplicate_pids'] %></th>
-        <th><%= HTML_CONFIG['th_last_updated'] %></th>
 	</tr>
     </table>
     
@@ -46,7 +45,6 @@
     <table>
       <tr><th /><th><%= HTML_CONFIG['th_url'] %></th>
 	       <th><%= HTML_CONFIG['th_duplicate_pids'] %></th>
-	       <th><%= HTML_CONFIG['th_last_updated'] %></th>
      </tr>
       <tr><td colspan="3"><%= HTML_CONFIG['report_no_activity'] %></td></tr>
   <% end %>
@@ -70,7 +68,7 @@
                               "<td><a href=\"" + url + "\" target=\"_blank\" class=\"underline\" title=\"" + url + "\">" +
                                             ((url.length > 80) ? url.substring(0, 79) + " ..." : url) + "</td>" +
                               "<td>" + pids.replace(/%27/g, '') + "</td>" +
-                              "<td>" + '<%= @last_updated %>' + "</td>" +
+                             // "<td>" + '<%= @last_updated %>' + "</td>" +
                              "</tr>");
     i++;
    });
