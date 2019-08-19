@@ -13,3 +13,4 @@ log/*_log
 log/*.pid
 log/*.out
 log/*.gz
+scripts/.ipynb_checkpoints/*
