@@ -2,7 +2,7 @@
 # coding: utf-8
 
 # # PID SCP Stats Report
-# 
+#
 # This script runs stat totals for SCP and UCSD up to a specific date. This is requested yearly by the UCSD SCP Group.
 
 # ### Create export from database
@@ -43,7 +43,7 @@ if os.path.exists("../conf/db.yml"):
     db = yaml.safe_load(open("../conf/db.yml", "r"))
     host = db["db_host"]
     user = db["db_username"]
-    password = db["db_password"]s
+    password = db["db_password"]
 else:
     print("Could not find db conf, asking user for credentials")
     host = input("Host: ")
@@ -63,7 +63,7 @@ conn = pymysql.connect(
     db="pid")
 
 
-# #### Running Querying 
+# #### Running Querying
 # This is going to take awhile.
 
 # In[ ]:
@@ -104,7 +104,3 @@ print("Shared Active: {}".format(shared_de))
 
 
 # In[ ]:
-
-
-
-
