@@ -111,7 +111,7 @@ GEM
       mail (>= 2.0)
     public_suffix (1.5.1)
     rack (1.6.4)
-    rack-protection (1.5.3)
+    rack-protection (1.5.5)
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
