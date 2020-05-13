@@ -86,13 +86,16 @@
                 '<%= HTML_CONFIG['th_active'].gsub(':', '') %>\r\n';
     
     $.each($.parseJSON($("#data").val()), function(idx, rec) {
-      lines += '' + rec.id + ',' + rec.modified_on + ',"' + rec.username + '", "' + rec.types.replace(/<br[\s]?\/>/g, ' and ') + '", "' +
-                     rec.current_url + '", "' + rec.prior_url + '", "' + rec.active + '"\r\n';
+      lines += rec.id + ', ' + rec.modified_on + ', ' + rec.username + ', ' + rec.types.replace(/<br[\s]?\/>/g, ' and ') + ', ' +
+               rec.current_url + ', ' + rec.prior_url + ', ' + rec.active + '\r\n';
     });
     
     $("#spinner").hide();
     
-    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+    var link = document.createElement("a");
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+    link.download = "modification.csv";
+    link.click();
   });
   
   $("#submit").click( function(){ $("#spinner").show(); });

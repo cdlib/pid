@@ -153,11 +153,14 @@
                 '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>\r\n';
     
     $.each($.parseJSON($("#" + this.id + "_json").val()), function(idx, pid) {
-      lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
-                  pid.change_category + '", "' + pid.notes + '"\r\n';
+      lines += pid.id + ', ' + pid.url + ', ' + pid.username + ', ' + pid.modified_at  
+               + ', ' + pid.change_category + ', ' + pid.notes.replace(/,/g, ';') + '\r\n';
     });
     
-    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+    var link = document.createElement("a");
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+    link.download = "invalid_url_"+this.id+".csv";
+    link.click();
   });
 
 </script>

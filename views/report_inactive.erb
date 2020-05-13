@@ -111,7 +111,7 @@
                 '<%= HTML_CONFIG['th_change_category'].gsub(':', '') %>,' +
                 '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>\r\n';
     
-alert(lines);
+//alert(lines);
 
     $.each($.parseJSON($("#data").val()), function(idx, pid) {
       lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
@@ -119,8 +119,11 @@ alert(lines);
     });
     
     $("#spinner").hide();
-    
-    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+
+    var link = document.createElement("a");
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+    link.download = "inactive_url.csv";
+    link.click();
   });
   
   // Required by the pagination controls since rebuilding the nav tr would lose the above th.pagination click event

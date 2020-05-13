@@ -68,10 +68,13 @@
                 '<%= HTML_CONFIG['th_number_deactivated'].gsub(':', '') %>\r\n';
     
     $.each($.parseJSON($("#data").val()), function(idx, rec) {
-      lines += '"' + rec.group + '",' + rec.created + ',' + rec.modified + ', ' + rec.deactivated + '\r\n';
+      lines += rec.group + ', ' + rec.created + ', ' + rec.modified + ', ' + rec.deactivated + '\r\n';
     });
     
-    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+    var link = document.createElement("a");
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+    link.download = "statistics.csv";
+    link.click();
   });
   
   $("#submit").click( function(){ $("#spinner").show(); });
