@@ -57,6 +57,10 @@
   
   $("#submit").click( function(e){ $("#spinner").show(); });
   
+  // Get the group id for download
+  var group = document.forms[0].elements["groupid"];
+  var groupid = group.options[group.selectedIndex].value;
+  
   var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
   
   // Add a line to the table for each item in the JSON
@@ -113,7 +117,7 @@
 
     var link = document.createElement("a");
     link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(hdrs + lines)
-    link.download = "duplicate_url.csv";
+    link.download = groupid + "_duplicate_url.csv";
     link.click();
   });
 

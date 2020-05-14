@@ -53,6 +53,10 @@
 <script type="text/javascript">
   $("#spinner").hide();
   
+  // Get the group id for download
+  var group = document.forms[0].elements["groupid"];
+  var groupid = group.options[group.selectedIndex].value;
+  
   // Parse the json
   var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
   $("#data").val('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
@@ -73,7 +77,7 @@
     
     var link = document.createElement("a");
     link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
-    link.download = "statistics.csv";
+    link.download = groupid + "_statistics.csv";
     link.click();
   });
   

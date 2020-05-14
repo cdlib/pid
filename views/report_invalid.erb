@@ -97,6 +97,10 @@
   
   $("#submit").click( function(e){ $("#spinner").show(); });
   
+  // Get the group id for download
+  var group = document.forms[0].elements["groupid"];
+  var groupid = group.options[group.selectedIndex].value;
+  
   processJSON('error', '<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>');
   processJSON('not_found', '<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>');
   processJSON('moved', '<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>');
@@ -154,12 +158,12 @@
     
     $.each($.parseJSON($("#" + this.id + "_json").val()), function(idx, pid) {
       lines += pid.id + ', ' + pid.url + ', ' + pid.username + ', ' + pid.modified_at  
-               + ', ' + pid.change_category + ', ' + pid.notes.replace(/,/g, ';') + '\r\n';
+               + ', ' + pid.change_category + ', ' + pid.notes + '\r\n';
     });
     
     var link = document.createElement("a");
     link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
-    link.download = "invalid_url_"+this.id+".csv";
+    link.download = groupid + "_invalid_url_" + this.id + ".csv";
     link.click();
   });
 
