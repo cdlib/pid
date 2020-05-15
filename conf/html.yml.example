@@ -107,7 +107,7 @@ form_notes: 'Notes:'
 form_readonly: 'Read Only Account?'
 
 # Hints that appear next to the criteria on the search and stats report pages
-form_date_format: '(use the mm/dd/yyyy format - e.g. 01/15/2013)'
+form_date_format: '(Please follow the hint for date format)'
 form_search_and: 'and'
 form_search_between: 'between'
 form_search_url_instruction: 'You may enter partial urls (e.g. google.com/)'

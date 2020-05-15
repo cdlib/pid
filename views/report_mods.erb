@@ -13,9 +13,9 @@
     </select>
     
     <label><%= HTML_CONFIG['form_date_range'] %></label>
-    <input type="date" id="start_date" name="start_date" value="<%= params[:start_date] %>" style="width: 150px;" />
+    <input type="date" id="start_date" name="start_date" value="<%= params[:start_date] %>" style="width: 150px;" placeholder="yyyy-mm-dd" />
     <div> - </div> 
-    <input type="date" id="end_date" name="end_date" value="<%= params[:end_date] %>" style="width: 150px;" />
+    <input type="date" id="end_date" name="end_date" value="<%= params[:end_date] %>" style="width: 150px;" placeholder="yyyy-mm-dd" />
     <div>(<%= HTML_CONFIG['form_date_format'] %></div>
     
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
