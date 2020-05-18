@@ -96,10 +96,18 @@
     
     $("#spinner").hide();
     
-    var link = document.createElement("a");
-    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
-    link.download = groupid + "_modification.csv";
-    link.click();
+    var fileName = groupid + "_modification.csv";
+    if (window.navigator.msSaveBlob) { 
+      // IE 10+ or Edge browsers
+      var csvData = new Blob([lines], {type: 'text/csv;charset=utf-8;'});
+      window.navigator.msSaveOrOpenBlob(csvData, fileName)
+    } else {
+      // Other browsers Chrome, Safari, Firefox
+      var link = document.createElement("a");
+      link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+      link.download = fileName;
+      link.click();
+    }
   });
   
   $("#submit").click( function(){ $("#spinner").show(); });

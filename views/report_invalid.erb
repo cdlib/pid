@@ -160,11 +160,19 @@
       lines += pid.id + ', ' + pid.url + ', ' + pid.username + ', ' + pid.modified_at  
                + ', ' + pid.change_category + ', ' + pid.notes + '\r\n';
     });
-    
-    var link = document.createElement("a");
-    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
-    link.download = groupid + "_invalid_url_" + this.id + ".csv";
-    link.click();
+
+    var fileName = groupid + "_invalid_url_" + this.id + ".csv";
+    if (window.navigator.msSaveBlob) { 
+      // IE or Edge browsers
+      var csvData = new Blob([lines], {type: 'text/csv;charset=utf-8;'});
+      window.navigator.msSaveOrOpenBlob(csvData, fileName)
+    } else {
+      // Other browsers Chrome, Safari, Firefox
+      var link = document.createElement("a");
+      link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+      link.download = fileName;
+      link.click();
+    }
   });
 
 </script>
