@@ -13,10 +13,10 @@
     </select>
     
     <label><%= HTML_CONFIG['form_date_range'] %></label>
-    <input type="date" id="start_date" name="start_date" value="<%= params[:start_date] %>" style="width: 150px;" />
+    <input type="date" id="start_date" name="start_date" value="<%= params[:start_date] %>" style="width: 150px;" placeholder="yyyy-mm-dd" />
     <div> - </div> 
-    <input type="date" id="end_date" name="end_date" value="<%= params[:end_date] %>" style="width: 150px;" />
-    <div>(<%= HTML_CONFIG['form_date_format'] %></div>
+    <input type="date" id="end_date" name="end_date" value="<%= params[:end_date] %>" style="width: 150px;" placeholder="yyyy-mm-dd" />
+    <div><%= HTML_CONFIG['form_date_format'] %></div>
     
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_search'] %>" />
     <input type="submit" id="reset" name="reset" value="<%= HTML_CONFIG['button_reset'] %>" />
@@ -64,6 +64,10 @@
 <script type="text/javascript">
   $("#spinner").hide();
   
+  // Get the group id for download
+  var group = document.forms[0].elements["groupid"];
+  var groupid = group.options[group.selectedIndex].value;
+  
   // Parse the json
   var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
   $("#data").val('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
@@ -86,13 +90,24 @@
                 '<%= HTML_CONFIG['th_active'].gsub(':', '') %>\r\n';
     
     $.each($.parseJSON($("#data").val()), function(idx, rec) {
-      lines += '' + rec.id + ',' + rec.modified_on + ',"' + rec.username + '", "' + rec.types.replace(/<br[\s]?\/>/g, ' and ') + '", "' +
-                     rec.current_url + '", "' + rec.prior_url + '", "' + rec.active + '"\r\n';
+      lines += rec.id + ', ' + rec.modified_on + ', ' + rec.username + ', ' + rec.types.replace(/<br[\s]?\/>/g, ' and ') + ', ' +
+               rec.current_url + ', ' + rec.prior_url + ', ' + rec.active + '\r\n';
     });
     
     $("#spinner").hide();
     
-    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+    var fileName = groupid + "_modification.csv";
+    if (window.navigator.msSaveBlob) { 
+      // IE 10+ or Edge browsers
+      var csvData = new Blob([lines], {type: 'text/csv;charset=utf-8;'});
+      window.navigator.msSaveOrOpenBlob(csvData, fileName)
+    } else {
+      // Other browsers Chrome, Safari, Firefox
+      var link = document.createElement("a");
+      link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+      link.download = fileName;
+      link.click();
+    }
   });
   
   $("#submit").click( function(){ $("#spinner").show(); });

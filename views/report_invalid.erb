@@ -97,6 +97,10 @@
   
   $("#submit").click( function(e){ $("#spinner").show(); });
   
+  // Get the group id for download
+  var group = document.forms[0].elements["groupid"];
+  var groupid = group.options[group.selectedIndex].value;
+  
   processJSON('error', '<%= @error.gsub("'", '%27').gsub("\\", '%5C') %>');
   processJSON('not_found', '<%= @not_found.gsub("'", '%27').gsub("\\", '%5C') %>');
   processJSON('moved', '<%= @moved.gsub("'", '%27').gsub("\\", '%5C') %>');
@@ -153,11 +157,22 @@
                 '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>\r\n';
     
     $.each($.parseJSON($("#" + this.id + "_json").val()), function(idx, pid) {
-      lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
-                  pid.change_category + '", "' + pid.notes + '"\r\n';
+      lines += pid.id + ', ' + pid.url + ', ' + pid.username + ', ' + pid.modified_at  
+               + ', ' + pid.change_category + ', ' + pid.notes.replace(/,/g, ";") + '\r\n';
     });
-    
-    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+
+    var fileName = groupid + "_invalid_url_" + this.id + ".csv";
+    if (window.navigator.msSaveBlob) { 
+      // IE or Edge browsers
+      var csvData = new Blob([lines], {type: 'text/csv;charset=utf-8;'});
+      window.navigator.msSaveOrOpenBlob(csvData, fileName)
+    } else {
+      // Other browsers Chrome, Safari, Firefox
+      var link = document.createElement("a");
+      link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+      link.download = fileName;
+      link.click();
+    }
   });
 
 </script>

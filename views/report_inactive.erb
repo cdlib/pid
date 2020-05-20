@@ -56,6 +56,10 @@
 <script type="text/javascript">
   $("#spinner").hide();
   
+  // Get the group id for download
+  var group = document.forms[0].elements["groupid"];
+  var groupid = group.options[group.selectedIndex].value;
+  
   // Parse the json
    var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
 
@@ -111,7 +115,7 @@
                 '<%= HTML_CONFIG['th_change_category'].gsub(':', '') %>,' +
                 '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>\r\n';
     
-alert(lines);
+//alert(lines);
 
     $.each($.parseJSON($("#data").val()), function(idx, pid) {
       lines += '' + pid.id + ',"' + pid.url + '","' + pid.username + '", "' + pid.modified_at + '", "' + 
@@ -119,8 +123,19 @@ alert(lines);
     });
     
     $("#spinner").hide();
-    
-    window.open("data: text/csv;charset=utf-8," + encodeURIComponent(lines));
+
+    var fileName = groupid + "_inactive_url.csv";
+    if (window.navigator.msSaveBlob) { 
+      // IE 10+ or Edge browsers
+      var csvData = new Blob([lines], {type: 'text/csv;charset=utf-8;'});
+      window.navigator.msSaveOrOpenBlob(csvData, fileName)
+    } else {
+      // Other browsers Chrome, Safari, Firefox
+      var link = document.createElement("a");
+      link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(lines)
+      link.download = fileName;
+      link.click();
+    }
   });
   
   // Required by the pagination controls since rebuilding the nav tr would lose the above th.pagination click event
