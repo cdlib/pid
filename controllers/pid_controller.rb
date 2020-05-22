@@ -521,6 +521,12 @@ private
   def revise_pid(pid, url, change_category, notes, group, active)
     saved = false
     
+    # Replace comma with semicolon in notes, 
+    # comma causes notes to split into extra columns when downloading
+    if !notes.nil?
+      notes = notes.gsub(',', ';')
+    end
+    
     # If the pid belongs to the current user's group or the current user is a Maintainer of the Pid's group or the current user is a super admin
     if pid.group == current_user.group || !Maintainer.first(:group => pid.group, :user => current_user).nil? || current_user.super
       
@@ -582,6 +588,12 @@ private
 # --------------------------------------------------------------------------------------------------------------
   def mint_pid(url, change_category, notes, host)
     saved = false
+    
+    # Replace comma with semicolon in notes, 
+    # comma causes notes to split into extra columns when downloading
+    if !notes.nil?
+      notes = notes.gsub(',', ';')
+    end
     
     # If the URL is even valid
     if url =~ URI_REGEX
