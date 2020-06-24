@@ -157,8 +157,8 @@
                 '<%= HTML_CONFIG['th_notes'].gsub(':', '') %>\r\n';
     
     $.each($.parseJSON($("#" + this.id + "_json").val()), function(idx, pid) {
-      lines += pid.id + ', ' + pid.url + ', ' + pid.username + ', ' + pid.modified_at  
-               + ', ' + pid.change_category + ', ' + pid.notes + '\r\n';
+      lines += pid.id + ', "' + pid.url + '", ' + pid.username + ', ' + pid.modified_at + ', '  
+               + pid.change_category + ', "' + pid.notes + '"\r\n';
     });
 
     var fileName = groupid + "_invalid_url_" + this.id + ".csv";
