@@ -322,6 +322,7 @@ class TestPidController < Minitest::Test
     # Combination of good PIDs, bad URLs, and duplicates
     post '/link', {:new_urls => "http://www.blahblah.com\nwww.yahoo.com\nhttp://www.yahoo.com\nhttp://www.newone.org"}
     assert_equal 206, last_response.status, "User did not receive a 206 status code, got a #{last_response.status}"
+    puts last_response.body
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_pid_register_success']), "User did not get a positive result!"
     assert last_response.body.include?(PidApp::HTML_CONFIG['create_pids_some_errors']), "User did not get a failed result!"
     assert last_response.body.include?(PidApp::HTML_CONFIG['create_pids_some_errors']), "User did not get a failed result!"
