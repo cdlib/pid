@@ -54,22 +54,22 @@ class PidClientTestApp < Minitest::Test
     
     visit '/link/search'
     
-  # wilcard match 1 urls
+    # wilcard match 1 urls
     fill_in 'url', with: 'test.cdlib.abc'
-#    select @mgr.id, from: 'userid' 
+    # select @mgr.id, from: 'userid' 
     click_button 'submit'
     
     trs = page.all("tr")
     assert_equal 2, trs.size, "Expected 1 result but found #{trs.size - 1} on URL search for test.cdlib.abc"
     
-  # wilcard match 2 urls
+    # wilcard match 2 urls
     fill_in 'url', with: 'testme.abc'
     click_button 'submit'
     
     trs = page.all("tr")
     assert_equal 3, trs.size, "Expected 2 results but found #{trs.size - 1} on URL search for testme.abc"
 
-  # wilcard match ALL url should fail becuase not enough criteria
+    # wilcard match ALL url should fail becuase not enough criteria
     fill_in 'url', with: '.abc'
     click_button 'submit'
     

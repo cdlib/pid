@@ -6,6 +6,7 @@ require 'shortcake'
 require "net/http"
 require 'pony'
 require 'tilt/erb'
+require 'erb'
 
 class PidApp < Sinatra::Application
   
@@ -27,6 +28,8 @@ class PidApp < Sinatra::Application
           :password => DATABASE_CONFIG['db_password']}
   
   set :session_secret, SECURITY_CONFIG['session_secret']
+
+  TEST_MODE = false
 
   # If we're in test mode switch to SQLite and a temp Redis secret
   configure :test do
@@ -86,7 +89,7 @@ class PidApp < Sinatra::Application
   end
   
   # OPTIMIZE - Should this go here?
-  #reload the Redis database from the data stored in the DB
+  # reload the Redis database from the data stored in the DB
   if DATABASE_CONFIG['rebuild_redis_on_startup']
     $stdout.puts "Rebuilding the Redis database for pid resolution"
     shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
@@ -218,8 +221,14 @@ class PidApp < Sinatra::Application
                             :authentication => :plain,
                             :domain => APP_CONFIG['smtp_domain']}
     end
-  
-    Pony.mail args #unless TEST_MODE
+    
+    args[:via] = :sendmail
+    args[:via_options] = {
+      :address => 'sendmail',
+      :port => '25'
+    }
+
+    Pony.mail args unless TEST_MODE
   end
   
 end

@@ -1,0 +1,15 @@
+version: '3'
+services:
+  app:
+    build:
+      context: ./app  # Build context is the app directory
+    ports:
+      - "3000:3000"  # Map host port to container port
+    depends_on:
+      - redis  # Ensure the Redis container is started first
+
+  redis:
+    build:
+      context: ./redis  # Build context is the redis directory
+    ports:
+      - "6379:6379"  # Map host port to container port
