@@ -1,7 +1,5 @@
 require_relative '../test_helper'
-require 'open-uri'
-require 'nokogiri'
-require 'json'
+# require 'json'
 
 class TestReportController < Minitest::Test
   include Rack::Test::Methods
@@ -20,32 +18,33 @@ class TestReportController < Minitest::Test
     
     @pwd = 'secret'
     
-    @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd, :email => 'test@example.org')
+    @group = Group.new(id: 'UCLA', name: 'test_group')
+    @user = User.new(login: 'testuser', name: 'Test User', password: @pwd, email: 'test@example.org')
+
     
     @group.users << @user
     @group.save
     
-    SkipCheck.new(:domain => 'yahoo.com', :created_at => Time.now, :group => @group)
+    SkipCheck.new(domain: 'yahoo.com', created_at: Time.now, group: @group)
     
-    Pid.mint(:url => 'http://cdlib.org', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.google.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.yahoo.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://news.yahoo.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://sports.yahoo.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.huffingtonpost.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.dailybeast.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.gizmodo.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.wikipedia.org', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.apple.com', :username => @user.login, :change_category => 'Test', :group => @group)
-    Pid.mint(:url => 'http://www.samsung.com', :username => @user.login, :change_category => 'Test', :group => @group)
+    Pid.mint(url: 'http://cdlib.org', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.google.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.yahoo.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://news.yahoo.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://sports.yahoo.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.huffingtonpost.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.dailybeast.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.gizmodo.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.wikipedia.org', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.apple.com', username: @user.login, change_category: 'Test', group: @group)
+    Pid.mint(url: 'http://www.samsung.com', username: @user.login, change_category: 'Test', group: @group)
   end
 
 # -----------------------------------------------------------------------------------------------
   def test_get_main_menu
-    security_check_basic("/report", "get", nil)
+    security_check_basic('/report', 'get', nil)
 
-    post '/user/login', {:login => @user.login, :password => @pwd}
+    post '/user/login', { login: @user.login, password: @pwd }
     get '/report'
     assert last_response.ok?, "Expected a 200 but got a #{last_response.status}!"
     assert last_response.body.include?(PidApp::HTML_CONFIG['header_reports']), 'Did not get the main report menu!'
@@ -53,9 +52,9 @@ class TestReportController < Minitest::Test
   end
 
 # -----------------------------------------------------------------------------------------------  
-  def test_get_inactive_pids_report
+  # def test_get_inactive_pids_report
 
-  end
+  # end
   
 # -----------------------------------------------------------------------------------------------
 =begin
@@ -77,13 +76,13 @@ class TestReportController < Minitest::Test
 =end
   
 # -----------------------------------------------------------------------------------------------
-  def test_get_duplicate_urls_report
+  # def test_get_duplicate_urls_report
 
-  end
+  # end
   
 # -----------------------------------------------------------------------------------------------
-  def test_get_maintenance_stats_report
+  # def test_get_maintenance_stats_report
     
-  end
+  # end
   
 end

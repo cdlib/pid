@@ -1,27 +1,17 @@
 # -----------------------------------------------------------------------------------------------   
 # Represents a Collection of Users
 # -----------------------------------------------------------------------------------------------   
-class Group
-  include DataMapper::Resource
-  has n, :users
-  has n, :maintainers
-  has n, :pids
-  
-  property :id, String, :length => 10, :format => /[A-Z]+/, :unique => true, :key => true,
-    :messages => {
-      :presence  => 'A group ID is required.',
-      :is_unique => 'We already have that group ID.',
-      :format    => 'Group ID must be a combination of 1-10 uppercase letters.'
-    }
-  property :name, String, :length => 200, :format => /\w+/, :required => true,
-    :messages => {
-      :presence  => 'A group name is required.',
-      :format    => 'Group names must be 200 no more than characters without symbols.'
-    }
-  property :description, String, :length => 250
-  property :host, String, :length => 30
-  
+class Group < ActiveRecord::Base
+  has_many :users, dependent: :restrict_with_exception
+  has_many :maintainers, dependent: :restrict_with_exception
+  has_many :pids, dependent: :restrict_with_exception
+
+  validates :id, length: { maximum: 10 }, uniqueness: true, format: { with: /[A-Z]+/ }
+  validates :name, presence: true, length: { maximum: 200 }, format: { with: /\w+/ }
+  validates :description, length: { maximum: 250 }
+  validates :host, length: { maximum: 30 }
+
   def self.flush!
-    DataMapper.auto_migrate!(:default)
+    connection.execute('DELETE FROM groups')
   end
 end

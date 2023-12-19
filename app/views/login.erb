@@ -1,11 +1,11 @@
 <section id="user_login">
   <h3><%= HTML_CONFIG['header_login'] %></h3>
   
-  <form action="/user/login" method="post">
+  <form action="/user/login" method="post" onsubmit="return disableSubmitButton()">
     <label class="clearfix"><%= HTML_CONFIG['form_userid'] %></label><input type="text" name="login" id="login" value="<%= @userid %>" />
     <label class="clearfix"><%= HTML_CONFIG['form_password'] %></label><input type="password" name="password" id="password" />
     <label class="clearfix">&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_login'] %>" />
-    <label class="clearfix">&nbsp;</label><a class="letterpress" href="/user/forgot"><%= HTML_CONFIG['link_to_forgotten_password'] %></a>
+    <label class="clearfix">&nbsp;</label><a class="letterpress" href="/user/forgot"><%= HTML_CONFIG['link_to_recovery'] %></a>
   </form>
   
 </section>
@@ -13,3 +13,10 @@
 <section class="errors">
   <%= @msg %>
 </section>
+
+<script>
+  function disableSubmitButton() {
+    document.getElementById('submit').disabled = true;
+    return true;
+  }
+</script>

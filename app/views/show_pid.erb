@@ -15,7 +15,7 @@
       <label for="group"><%= HTML_CONFIG['form_group'] %></label>
       <select name="group" id="group">
         <% @groups.each do |group| %>
-          <option value="<%= group.id %>" <% if @pid.group == group %>selected="selected"<% end %>><%= group.name %></option>
+          <option value="<%= group.id %>" <% if @pid.group_id == group.id %>selected="selected"<% end %>><%= group.name %></option>
         <% end %>
       </select>
     <% else %>

@@ -3,40 +3,57 @@
 # load shortcake (redis/url redirect wrapper)
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
 require 'shortcake'
-require "net/http"
-require 'pony'
-require 'tilt/erb'
+require 'net/http'
+require 'mail'
 require 'erb'
+require 'yaml'
+require 'active_record'
+require 'sinatra/base'
 
-class PidApp < Sinatra::Application
+class PidApp < Sinatra::Base
   
-  $stdout.puts "loading configuration files"
+  $stdout.puts "Loading configuration files"
   
-  APP_CONFIG = YAML.load_file(File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
-  DATABASE_CONFIG = YAML.load_file(File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
-  SECURITY_CONFIG = YAML.load_file(File.exists?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
-  MESSAGE_CONFIG = YAML.load_file(File.exists?("conf/message.yml") ? "conf/message.yml" : 'conf/message.yml.example')
-  HTML_CONFIG = YAML.load_file(File.exists?("conf/html.yml") ? "conf/html.yml" : 'conf/html.yml.example')
+  app_config_file = File.exist?("config/app.yml") ? "config/app.yml" : 'config/app.yml.example'
+  db_config_file = File.exist?("config/db.yml") ? "config/db.yml" : 'config/db.yml.example'
+  security_config_file = File.exist?("config/security.yml") ? "config/security.yml" : 'config/security.yml.example'
+  message_config_file = File.exist?("config/message.yml") ? "config/message.yml" : 'config/message.yml.example'
+  html_config_file = File.exist?("config/html.yml") ? "config/html.yml" : 'config/html.yml.example'
+
+  APP_CONFIG = YAML.safe_load(ERB.new(File.read(app_config_file)).result)
+  DATABASE_CONFIG = YAML.safe_load(ERB.new(File.read(db_config_file)).result)
+  SECURITY_CONFIG = YAML.safe_load(ERB.new(File.read(security_config_file)).result)
+  MESSAGE_CONFIG = YAML.safe_load(ERB.new(File.read(message_config_file)).result)
+  HTML_CONFIG = YAML.safe_load(ERB.new(File.read(html_config_file)).result)
 
   URI_REGEX = /[fh]t{1,2}ps?:\/\/[0-9\p{L}\-_\.]+(:[0-9]+)?(\/[\p{L}\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
-  args = {:adapter => DATABASE_CONFIG['db_adapter'],
-          :host => DATABASE_CONFIG['db_host'],
-          :port => DATABASE_CONFIG['db_port'].to_i,
-          :database => DATABASE_CONFIG['db_name'],
-          :username => DATABASE_CONFIG['db_username'],
-          :password => DATABASE_CONFIG['db_password']}
+  args = {
+    adapter: DATABASE_CONFIG['db_adapter'],
+    encoding: DATABASE_CONFIG['db_encoding'],
+    host: DATABASE_CONFIG['db_host'],
+    port: DATABASE_CONFIG['db_port'].to_i,
+    database: DATABASE_CONFIG['db_name'],
+    username: DATABASE_CONFIG['db_username'],
+    password: DATABASE_CONFIG['db_password']
+  }
   
-  set :session_secret, SECURITY_CONFIG['session_secret']
-
   TEST_MODE = false
 
   # If we're in test mode switch to SQLite and a temp Redis secret
   configure :test do
-    args = "sqlite::memory:"
-    set :session_secret, 'test_redis_secret'
+    args = {
+      adapter: 'sqlite3',
+      database: 'db/test.sqlite3'
+    }
+
+    APP_CONFIG['redis_host'] = 'localhost'
+    APP_CONFIG['redis_port'] = 1000
+
     TEST_MODE = true
   end    
+
+  set :session_secret, SECURITY_CONFIG['session_secret']
 
   DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/inactive" : APP_CONFIG['dead_pid_url']
 
@@ -46,25 +63,36 @@ class PidApp < Sinatra::Application
   
   set :root, File.dirname(__FILE__)
   
-  configure :production, :stage do
+  configure :development, :production, :stage do
     enable :logging
   end
   
-  
-  # set database
-  $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
+  ses_smtp_host = APP_CONFIG['smtp_host']
+  ses_smtp_port = APP_CONFIG['smtp_port']
+  ses_smtp_username = APP_CONFIG['smtp_username']
+  ses_smtp_password = APP_CONFIG['smtp_password']
 
-  DataMapper.setup(:default, args)
+  Mail.defaults do
+    delivery_method :smtp, {
+      address: ses_smtp_host,
+      port: ses_smtp_port,
+      user_name: ses_smtp_username,
+      password: ses_smtp_password,
+      authentication: :login
+    }
+  end
+
+  # set database
+  unless TEST_MODE
+    $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
+  end
+
+  ActiveRecord::Base.establish_connection(args)
 
   # load controllers and models
   $stdout.puts "Building controllers and models" 
   Dir.glob("controllers/*.rb").each { |r| require_relative r }
   Dir.glob("models/*.rb").each { |r| require_relative r }
-
-  # finalize database models
-  #DataMapper::Logger.new(STDOUT, :debug)
-  DataMapper::Model.raise_on_save_failure = true
-  DataMapper.finalize.auto_upgrade!
 
   # Create Seed Data if we're in dev or test
   if ENV['RACK_ENV'].to_sym == :seeded 
@@ -113,123 +141,100 @@ class PidApp < Sinatra::Application
     end
     
     def hostname()
-      "#{request.scheme.to_s}://#{APP_CONFIG['host']}#{':' + APP_CONFIG['port'].to_s unless APP_CONFIG['port'].nil? }/"
+      "#{request.scheme.to_s}://#{APP_CONFIG['app_host']}#{':' + APP_CONFIG['app_port'].to_s unless APP_CONFIG['app_port'].nil? }/"
     end
+  
 
 # ---------------------------------------------------------------------------------------------------
 # Wrappers for accessing the security framework
 # ---------------------------------------------------------------------------------------------------
     def logged_in?
-      return true if session[:user]
-      session[:msg] = MESSAGE_CONFIG['session_expired']
-      nil
+      if session[:user] 
+        true
+      else
+        session[:msg] = MESSAGE_CONFIG['session_expired']
+        false
+      end
     end
 
     def current_user
-      return User.get(session[:user])
+      User.find_by(id: session[:user])
     end
-    
+
     def is_group_maintainer?
-      return !Maintainer.first(:user => current_user).nil?
+      !Maintainer.find_by(user: current_user).nil?
     end
-    
+
 # ---------------------------------------------------------------------------------------------------
 # Check Redis to see if the specified PID has the same URL as another PID
 # ---------------------------------------------------------------------------------------------------        
     def hasDuplicate(url, pid)
-      ret = []
-      
-      Pid.all(:url => url).each{ |pid| ret << pid.id }
-      
-      ret.delete(pid) unless ret.empty?
-      
-      ret
+      duplicate_ids = Pid.where(url: url).pluck(:id)
+      duplicate_ids.delete(pid) if duplicate_ids.any?
+      duplicate_ids
     end
     
 # ---------------------------------------------------------------------------------------------------
 # Retrieve default parameters from the DB for use on PID search and report views
 # ---------------------------------------------------------------------------------------------------    
-    def get_search_defaults(params) 
-      # Create stub defaults if the params are empty
+    def get_search_defaults(params)
       defaults = {:pid_min => 0, :pid_max => 0, :modified_low => '', :modified_high => '', :created_low => '', :created_high => '',
-                  :accessed_low => '', :accessed_high => '', :users => [], :group => nil} 
+                    :accessed_low => '', :accessed_high => '', :users => [], :group => nil}
     
-      # If the group (or system in the case of a super user) has PIDs find the first and last otherwise default to generic values
       args = {}
-      args = {:group => current_user.group} unless current_user.super or current_user.read_only
-      
-      # Load the low and high values for the defaults
-
-      if !Pid.first(args).nil?
-        args[:order] = [:id.asc]
-        params[:pid_min] = Pid.first(args).id
-        
-        args[:order] = [:id.desc]
-        params[:pid_max] = Pid.first(args).id
-        
-        args[:order] = [:modified_at.asc]
-        params[:modified_min] = Pid.first(args).modified_at.strftime("%m/%d/%Y")
-        
-        args[:order] = [:modified_at.desc]
-        params[:modified_max] = Pid.first(args).modified_at.strftime("%m/%d/%Y")
-        
-        args[:order] = [:created_at.asc]
-        params[:created_min] = Pid.first(args).created_at.strftime("%m/%d/%Y")
-        
-        args[:order] = [:created_at.desc]
-        params[:created_max] = Pid.first(args).created_at.strftime("%m/%d/%Y")
+      args[:group] = current_user.group unless current_user.super || current_user.read_only
+    
+      if Pid.where(args).exists?
+        params[:pid_min] = Pid.where(args).order(id: :asc).first.id
+        params[:pid_max] = Pid.where(args).order(id: :desc).first.id
+        params[:modified_min] = Pid.where(args).order(modified_at: :asc).first.modified_at.strftime("%m/%d/%Y")
+        params[:modified_max] = Pid.where(args).order(modified_at: :desc).first.modified_at.strftime("%m/%d/%Y")
+        params[:created_min] = Pid.where(args).order(created_at: :asc).first.created_at.strftime("%m/%d/%Y")
+        params[:created_max] = Pid.where(args).order(created_at: :desc).first.created_at.strftime("%m/%d/%Y")
       end
-
-      # If the PID high range is less than the low range, swap them 
+    
       params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high].to_i < params[:pid_low].to_i
-      
-      # Load the list of groups
+    
       params[:groups] = Group.all
-      
-      # Load the list of users available to the user
       params[:users] = User.all
-      
-      #params[:users] = (current_user.super or current_user.read_only) ? User.all(:order => [:login.asc]) : User.all(:group => current_user.group, :order => [:login.asc])
-      
-      # If the user is a maintainer add the user ids for any other users they may manage
-      Maintainer.all(:user => current_user).each do |maint|
-        if maint.group != current_user.group          
-          User.all(:group => maint.group).each { |usr| params[:users] << usr unless params[:users].include?(usr) }
+    
+      Maintainer.where(user: current_user).each do |maint|
+        if maint.group != current_user.group
+          User.where(group: maint.group).each do |usr|
+            params[:users] << usr unless params[:users].include?(usr)
+          end
         end
       end
-      params[:users].sort!{ |x,y| x.login <=> y.login }
-      params[:groups].sort!{ |x,y| x.id <=> y.id }
       
+      params[:users] = params[:users].to_a if params[:users].is_a?(ActiveRecord::Relation)
+      params[:groups] = params[:groups].to_a if params[:groups].is_a?(ActiveRecord::Relation)
+
+      params[:users].sort! { |x, y| x.login <=> y.login }
+      params[:groups].sort! { |x, y| x.id <=> y.id }
+    
       params
     end
   end
+
+  def valid_email?(email)
+    # Define a regular expression for a basic email format
+    email_regex = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   
-  def send_email(to, subject, body)
-
-    args = {:from => APP_CONFIG['email_sender_address'],
-              :to => to,
-              :subject => subject,
-              :body => body}
-
-    # If the app config file specifies that we should use smtp, add the smtp args
-    if APP_CONFIG['email_method'].downcase == 'smtp'
-      args[:via] = :smtp
-      args[:via_options] = {:address => APP_CONFIG['smtp_host'],
-                            :port => APP_CONFIG['smtp_port'],
-                            :user_name => APP_CONFIG['smtp_user'],
-                            :password => APP_CONFIG['smtp_pwd'],
-                            :authentication => :plain,
-                            :domain => APP_CONFIG['smtp_domain']}
-    end
-    
-    args[:via] = :sendmail
-    args[:via_options] = {
-      :address => 'sendmail',
-      :port => '25'
-    }
-
-    Pony.mail args unless TEST_MODE
+    # Check if the email matches the regular expression
+    !!(email =~ email_regex)
   end
-  
+
+  def send_email(to, subject, body)
+    return if TEST_MODE
+
+    sender_address = APP_CONFIG['email_sender_address']
+    mail = Mail.new do
+      from sender_address
+      to to
+      subject subject
+      body body
+    end
+    mail.deliver!
+  end
 end
 

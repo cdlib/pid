@@ -5,27 +5,22 @@ require 'bundler/setup'
 require 'yaml'
 require "net/http"
 
-require 'data_mapper'
-require 'dm-sqlite-adapter'
-require 'dm-mysql-adapter'
-require 'dm-transactions'
-require 'dm-timestamps'
-
 require 'redis'
 require 'shortcake'
+require 'active_record'
 
 class PidApp
   
   $stdout.puts "Starting true-up of the Redis DB - #{Time.now}"
  
-  begin 
-    APP_CONFIG = YAML.load_file(File.exists?("/apps/pid/webapp/conf/app.yml") ? "/apps/pid/webapp/conf/app.yml" : 'conf/app.yml.example')
-    DATABASE_CONFIG = YAML.load_file(File.exists?("/apps/pid/webapp/conf/db.yml") ? "/apps/pid/webapp/conf/db.yml" : 'conf/db.yml.example')
-    SECURITY_CONFIG = YAML.load_file(File.exists?("/apps/pid/webapp/conf/security.yml") ? "/apps/pid/webapp/conf/security.yml" : 'conf/security.yml.example')
+  begin
+    APP_CONFIG = YAML.load_file(File.exist?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
+    DATABASE_CONFIG = YAML.load_file(File.exist?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
+    SECURITY_CONFIG = YAML.load_file(File.exist?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
   
     URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
-    hostname = "http://#{APP_CONFIG['host']}:#{APP_CONFIG['port'].to_s}/"
+    hostname = "http://#{APP_CONFIG['app_host']}:#{APP_CONFIG['app_port'].to_s}/"
 
     args = {:adapter => DATABASE_CONFIG['db_adapter'],
             :host => DATABASE_CONFIG['db_host'],
@@ -34,28 +29,32 @@ class PidApp
             :username => DATABASE_CONFIG['db_username'],
             :password => DATABASE_CONFIG['db_password']}
 
-    DataMapper::Logger.new($stdout, :error)
-    DataMapper.setup(:default, args)
+    # set database
+    $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
 
-    # load controllers and models
+    ActiveRecord::Base.establish_connection(DATABASE_CONFIG["activerecord_db"])
+
+    # # load controllers and models
+    # Dir.glob("controllers/*.rb").each { |r| require_relative r }
     Dir.glob("models/*.rb").each { |r| require_relative r }
-
-    # finalize database models
-    DataMapper::Model.raise_on_save_failure = true
-    DataMapper.finalize.auto_upgrade!
-  
+    
     # establish a connection to the REDIS database
     @@shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
   
     # process the file of ids, urls
     Pid.all.each do |pid| 
-      url = pid.nil? ? APP_CONFIG['dead_pid_url'] : (pid.deactivated ? APP_CONFIG['dead_pid_url'] : pid.url.to_s) 
-      
+
+      url = if pid.nil? || pid.deactivated
+              APP_CONFIG['dead_pid_url']
+            else 
+              pid.url.to_s
+            end
+
       @@shorty.create_or_update(pid.id.to_s, url)
     end
     
   rescue Exception => e
-    puts "A fatal exception occurred! - #{e.message}"
+    $stdout.puts "A fatal exception occurred! - #{e.message}"
   end
   
   $stdout.puts "Finished true-up of the Redis DB - #{Time.now}"

@@ -8,7 +8,7 @@
     <% end %>
   <% end %>
 
-  <form action="/link" method="post">
+  <form action="/link" method="post" onsubmit="return disableSubmitButton()">
     <label style="vertical-align: 70px;"><%= HTML_CONFIG['form_urls'] %></label>
     <textarea name="new_urls" id="new_urls" required title="<%= HTML_CONFIG['create_pids_tooltip'] %>" style="height: 100px; width: 80%;"><%= urls %></textarea>
     <label>&nbsp;</label><input type="submit" id="create" name="create" style="vertical-align: 70px;">
@@ -18,8 +18,6 @@
 <section id="new_pid_instructions">
   <%= HTML_CONFIG['new_pids_text'] %>
 </section>
-
-<img src="/spinner.gif" id="spinner" />
 
 <section class="errors">
     <% if @pid && @pid.errors %>
@@ -85,11 +83,10 @@
 
 </section>
 
-<script type="text/javascript">
-$("#spinner").hide();
-
-$("#submit").click(function() {
-  $("#spinner").show();
-});
+<script>
+  function disableSubmitButton() {
+    document.getElementById('create').disabled = true;
+    return true;
+  }
 </script>
 

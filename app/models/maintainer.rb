@@ -7,12 +7,11 @@
 #
 # A user may manage/maintain multiple groups and groups may have multiple managers/maintainers
 # -----------------------------------------------------------------------------------------------   
-class Maintainer
-  include DataMapper::Resource
-  belongs_to :group, :key => true
-  belongs_to :user, :key => true
+class Maintainer < ActiveRecord::Base
+  belongs_to :group
+  belongs_to :user
   
   def self.flush!
-    DataMapper.auto_migrate!(:default)
+    connection.execute('DELETE FROM maintainers')
   end
 end

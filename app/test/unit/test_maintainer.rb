@@ -1,30 +1,28 @@
 require_relative '../test_helper'
 
 class TestMaintainer < Minitest::Test
+
   def setup
     Pid.flush!
-    @group = Group.new(:id => 'TEST', :name => 'test_group')
-    @group.save
+    @group = Group.create(id: 'TEST', name: 'test_group')
+    
+    @user = User.create(login: 'testuser', name: 'Test User 1', email: 'test.user@example.org', group: @group, password: 'secret')
+    @manager = User.create(login: 'testmngr', name: 'Test Manager', email: 'test.mngr@example.org', group: @group, password: 'secret')
 
-    @user = User.new(:login => 'test_user', :name => 'Test User 1', :email => 'test.user@example.org', :group => @group, :password => 'secret')
-    @mngr = User.new(:login => 'test_mngr', :name => 'Test Manager', :email => 'test.mngr@example.org', :group => @group, :password => 'secret')
-    @mngr.save
-    @user.save
-
-    Maintainer.new(:user => @mngr, :group => @group).save
+    Maintainer.create(user: @manager, group: @group)
   end
-    
+
   def test_create_new
-    mntr = Maintainer.new(:user => @user, :group => @group)
-    
-    assert mntr.save, 'Unable to create a new maintainer association!'
+    maintainer = Maintainer.new(user: @user, group: @group)
+
+    assert maintainer.save, 'Unable to create a new maintainer association!'
   end
 
   def test_delete
-    mntr = Maintainer.first(:group => @group)
-    assert mntr.destroy, 'Was unable to delete a maintainer relationship!'
+    maintainer = Maintainer.find_by(group: @group)
 
-    assert Maintainer.first(:group => @group).nil?, 'The maintainer relatinship still exists!'
+    assert maintainer.destroy, 'Was unable to delete a maintainer relationship!'
+    assert Maintainer.find_by(group: @group).nil?, 'The maintainer relationship still exists!'
   end
-
+  
 end
