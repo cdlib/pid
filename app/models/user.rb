@@ -4,127 +4,79 @@
 # If super is set to true the user is a super admin and has full access to everything (no group restrictions)
 # If readonly is set to true the user will only be able to search for and view PIDs (no group restrictions)
 # -----------------------------------------------------------------------------------------------   
-
+require 'uri'
 require 'digest/sha1'
 
-class User
-  include DataMapper::Resource
-  belongs_to :group, :required => false
-  
-  property :id, Serial, :key => true
-  property :login, String, :length => 20, :format => /[a-z]{3,20}+/, :unique => true, :required => true,
-      :messages => {
-        :presence  => 'A username is required.',
-        :is_unique => 'We already have that username.',
-        :format    => 'Usernames must be a combination of 3-20 lowercase letters.'
-      }
-  property :name, String, :length => 100, :format => /\w+/, :required => true,
-      :messages => {
-        :presence  => 'A name is required.',
-        :format    => 'Names must be under 100 characters without symbols.'
-      }
-  property :email, String, :length => 100, :format => :email_address, :required => true,
-           :messages => {
-           :format => 'The value you entered does not a valid email address!'
-      }
-  property :affiliation, String, :length => 100, :format => /\.*/, :required => false,
-           :messages => {
-           :format	=> 'Affiliations must be less than 100 characters long!'
-      }
-  property :active, Boolean, :default => true
-  property :locked, Boolean, :default => false
-  property :locked_timer, Integer, :required => false
-  property :failed_login_attempts, Integer, :default => 0
-  property :last_login, Date, :required => false
-  property :reset_attempts, Integer, :required => false, :default => 0
-  property :reset_code, String, :required => false
-  property :reset_timer, Integer, :required => false
-  property :super, Boolean, :default => false
-  property :hashed_password, String, :required => true
-  property :salt, String, :required => true
-  property :created_at, DateTime
-  property :host, String, :length => 30
-  property :read_only, Boolean, :default => false
-  
+class User < ActiveRecord::Base
+  belongs_to :group, optional: true
+
+  validates :login, presence: true, length: { maximum: 20 }, uniqueness: true, format: { with: /\A[a-z]{3,20}+\z/ } # If uniqueness: true is added then it won't reach the database and raise RecordNotUnique.
+  validates :name, presence: true, length: { maximum: 100 }, format: { with: /\w+/ }
+  validates :email, presence: true, length: { maximum: 100 }, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :affiliation, format: { with: /\A.*\z/ }
+  validates :active, inclusion: { in: [true, false] } # TODO: Default value true db migration?
+  validates :locked, inclusion: { in: [true, false] } # TODO: Default value false db migration?
+  validates :failed_login_attempts, presence: true, numericality: { only_integer: true } # TODO: Default value 0 db migration?
+  validates :reset_attempts, numericality: { only_integer: true } # TODO: Default value 0 db migration?
+  validates :super, inclusion: { in: [true, false] }
+  validates :hashed_password, presence: true
+  validates :salt, presence: true
+  validates :host, length: { maximum: 30 }
+  validates :read_only, inclusion: { in: [true, false] } # TODO: Default value false db migration?
+
   attr_accessor :password
 
-# -----------------------------------------------------------------------------------------------   
+  scope :active, -> { where(active: true) }
+  scope :deactivated, -> { where(active: false) }
+
   def active?
-    self.active
-  end
-  
-# -----------------------------------------------------------------------------------------------   
-  def password=(pass)
-    @password = pass
-    self.salt = User.random_string(10) unless self.salt
-    self.hashed_password = User.encrypt(@password, self.salt)
+    active
   end
 
-# -----------------------------------------------------------------------------------------------   
+  def password=(pass)
+    @password = pass
+    self.salt = User.random_string(10) unless salt
+    self.hashed_password = User.encrypt(@password, salt)
+  end
+
   def self.encrypt(pass, salt)
     Digest::SHA1.hexdigest(pass.to_s + salt.to_s)
   end
 
-# -----------------------------------------------------------------------------------------------   
-  def self.authenticate(login, pass)    
-    u = User.first(:login => login)
-    return nil if u.nil?
+  def self.authenticate(login, pass)
+    user = User.find_by(login: login)
     
-    # If the user account has a locked timer set
-    if !u.locked_timer.nil?
-      
-      # If the locked timer hasn't expired (see /conf/security.yml for the number of minutes)
-      if u.locked_timer >= Time.now.to_i
-        return nil
-        
-        # Otherwise the locked timer has expired so lets clear the user's record and unlock it
-      else
-        u.locked_timer = nil
-        u.locked = false
-        u.failed_login_attempts = 0
-        u.save
-      end
-      
-    # Otherwise, if the user's account is locked then lockouts are indefinite and require admin intervention
-    else
-      return nil if u.locked
+    return nil if user.nil?
+
+    if user.locked_timer && user.locked_timer >= Time.now.to_i
+      return nil
+    elsif user.locked_timer
+      user.update(locked_timer: nil, locked: false, failed_login_attempts: 0)
+    elsif user.locked
+      return nil
     end
-    return nil if !u.active
-    
-    return u if User.encrypt(pass, u.salt) == u.hashed_password
-      nil
+
+    return nil unless user.active
+
+    return user if User.encrypt(pass, user.salt) == user.hashed_password
+
+    nil
   end
 
-# -----------------------------------------------------------------------------------------------     
   def self.random_string(len)
-    chars = ("a".."z").to_a + ("A".."Z").to_a + ("0".."9").to_a
-    str = ""
-    1.upto(len) { |i| str << chars[rand(chars.size-1)] }
-    return str
+    chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
+    str = ''
+    1.upto(len) { str << chars.sample }
+    str
   end
 
-# -----------------------------------------------------------------------------------------------   
-  # A password reset creates a random reset key and starts a timer. An email gets sent to the user that contains a url. That url contains
-  # the reset key in its query string. If the key matches and the reset page is opened within the timeframe defined in the security.yml file,
-  # the user is able to reset their password without logging in.
-  def reset_password()
+  def reset_password
     self.reset_code = User.random_string(20)
     self.reset_timer = Time.now.to_i
-    self.reset_attempts = self.reset_attempts + 1
+    self.reset_attempts += 1
   end
 
-# -----------------------------------------------------------------------------------------------   
-  def self.active
-    User.all(:active => true)
-  end
-
-# -----------------------------------------------------------------------------------------------   
-  def self.deactivated
-    User.all(:active => false)
-  end
-
-# -----------------------------------------------------------------------------------------------   
   def self.flush!
-    DataMapper.auto_migrate!
+    connection.execute('DELETE FROM users')
   end
 end

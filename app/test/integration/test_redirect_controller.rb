@@ -9,23 +9,23 @@ class TestRedirectController < Minitest::Test
   
   def setup
     Pid.flush!
-    @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User', :password => 'secret', :email => 'test@example.org')
+    @group = Group.new(id: 'UCLA', name: 'test_group')
+    @user = User.new(login: 'testuser', name: 'Test User', password: 'secret', email: 'test@example.org')
     @group.users << @user
     @group.save
     
-    post '/user/login', { :login => 'test_user', :password => 'secret' }
+    post '/user/login', { login: 'testuser', password: 'secret' }
   end
   
   def test_pid_redirect
-    Pid.mint(:url => 'http://google.com', :username => @user.login, :change_category => 'User_Entered', :group => @group)
+    Pid.mint(url: 'http://google.com', username: @user.login, change_category: 'User_Entered', group: @group)
     get '/PID/1'
     assert_equal 'http://google.com', last_response.location
     assert_equal 302, last_response.status
   end
   
   def test_pid_partial_redirect
-    Pid.mint(:url => 'http://google.com', :username => @user.login, :change_category => 'User_Entered', :group => @group)
+    Pid.mint(url: 'http://google.com', username: @user.login, change_category: 'User_Entered', group: @group)
     get '/PID/1/search?q=elmo'
     assert_equal 'http://google.com/search?q=elmo', last_response.location
     assert_equal 302, last_response.status

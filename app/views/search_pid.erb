@@ -28,9 +28,9 @@
     </select>
     
     <label><%= HTML_CONFIG['form_pid_range'] %></label>
-    <input type="number" id="pid_low" name="pid_low" value="<%= params[:pid_low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="pid_low" name="pid_low" value="<%= params[:pid_low] %>" min="<%= params[:pid_min] %>" max="<%= params[:pid_max] %>" style="width: 100px;" />
     <div> - </div> 
-    <input type="number" id="pid_high" name="pid_high" value="<%= params[:pid_high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="pid_high" name="pid_high" value="<%= params[:pid_high] %>" min="<%= params[:pid_min] %>" max="<%= params[:pid_max] %>" style="width: 100px;" />
     <div>(<%= HTML_CONFIG['form_search_between'] %> <%= params[:pid_min] %> <%= HTML_CONFIG['form_search_and'] %> <%= params[:pid_max] %>)</div>
     
     <label><%= HTML_CONFIG['form_created_date_range'] %></label>
@@ -166,7 +166,7 @@
   });
 
   $("#submit").click( function(){
-    $("#spinner").show();
+    // $("#spinner").show();
     $(".errors").html("");
     $("#search_results").hide();
   });

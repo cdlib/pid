@@ -11,21 +11,21 @@
 #
 # Users can search for PIDs that they have an interest in
 # -----------------------------------------------------------------------------------------------   
-class Interested
-  include DataMapper::Resource
-  belongs_to :group, :key => true
-  belongs_to :pid, :key => true
+class Interested < ActiveRecord::Base
+  belongs_to :group
+  belongs_to :pid
 
-  validates_with_method :not_owner
+  validates :group_id, presence: true, uniqueness: { scope: :pid_id }
+  validates :pid_id, presence: true
 
-# -----------------------------------------------------------------------------------------------   
+  validate :not_owner
+
   # Do not allow the owner of a PID to also be an interested party
   def not_owner
-    self.pid.group != self.group
+    errors.add(:base, 'Owner of PID cannot be an interested party') if pid&.group == group
   end
 
-# -----------------------------------------------------------------------------------------------   
   def self.flush!
-    DataMapper.auto_migrate!(:default)
+    connection.execute('DELETE FROM interesteds')
   end
 end

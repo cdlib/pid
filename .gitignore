@@ -1,0 +1,16 @@
+.env
+.bundle
+.ruby-version
+.tm_properties
+*.db
+*.csv
+*.rdb
+*.log
+.DS_Store
+vendor
+app/config/*.yml
+log/*_log
+log/*.pid
+log/*.out
+log/*.gz
+scripts/.ipynb_checkpoints/*

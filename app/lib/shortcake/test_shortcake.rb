@@ -1,17 +1,10 @@
 $LOAD_PATH.unshift(File.absolute_path(File.dirname(__FILE__)))
 require_relative '../../test/test_helper'
-require 'minitest/autorun'
-require 'shortcake'
-require 'fakeredis'
 
 class TestShortcake < Minitest::Test
   
-    def app
-      PidApp
-    end
-  
     def setup
-      @shorty = Shortcake.new('id', {:host => "localhost", :port => 1000})
+      @shorty = Shortcake.new('pid', { host: PidApp::APP_CONFIG['redis_host'], port: PidApp::APP_CONFIG['redis_port'] })
       @shorty.flushall!
     end
     
@@ -73,13 +66,13 @@ class TestShortcake < Minitest::Test
       assert_equal url, @shorty.get(id)
       
       assert_equal true, @shorty.delete(id), 'Unable to delete the record from Redis!'
-      assert_equal nil, @shorty.get(id), 'The record still exists in Redis!'
+      assert_nil @shorty.get(id), 'The record still exists in Redis!'
     end
     
     def test_init_must_pass_valid_namespace
-      assert_raises(ValidNSRequired) { Shortcake.new('', {:host => "localhost", :port => 9999}) }
-      assert_raises(ValidNSRequired) { Shortcake.new('iamtoolongtobeanamespace', {:host => "localhost", :port => 9999}) }
-      assert_raises(ValidNSRequired) { Shortcake.new('I_Have_Bad_Characters', {:host => "localhost", :port => 9999}) }
+      assert_raises(ValidNSRequired) { Shortcake.new('', { host: "localhost", port: 9999 }) }
+      assert_raises(ValidNSRequired) { Shortcake.new('iamtoolongtobeanamespace', { host: "localhost", port: 9999 }) }
+      assert_raises(ValidNSRequired) { Shortcake.new('I_Have_Bad_Characters', { host: "localhost", port: 9999}) }
       assert_equal true, true
     end
     

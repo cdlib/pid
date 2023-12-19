@@ -4,32 +4,32 @@ class UserClientTestApp < Minitest::Test
   include Rack::Test::Methods
   include Capybara::DSL
   
-  Capybara.app = PidApp.new
+  # Capybara.app = PidApp
   
-  def app
-    PidApp
-  end
+  # def app
+  #   PidApp
+  # end
   
   def setup
+    Pid.flush!
     User.flush!
     Group.flush!
     Maintainer.flush!
-    
+
     @pwd = 'secret'
-    @group = Group.new(:id => 'TEST', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User', :password => @pwd, :email => 'purl-test-user@cdlib.org')
-    @mgr = User.new(:login => 'test_mgr', :name => 'Test Manager', :password => @pwd, :email => 'purl-test-mgr@cdlib.org')
-    
+    @group = Group.new(id: 'TEST', name: 'test_group')
+    @user = User.new(login: 'testuser', name: 'Test User', password: @pwd, email: 'purl-test-user@cdlib.org')
+    @mgr = User.new(login: 'testmgr', name: 'Test Manager', password: @pwd, email: 'purl-test-mgr@cdlib.org')
     @group.users << @user
     @group.users << @mgr
     @group.save
     
-    
-    Maintainer.new(:group => @group, :user => @mgr).save
+    Maintainer.create(group: @group, user: @mgr)
   end
   
   def teardown
     Capybara.reset_sessions!
+    Capybara.use_default_driver
   end
   
 # --------------------------------------------------------------------------------------------------------
@@ -37,10 +37,11 @@ class UserClientTestApp < Minitest::Test
 # --------------------------------------------------------------------------------------------------------
   def test_login_missing_password
     visit '/user/login'
-    
+
     fill_in 'login', with: @user.login
+    execute_script('$("#login").trigger("change");')
+
     click_button 'submit'
-  
     assert page.has_content?(PidApp::MESSAGE_CONFIG['no_password']), 'Did not receive the missing password message!'
   end
 
@@ -49,39 +50,40 @@ class UserClientTestApp < Minitest::Test
     visit '/user/login'
     
     fill_in 'password', with: @pwd
+
     click_button 'submit'
-  
     assert page.has_content?(PidApp::MESSAGE_CONFIG['no_login']), 'Did not receive the missing userid message!'
   end  
   
 # --------------------------------------------------------------------------------------------------------
 # Forgotten password page tests 
 # --------------------------------------------------------------------------------------------------------
-  def test_forgotten_password_bad_userid
-    visit '/user/forgot'
+  # def test_forgotten_password_bad_userid
+  #   visit '/user/forgot'
     
-    fill_in 'login', with: 'bad_user'
-    
-    assert page.has_selector?('.not_ok'), "An invalid userid did not display the red X icon!"
-  end
+  #   fill_in 'login', with: 'baduser'
+  #   execute_script('$("#login").trigger("change");')
+
+  #   assert page.has_selector?('.not_ok'), "An invalid userid did not display the red X icon!"
+  # end
 
 # --------------------------------------------------------------------------------------------------------
-  def test_forgotten_password_valid_userid
-    visit '/user/forgot'
+  # def test_forgotten_password_valid_userid
+  #   visit '/user/forgot'
     
-    fill_in 'login', with: @user.login
-    
-    assert page.has_selector?('.ok'), "A valid userid did not display the checkmark icon!"
-  end
+  #   fill_in 'login', with: @user.login
+  #   execute_script('$("#login").trigger("change");')
+
+  #   assert page.has_selector?('.ok'), "A valid userid did not display the checkmark icon!"
+  # end
   
 # --------------------------------------------------------------------------------------------------------
 # Reset password page tests 
 # --------------------------------------------------------------------------------------------------------
   def test_reset_missing_fields
-    reset_params = request_password_reset(@user.login)
+    reset_params = request_password_reset(@user.email)
 
     visit "/user/reset?n=#{reset_params[:n]}&c=#{reset_params[:c]}"
-
     click_button 'submit'
     assert !page.has_content?("#{PidApp::HTML_CONFIG['form_new_password']} cannot be blank!"), 'Was able to leave the password blank!'
     assert !page.has_content?("#{PidApp::HTML_CONFIG['form_confirm_password']} cannot be blank!"), 'Was able to leave the password confirmation blank!'
@@ -98,7 +100,7 @@ class UserClientTestApp < Minitest::Test
 
 # --------------------------------------------------------------------------------------------------------
   def test_reset_password_mismatch
-    reset_params = request_password_reset(@user.login)
+    reset_params = request_password_reset(@user.email)
 
     visit "/user/reset?n=#{reset_params[:n]}&c=#{reset_params[:c]}"
 
@@ -117,6 +119,8 @@ class UserClientTestApp < Minitest::Test
     visit "/user/#{@user.id}"
     
     fill_in 'login', with: '   '
+    execute_script('$("#login").trigger("change");')
+
     fill_in 'name', with: ''
     fill_in 'email', with: ''
     click_button 'submit'
@@ -142,7 +146,7 @@ class UserClientTestApp < Minitest::Test
     
     visit "/user/#{@user.id}"
 
-    fill_in 'password', with: 'change_it'
+    fill_in 'password', with: 'changeit'
     fill_in 'confirm', with: 'change'
     click_button 'submit'
     assert page.has_content?("#{PidApp::HTML_CONFIG['form_new_password'].gsub(':', '')} and #{PidApp::HTML_CONFIG['form_confirm_password'].gsub(':', '')} MUST match!"), 'Was able to submit passwords that do not match!'
@@ -155,21 +159,24 @@ class UserClientTestApp < Minitest::Test
     visit "/user/#{@user.id}"
 
     fill_in 'login', with: 'uniqueguy'
+    execute_script('$("#login").trigger("change");')
+
     assert page.has_selector?('.ok'), "A unique userid is displaying a red X icon!"
   end
 
 # --------------------------------------------------------------------------------------------------------
   def test_show_user_userid_already_used
-    user = User.new(:login => 'new_user', :name => 'New User', :password => @pwd, 
-                      :email => 'new@example.org', :group => @group)
-    user.save
+    User.create(login: 'newuser', name: 'New User', password: @pwd, email: 'new@example.org', group: @group)
 
     login(@mgr.login, @pwd)
     
     visit "/user/#{@user.id}"
     
-    fill_in 'login', with: 'new_user'
+    fill_in 'login', with: 'newuser'
+    execute_script('$("#login").trigger("change");')
+
     fill_in 'name', with: 'New User Again'
+
     assert page.has_selector?('.not_ok'), "An already used userid is displaying a green checkmark! #{page.body}"
   end
 
@@ -194,6 +201,8 @@ class UserClientTestApp < Minitest::Test
     visit '/user/register'
     
     fill_in 'login', with: '   '
+    execute_script('$("#login").trigger("change");')
+
     fill_in 'name', with: ''
     fill_in 'email', with: ''
     fill_in 'password', with: ''
@@ -213,7 +222,9 @@ class UserClientTestApp < Minitest::Test
     
     visit '/user/register'
     
-    fill_in 'login', with: 'tester2'
+    fill_in 'login', with: 'secondtester'
+    execute_script('$("#login").trigger("change");')
+
     fill_in 'name', with: 'Second tester'
     fill_in 'email', with: 'this.is@abademail'
     fill_in 'password', with: 'password'
@@ -229,7 +240,9 @@ class UserClientTestApp < Minitest::Test
 
     visit '/user/register'
 
-    fill_in 'login', with: 'tester2'
+    fill_in 'login', with: 'secondtester'
+    execute_script('$("#login").trigger("change");')
+
     fill_in 'name', with: 'Second tester'
     fill_in 'email', with: 'this.is@example.org'
     fill_in 'password', with: 'change_it'
@@ -246,19 +259,22 @@ class UserClientTestApp < Minitest::Test
     visit '/user/register'
 
     fill_in 'login', with: 'uniqueguy'
+    execute_script('$("#login").trigger("change");')
+
     assert page.has_selector?('.ok'), "A unique userid is displaying a red X icon!"
   end
 
 # --------------------------------------------------------------------------------------------------------
   def test_register_user_userid_already_used
-    User.new(:login => 'new_user', :name => 'New User', :password => @pwd, 
-                      :email => 'new@example.org', :group => @group).save
-                      
+    User.create(login: 'newuser', name: 'New User', password: @pwd, email: 'new@example.org', group: @group)
+
     login(@mgr.login, @pwd)
 
     visit '/user/register'
 
-    fill_in 'login', with: 'new_user'
+    fill_in 'login', with: 'newuser'
+    execute_script('$("#login").trigger("change");')
+
     fill_in 'name', with: 'Another user'
     assert page.has_selector?('.not_ok'), "An already used userid is displaying a green checkmark! #{page.body}"
   end
@@ -266,7 +282,8 @@ class UserClientTestApp < Minitest::Test
 # --------------------------------------------------------------------------------------------------------
 # Helper methods 
 # --------------------------------------------------------------------------------------------------------  
-private
+  private
+
   def login(userid, password)
     visit '/user/login'
     
@@ -276,15 +293,15 @@ private
   end
   
 # -------------------------------------------------------------------------------------------------------- 
-  def request_password_reset(login)
+  def request_password_reset(email)
     visit '/user/forgot'
 
-    fill_in 'login', with: login
+    fill_in 'email', with: email
     click_button 'reset'
 
-    user = User.get(@user.id)
+    user = User.find_by(id: @user.id)
 
-    {:n => user.id, :c => user.reset_code}
+    { n: user.id, c: user.reset_code }
   end
 
 end

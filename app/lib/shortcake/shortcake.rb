@@ -1,6 +1,5 @@
 require 'redis'
 require 'uri'
-require 'cgi'
 require 'json'
 
 class Shortcake
@@ -18,7 +17,7 @@ class Shortcake
   end
   
   def update(shortcode, url)
-    raise CodeDoesNotExist if !@redis.exists("sc:#{@ns}:codes:#{shortcode}")
+    raise CodeDoesNotExist if @redis.get("sc:#{@ns}:codes:#{shortcode}").nil?
     
     create_url(shortcode, url, true)
   end
@@ -28,21 +27,21 @@ class Shortcake
   end
   
   def get(shortcode)
-    ret = @redis.get("sc:#{@ns}:codes:#{shortcode}")  
+    ret = @redis.get("sc:#{@ns}:codes:#{shortcode}")
   
     # Potential UTF-8 encoding commented oout for now
-    #ret = CGI::unescape(ret) unless ret.nil?
+    # ret = CGI::unescape(ret) unless ret.nil?
     
-#puts "returning: #{ret}"
-#puts "alternate: #{CGI.unescape(ret)}"
-#puts "cgi -> uri #{URI.escape(CGI.unescape(ret)).downcase}"
+    # puts "returning: #{ret}"
+    # puts "alternate: #{CGI.unescape(ret)}"
+    # puts "cgi -> uri #{URI.escape(CGI.unescape(ret)).downcase}"
     
-    #URI.escape(CGI.unescape(ret)).downcase
+    # URI.escape(CGI.unescape(ret)).downcase
     ret
   end
   
   def delete(shortcode)
-    raise CodeDoesNotExist if !@redis.exists("sc:#{@ns}:codes:#{shortcode}")
+    raise CodeDoesNotExist if @redis.get("sc:#{@ns}:codes:#{shortcode}").nil?
     deleted = @redis.del("sc:#{@ns}:codes:#{shortcode}")
     return (deleted >= 1) ? true : false
   end
@@ -60,7 +59,8 @@ class Shortcake
     @redis.keys("sc:#{@ns}:codes:*").map { |key| key[@ns.length+10, key.length] }
   end
   
-private 
+  private
+
   def create_url(shortcode, url, override=false)
     existing = @redis.get("sc:#{@ns}:codes:#{shortcode}")
     
@@ -69,7 +69,8 @@ private
     raise ValidURLRequired if (url =~ PidApp::URI_REGEX).nil?
     raise CodeExists if !override && !existing.nil?
     
-    @redis.multi do |multi|
+    @redis.set("sc:#{@ns}:codes:#{shortcode}", url)
+    # @redis.multi do |multi|
 
 #    target = url.clone
 #    protocol = target.scan(/[fh]t{1,2}ps?:\/\//)
@@ -84,8 +85,8 @@ private
 #    domain = url.slice(domain_start, domain_len)
 #    path = url.slice(path_start, path_len)
     
-#puts "protocol: #{protocol[0]}"
-#puts "domain is: #{domain}"     
+# puts "protocol: #{protocol[0]}"
+# puts "domain is: #{domain}"     
 
 #    target = protocol[0] + domain + CGI.escape(path)
 
@@ -126,7 +127,7 @@ private
     # Chrome converts to IDN: http://xn--r8jz45g.xn--zckzah/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8
     # which seems to work in all browsers
 
-    @redis.set("sc:#{@ns}:codes:#{shortcode}", url)
+    # @redis.set("sc:#{@ns}:codes:#{shortcode}", url)
       
       #@redis.set("sc:#{@ns}:codes:#{shortcode}", CGI.escape(url))
 
@@ -134,7 +135,7 @@ private
       #target = (url == CGI.unescape(url)) ? url : CGI::escape(url)
       #@redis.set("sc:#{@ns}:codes:#{shortcode}", target)
       
-    end
+    # end
     
     return true
   end

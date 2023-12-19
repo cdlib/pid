@@ -1,7 +1,9 @@
 <section id="user_login">
-  <h3><%= HTML_CONFIG['header_reset_password'] %></h3>
-  
+  <h3><%= HTML_CONFIG['header_recovery'] %></h3>
+
   <form action="/user/reset" method="post">
+    <label><%= "#{HTML_CONFIG['form_userid']} #{@login_user_id}" %></label>
+    <br><br>
     <label for="password"><%= HTML_CONFIG['form_new_password'] %></label><input type="password" name="password" id="password" />
     <label for="confirm"><%= HTML_CONFIG['form_confirm_password'] %></label><input type="password" name="confirm" id="confirm" />
     <label>&nbsp;</label><input type="submit" id="submit" name="submit" value="<%= HTML_CONFIG['button_reset_password'] %>" />

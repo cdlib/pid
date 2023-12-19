@@ -1,22 +1,24 @@
 require_relative '../test_helper'
 
 class TestPid < Minitest::Test
-  
+
   def setup
     Pid.flush!
     @pwd = 'secret'
-    @group = Group.new(:id => 'UCLA', :name => 'test_group')
-    @user = User.new(:login => 'test_user', :name => 'Test User', :email => 'test@example.org', :password => @pwd)
+    @group = Group.new(id: 'UCLA', name: 'test_group')
+    @user = User.new(login: 'testuser', name: 'Test User', email: 'test@example.org', password: @pwd)
     @group.users << @user
     @group.save
-      
-    @params = {:url => 'http://www.cdlibs.org',
-               :username => @user.login, 
-               :notes => 'Test', 
-               :change_category => 'Test', 
-               :group => @group}
-               
-    @shorty = Shortcake.new('pid', {:host => PidApp::APP_CONFIG['redis_host'], :port => PidApp::APP_CONFIG['redis_port']})
+
+    @params = {
+      url: 'http://www.cdlibs.org',
+      username: @user.login,
+      notes: 'Test',
+      change_category: 'Test',
+      group: @group
+    }
+
+    @shorty = Shortcake.new('pid', host: PidApp::APP_CONFIG['redis_host'], port: PidApp::APP_CONFIG['redis_port'])
   end
 
 # -----------------------------------------------------------------------------------------------    
@@ -25,24 +27,25 @@ class TestPid < Minitest::Test
     pid = Pid.mint(@params)
     assert_equal 1, pid.id, "Was unable to save a PID with a valid URL!"
     assert_equal 1, pid.pid_versions.count, "The new Pid does not have 1 version!"
+    assert_equal pid.url, Pid.shorty.get(pid.id), "The Redis server does not have a record for the PID!"
     assert_equal pid.url, @shorty.get(pid.id), "The Redis server does not have a record for the PID!"
-      
-    # Test an invalid URL 
+
+    # Test an invalid URL
     @params[:url] = 'www.cdlibs.org'
-    assert_raises(PidException){ Pid.mint(@params) }
+    assert_raises(PidException) { Pid.mint(@params) }
   end
   
 # -----------------------------------------------------------------------------------------------  
   def test_modify
     link = Pid.mint(@params)
-      
+
     # Test a valid revision
-    link.revise(:url => 'http://www.google.com', :group => @group, :notes => 'Test', :deactivated => false)
+    link.revise(url: 'http://www.google.com', group: @group, notes: 'Test', deactivated: false)
     link.reload
     assert_equal 'http://www.google.com', link.url
-      
+
     # Test an invalid URL
-    assert_raises(PidException){ link.revise(:url => 'www.google.com', :group => @group, :notes => 'Test', :deactivated => false) }
+    assert_raises(PidException) { link.revise(url: 'www.google.com', group: @group, notes: 'Test', deactivated: false) }
   end
   
 # -----------------------------------------------------------------------------------------------  
@@ -52,10 +55,10 @@ class TestPid < Minitest::Test
     @params[:url] = 'http://www.google.com'
     Pid.mint(@params)
     @params[:url] = 'www.cdlibs.org'
-    assert_raises(PidException){ Pid.mint(@params) }
-      
+    assert_raises(PidException) { Pid.mint(@params) }
+
     # Make sure that only the 2 valid PIDs were created
-    assert_equal 2, Pid.all.size
+    assert_equal 2, Pid.count
   end
   
 # -----------------------------------------------------------------------------------------------  
@@ -64,12 +67,12 @@ class TestPid < Minitest::Test
     Pid.mint(@params)
     @params[:url] = 'http://www.google.com'
     Pid.mint(@params)
-    
+
     # Try a few search options
-    assert_equal 1, Pid.count(:url => 'http://www.google.com')
-    assert_equal 2, Pid.count(:url.like => 'http://%')
-    assert_equal 2, Pid.count(:username => @user.login)
-    assert_equal 0, Pid.count(:url.like => 'yahoo.com' )
+    assert_equal 1, Pid.where(url: 'http://www.google.com').count
+    assert_equal 2, Pid.where('url LIKE ?', 'http://%').count
+    assert_equal 2, Pid.where(username: @user.login).count
+    assert_equal 0, Pid.where('url LIKE ?', 'yahoo.com').count
   end
   
 # -----------------------------------------------------------------------------------------------  
@@ -78,13 +81,13 @@ class TestPid < Minitest::Test
     Pid.mint(@params)
     @params[:url] = 'http://www.google.com'
     Pid.mint(@params)
-    
+
     # Make sure the Redis server has the same number of Pids as the MySql DB
     assert_equal true, Pid.reconcile
-    
+
     # Flush the Redis server
     Pid.flush_shortcake!
     assert_equal false, Pid.reconcile
   end
-    
+  
 end

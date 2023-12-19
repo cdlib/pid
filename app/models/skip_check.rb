@@ -2,15 +2,13 @@
 # Represents a domain that we will ignore when doing url validation for PIDs
 #
 # This list is managed by super admins and Group Maintainers/Managers
-# -----------------------------------------------------------------------------------------------   
-class SkipCheck
-  include DataMapper::Resource
+# -----------------------------------------------------------------------------------------------
+class SkipCheck < ActiveRecord::Base
+  validates :domain, presence: true,  uniqueness: true # If uniqueness: true is added then it won't reach the database and raise RecordNotUnique.
+  validates :created_at, presence: true
+  validates :group, length: { maximum: 10 }, format: { with: /[A-Z]+/ }
   
-  property :domain, String, :key => true
-  property :created_at, DateTime, :required => true, :index => true
-  property :group, String, :length => 10, :format => /[A-Z]+/
-    
   def self.flush!
-    DataMapper.auto_migrate!(:default)
+    connection.execute('DELETE FROM skip_checks')
   end
 end

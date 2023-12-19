@@ -1,21 +1,46 @@
-FROM ruby:2.1.5
+FROM ruby:3.2.2
 
-# RUN apt-get update -qq && \
-#     apt-get install -y \
-#     build-essential \
-#     chrpath \
-#     libssl-dev \
-#     libxft-dev \
-#     libfreetype6 \
-#     libfreetype6-dev \
-#     libfontconfig1 \
-#     libfontconfig1-dev \
-#     wget \
-#     && \
-#     wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
-#     tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
-#     mv phantomjs-2.1.1-linux-x86_64 /usr/local/share && \
-#     ln -sf /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin
+# Install system dependencies
+RUN apt-get update -qq && apt-get install -y \
+    libsqlite3-dev \
+    sqlite3 \
+    wget \
+    gnupg \
+    unzip \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libatspi2.0-0 \
+    libgtk-3-0 \
+    libx11-xcb1 \
+    libdrm2 \
+    libgbm1 \
+    libasound2 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Refer to this site for version info: https://googlechromelabs.github.io/chrome-for-testing/#stable
+ARG CHROME_URL=https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chrome-linux64.zip
+ARG CHROMEDRIVER_URL=https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chromedriver-linux64.zip
+
+# Set the installation directories
+ENV CHROME_INSTALL_DIR=/opt/google/chrome
+ENV CHROMEDRIVER_INSTALL_DIR=/usr/local/bin
+
+# Download and install Chrome
+RUN mkdir -p $CHROME_INSTALL_DIR \
+    && curl -SL $CHROME_URL -o chrome-linux64.zip \
+    && unzip chrome-linux64.zip -d $CHROME_INSTALL_DIR \
+    && rm chrome-linux64.zip
+
+# Download and install Chromedriver
+RUN mkdir -p $CHROMEDRIVER_INSTALL_DIR \
+    && curl -SL $CHROMEDRIVER_URL -o chromedriver-linux64.zip \
+    && unzip chromedriver-linux64.zip -d $CHROMEDRIVER_INSTALL_DIR \
+    && rm chromedriver-linux64.zip
+
+# Set the PATH to include Chrome and Chromedriver
+ENV PATH=$CHROME_INSTALL_DIR/chrome-linux64:$CHROMEDRIVER_INSTALL_DIR/chromedriver-linux64:$PATH
 
 WORKDIR /usr/src/app
 
@@ -27,4 +52,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["bundle", "exec", "thin", "-R", "config.ru", "start", "-p", "3000"]
+CMD ["bundle", "exec", "puma", "-p", "3000"]

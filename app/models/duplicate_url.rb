@@ -3,15 +3,12 @@
 #
 # These reports are executed by a scheduled cron job on the server
 # -----------------------------------------------------------------------------------------------   
-class DuplicateUrlReport
-  include DataMapper::Resource
+class DuplicateUrlReport < ActiveRecord::Base
+  belongs_to :pid, optional: true
   
-  property :id, Serial, :key => true
-  property :other_pids, Text, :required => true
-  property :last_checked, Time, :required => false
-  belongs_to :pid, :required => false  
- 
+  validates :other_pids, presence: true
+  
   def self.flush!
-    DataMapper.auto_migrate!(:default)
+    connection.execute('DELETE FROM duplicate_url_reports')
   end
 end

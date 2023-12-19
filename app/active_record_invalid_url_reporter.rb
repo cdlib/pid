@@ -14,11 +14,11 @@ ENV['RACK_ENV'] ||= 'development'
 ENV['APP_ROOT'] ||= File.expand_path(File.dirname(__FILE__))
 
 # Setup Database
-app_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')))
-db_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example'))) 
+app_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exist?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')))
+db_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exist?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example'))) 
 ActiveRecord::Base.establish_connection(db_config["activerecord_db"])
 
-#hostname = "http://#{app_config['host']}:#{app_config['port'].to_s}/"
+#hostname = "http://#{app_config['app_host']}:#{app_config['app_port'].to_s}/"
 INVALID_URL_REPORTS_TABLE = 'invalid_url_reports'
 URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 

@@ -20,9 +20,9 @@
     </select>
         
     <label><%= HTML_CONFIG['form_pid_range'] %></label>
-    <input type="number" id="pid_low" name="pid_low" value="<%= params[:pid_low] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="pid_low" name="pid_low" value="<%= params[:pid_low] %>" style="width: 100px;" />
     <div> - </div> 
-    <input type="number" id="pid_high" name="pid_high" value="<%= params[:pid_high] %>" min="<%= @pid_min %>" max="<%= @pid_max %>" style="width: 100px;" />
+    <input type="number" id="pid_high" name="pid_high" value="<%= params[:pid_high] %>" style="width: 100px;" />
     
     <label><%= HTML_CONFIG['form_active'] %></label>
     <select id="active" name="active">
@@ -113,7 +113,6 @@
   $("th.pagination").click( function() {    
     changePage();
   });
-
 
   $("#submit").click( function(){
     $("#spinner").show();

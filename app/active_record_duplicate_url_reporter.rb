@@ -14,11 +14,11 @@ ENV['RACK_ENV'] ||= 'development'
 ENV['APP_ROOT'] ||= File.expand_path(File.dirname(__FILE__))
 
 # Setup Database
-app_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exists?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')))
-db_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exists?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example'))) 
+app_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exist?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')))
+db_config = YAML::load(File.read(File.join(ENV['APP_ROOT'],File.exist?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example'))) 
 ActiveRecord::Base.establish_connection(db_config["activerecord_db"])
 
-hostname = "http://#{app_config['host']}:#{app_config['port'].to_s}/"
+hostname = "http://#{app_config['app_host']}:#{app_config['app_port'].to_s}/"
 DUP_URL_REPORTS_TABLE = 'duplicate_url_reports'
 
 class DuplicateUrlReport < ActiveRecord::Base; 
@@ -53,17 +53,17 @@ ActiveRecord::Base.connection.execute("ALTER TABLE #{DUP_URL_REPORTS_TABLE} AUTO
     end
 	
 
-   duplicate_url_report_obj = DuplicateUrlReport.new do |d|
-       d.other_pids = pidUrls.join(", ")
-       d.last_checked = Time.now
-       d.save   
-   end
+    duplicate_url_report_obj = DuplicateUrlReport.new do |d|
+      d.other_pids = pidUrls.join(", ")
+      d.last_checked = Time.now
+      d.save   
+    end
 
-     pidId_arr.each do |id|
-	pid = Pid.find_by(id: id )
-	pid.duplicate_url_report_id = duplicate_url_report_obj.id;
-     	pid.save
-     end
+    pidId_arr.each do |id|
+      pid = Pid.find_by(id: id )
+      pid.duplicate_url_report_id = duplicate_url_report_obj.id;
+      pid.save
+    end
 end
 
 

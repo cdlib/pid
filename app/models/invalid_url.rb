@@ -3,15 +3,12 @@
 #
 # These reports are executed by a scheduled cron job on the server
 # -----------------------------------------------------------------------------------------------   
-class InvalidUrlReport
-  include DataMapper::Resource
-  
-  property :id, Serial, :key => true
-  property :http_code, Integer, :required => true
-  property :last_checked, Time, :required => false
-  belongs_to :pid, :required => false
+class InvalidUrlReport < ActiveRecord::Base
+  belongs_to :pid, optional: true
+
+  validates :http_code, presence: true
   
   def self.flush!
-    DataMapper.auto_migrate!(:default)
+    connection.execute('DELETE FROM invalid_url_reports')
   end
 end
