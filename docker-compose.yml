@@ -5,7 +5,7 @@ services:
     build:
       context: ./app  # Build context is the app directory
     ports:
-      - "3000:3000"  # Map host port to container port
+      - "80:80"  # Map host port to container port
     depends_on:
       - redis  # Ensure the Redis container is started first
     env_file:

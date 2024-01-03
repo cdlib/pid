@@ -50,6 +50,6 @@ RUN bundle install
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 80
 
-CMD ["bundle", "exec", "puma", "-p", "3000"]
+CMD ["bundle", "exec", "puma", "-p", "80"]

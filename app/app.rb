@@ -49,6 +49,7 @@ class PidApp < Sinatra::Base
 
     APP_CONFIG['redis_host'] = 'localhost'
     APP_CONFIG['redis_port'] = 1000
+    DATABASE_CONFIG['rebuild_redis_on_startup'] = false
 
     TEST_MODE = true
   end    
