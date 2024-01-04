@@ -14,11 +14,11 @@ class PidApp < Sinatra::Base
   
   $stdout.puts "Loading configuration files"
   
-  app_config_file = File.exist?("config/app.yml") ? "config/app.yml" : 'config/app.yml.example'
-  db_config_file = File.exist?("config/db.yml") ? "config/db.yml" : 'config/db.yml.example'
-  security_config_file = File.exist?("config/security.yml") ? "config/security.yml" : 'config/security.yml.example'
-  message_config_file = File.exist?("config/message.yml") ? "config/message.yml" : 'config/message.yml.example'
-  html_config_file = File.exist?("config/html.yml") ? "config/html.yml" : 'config/html.yml.example'
+  app_config_file = File.exist?(File.join(__dir__, 'config', 'app.yml')) ? File.join(__dir__, 'config', 'app.yml') : File.join(__dir__, 'config', 'app.yml.example')
+  db_config_file = File.exist?(File.join(__dir__, 'config', 'db.yml')) ? File.join(__dir__, 'config', 'db.yml') : File.join(__dir__, 'config', 'db.yml.example')
+  security_config_file = File.exist?(File.join(__dir__, 'config', 'security.yml')) ? File.join(__dir__, 'config', 'security.yml') : File.join(__dir__, 'config', 'security.yml.example')
+  message_config_file = File.exist?(File.join(__dir__, 'config', 'message.yml')) ? File.join(__dir__, 'config', 'message.yml') : File.join(__dir__, 'config', 'message.yml.example')
+  html_config_file = File.exist?(File.join(__dir__, 'config', 'html.yml')) ? File.join(__dir__, 'config', 'html.yml') : File.join(__dir__, 'config', 'html.yml.example')
 
   APP_CONFIG = YAML.safe_load(ERB.new(File.read(app_config_file)).result)
   DATABASE_CONFIG = YAML.safe_load(ERB.new(File.read(db_config_file)).result)
@@ -55,8 +55,6 @@ class PidApp < Sinatra::Base
   end    
 
   set :session_secret, SECURITY_CONFIG['session_secret']
-
-  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/inactive" : APP_CONFIG['dead_pid_url']
 
   enable :sessions # enable cookie-based sessions
   
@@ -141,7 +139,7 @@ class PidApp < Sinatra::Base
       "<a href=\"#{url}\" target=\"_blank\">#{body || url}</a>"
     end
     
-    def hostname()
+    def hostname
       "#{request.scheme.to_s}://#{APP_CONFIG['app_host']}#{':' + APP_CONFIG['app_port'].to_s unless APP_CONFIG['app_port'].nil? }/"
     end
   
@@ -237,5 +235,7 @@ class PidApp < Sinatra::Base
     end
     mail.deliver!
   end
+
+  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/inactive" : APP_CONFIG['dead_pid_url']
 end
 

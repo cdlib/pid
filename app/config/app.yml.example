@@ -1,0 +1,29 @@
+# Used for the title and header on layout.erb
+organization_name: 'California Digital Library'
+application_name: 'PID Service'
+
+# The server and port where the main PID application will be hosted (comment out the port if you do not need to specify)
+app_host: 'localhost'
+app_port: 3000
+
+# The url that the system should direct users to when an inactive PID is requested
+dead_pid_url: 'http://localhost:3000/link/inactive' 
+
+# Redis host and port are required
+redis_host: 'localhost'
+redis_port: 6379
+
+# Limit the number of results that are returned during a PID search
+search_results_limit: 50
+
+# The maximum CSV file size allowed for upload on the Edit PID page (in kb)
+max_upload_csv_size: 10240   #10MB
+
+# The email address that the system uses to send mail (SMTP)
+email_sender_address: 'system@domain.org'
+
+# Smtp settings if we're using that
+smtp_host: 'server.domain.org'
+smtp_port: '587'
+smtp_username: 'user'
+smtp_password: 'password'
