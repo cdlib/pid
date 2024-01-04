@@ -2,7 +2,7 @@
 rebuild_redis_on_startup: true
 
 # DB connection settings 
-db_adapter: 'mysql'
+db_adapter: 'mysql2'
 db_encoding: 'utf8'
 db_host: 'server.domain.org'
 db_port: '3306'
