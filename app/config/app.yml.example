@@ -12,6 +12,7 @@ dead_pid_url: 'http://localhost:3000/link/inactive'
 # Redis host and port are required
 redis_host: 'localhost'
 redis_port: 6379
+redis_use_ssl: 'false'
 
 # Limit the number of results that are returned during a PID search
 search_results_limit: 50
@@ -24,6 +25,6 @@ email_sender_address: 'system@domain.org'
 
 # Smtp settings if we're using that
 smtp_host: 'server.domain.org'
-smtp_port: '587'
+smtp_port: 587
 smtp_username: 'user'
 smtp_password: 'password'
