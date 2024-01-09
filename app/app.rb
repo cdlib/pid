@@ -48,8 +48,9 @@ class PidApp < Sinatra::Base
     }
 
     APP_CONFIG['redis_host'] = 'localhost'
-    APP_CONFIG['redis_port'] = 1000
-    DATABASE_CONFIG['rebuild_redis_on_startup'] = false
+    APP_CONFIG['redis_port'] = '1000'
+    APP_CONFIG['redis_use_ssl'] = 'false'
+    DATABASE_CONFIG['rebuild_redis_on_startup'] = 'false'
 
     TEST_MODE = true
   end    
@@ -117,9 +118,9 @@ class PidApp < Sinatra::Base
   
   # OPTIMIZE - Should this go here?
   # reload the Redis database from the data stored in the DB
-  if DATABASE_CONFIG['rebuild_redis_on_startup']
+  if DATABASE_CONFIG['rebuild_redis_on_startup'].to_s == 'true'
     $stdout.puts "Rebuilding the Redis database for pid resolution"
-    shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
+    shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'] })
     shorty.flushall!
     Pid.all.each do |pid| 
       begin

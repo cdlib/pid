@@ -18,7 +18,7 @@ class TestPid < Minitest::Test
       group: @group
     }
 
-    @shorty = Shortcake.new('pid', host: PidApp::APP_CONFIG['redis_host'], port: PidApp::APP_CONFIG['redis_port'])
+    @shorty = Shortcake.new('pid', { host: PidApp::APP_CONFIG['redis_host'], port: PidApp::APP_CONFIG['redis_port'] })
   end
 
 # -----------------------------------------------------------------------------------------------    
