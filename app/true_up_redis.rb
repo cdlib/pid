@@ -22,12 +22,12 @@ class PidApp
 
     # hostname = "http://#{APP_CONFIG['app_host']}:#{APP_CONFIG['app_port'].to_s}/"
 
-    args = {:adapter => DATABASE_CONFIG['db_adapter'],
-            :host => DATABASE_CONFIG['db_host'],
-            :port => DATABASE_CONFIG['db_port'].to_i,
-            :database => DATABASE_CONFIG['db_name'],
-            :username => DATABASE_CONFIG['db_username'],
-            :password => DATABASE_CONFIG['db_password']}
+    args = {adapter: DATABASE_CONFIG['db_adapter'],
+            host: DATABASE_CONFIG['db_host'],
+            port: DATABASE_CONFIG['db_port'].to_i,
+            database: DATABASE_CONFIG['db_name'],
+            username: DATABASE_CONFIG['db_username'],
+            password: DATABASE_CONFIG['db_password']}
 
     # connect to database
     $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
@@ -43,13 +43,13 @@ class PidApp
     @@shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'], ssl: APP_CONFIG['redis_use_ssl'] })
   
     # process the file of ids, urls
-    Pid.all.each do |pid|
+    $stdout.puts "Caching the PIDs in the Redis DB"
+    Pid.find_each do |pid|
       url = if pid.nil? || pid.deactivated
               APP_CONFIG['dead_pid_url']
             else 
               pid.url.to_s
             end
-      $stdout.puts url
       @@shorty.create_or_update(pid.id.to_s, url)
     end
     
