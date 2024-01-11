@@ -7,7 +7,7 @@ class Shortcake
   VALID_CODE = Regexp.compile(/^[a-zA-Z0-9]{1,12}$/)
   
   def initialize(namespace, redis_config)
-    @redis = Redis.new({ **redis_config, ssl: PidApp::APP_CONFIG['redis_use_ssl'] == 'true' })
+    @redis = Redis.new(redis_config)
     raise ValidNSRequired if !namespace.kind_of?(String) || !namespace.match(VALID_NS)
     @ns = namespace
   end

@@ -39,7 +39,7 @@ class Pid < ActiveRecord::Base
 
   attr_accessor :mutable
 
-  @@shorty = Shortcake.new('pid', { host: PidApp::APP_CONFIG['redis_host'], port: PidApp::APP_CONFIG['redis_port'] })
+  @@shorty = Shortcake.new('pid', { host: PidApp::APP_CONFIG['redis_host'], port: PidApp::APP_CONFIG['redis_port'], ssl: PidApp::APP_CONFIG['redis_use_ssl'] == 'true' })
 
   def revise(params)
     begin
