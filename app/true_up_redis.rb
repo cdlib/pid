@@ -39,8 +39,8 @@ class PidApp
     Dir.glob("models/*.rb").each { |r| require_relative r }
     
     # establish a connection to the REDIS database
-    $stdout.puts "Establishing connection to the Redis database on #{APP_CONFIG['redis_host']}:#{APP_CONFIG['redis_port']}, ssl = #{APP_CONFIG['redis_use_ssl'] == 'true'}"
-    @@shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'], ssl: APP_CONFIG['redis_use_ssl'] == 'true' })
+    $stdout.puts "Establishing connection to the Redis database on #{APP_CONFIG['redis_host']}:#{APP_CONFIG['redis_port']}, ssl = #{APP_CONFIG['redis_use_ssl']}"
+    @@shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'], ssl: APP_CONFIG['redis_use_ssl'] })
   
     # process the file of ids, urls
     Pid.all.each do |pid|
