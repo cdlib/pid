@@ -18,7 +18,7 @@ class PidApp
     DATABASE_CONFIG = YAML.safe_load(ERB.new(File.read(db_config_file)).result)
     SECURITY_CONFIG = YAML.safe_load(ERB.new(File.read(security_config_file)).result)
   
-    # URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+    URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
     # hostname = "http://#{APP_CONFIG['app_host']}:#{APP_CONFIG['app_port'].to_s}/"
 
