@@ -29,16 +29,17 @@ class PidApp
             :username => DATABASE_CONFIG['db_username'],
             :password => DATABASE_CONFIG['db_password']}
 
-    # set database
+    # connect to database
     $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
 
     ActiveRecord::Base.establish_connection(args)
 
-    # # load controllers and models
-    # Dir.glob("controllers/*.rb").each { |r| require_relative r }
+    # load models
+    $stdout.puts "Loading models"
     Dir.glob("models/*.rb").each { |r| require_relative r }
     
     # establish a connection to the REDIS database
+    $stdout.puts "Establishing connection to the Redis database on #{APP_CONFIG['redis_host']}:#{APP_CONFIG['redis_port']}"
     @@shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'] })
   
     # process the file of ids, urls
