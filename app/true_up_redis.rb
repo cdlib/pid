@@ -1,12 +1,7 @@
 $LOAD_PATH.unshift(File.absolute_path(File.join(File.dirname(__FILE__), 'lib/shortcake')))
-require 'rubygems'
-require 'bundler/setup'
-
-require 'yaml'
-require "net/http"
-
-require 'redis'
 require 'shortcake'
+require 'erb'
+require 'yaml'
 require 'active_record'
 
 class PidApp
@@ -14,13 +9,18 @@ class PidApp
   $stdout.puts "Starting true-up of the Redis DB - #{Time.now}"
  
   begin
-    APP_CONFIG = YAML.load_file(File.exist?("conf/app.yml") ? "conf/app.yml" : 'conf/app.yml.example')
-    DATABASE_CONFIG = YAML.load_file(File.exist?("conf/db.yml") ? "conf/db.yml" : 'conf/db.yml.example')
-    SECURITY_CONFIG = YAML.load_file(File.exist?("conf/security.yml") ? "conf/security.yml" : 'conf/security.yml.example')
-  
-    URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
 
-    hostname = "http://#{APP_CONFIG['app_host']}:#{APP_CONFIG['app_port'].to_s}/"
+    app_config_file = File.exist?(File.join(__dir__, 'config', 'app.yml')) ? File.join(__dir__, 'config', 'app.yml') : File.join(__dir__, 'config', 'app.yml.example')
+    db_config_file = File.exist?(File.join(__dir__, 'config', 'db.yml')) ? File.join(__dir__, 'config', 'db.yml') : File.join(__dir__, 'config', 'db.yml.example')
+    security_config_file = File.exist?(File.join(__dir__, 'config', 'security.yml')) ? File.join(__dir__, 'config', 'security.yml') : File.join(__dir__, 'config', 'security.yml.example')
+
+    APP_CONFIG = YAML.safe_load(ERB.new(File.read(app_config_file)).result)
+    DATABASE_CONFIG = YAML.safe_load(ERB.new(File.read(db_config_file)).result)
+    SECURITY_CONFIG = YAML.safe_load(ERB.new(File.read(security_config_file)).result)
+  
+    # URI_REGEX = /[fh]t{1,2}ps?:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?(\/[a-zA-Z0-9\/`~!@#\$%\^&\*\(\)\-_=\+{}\[\]\|\\;:'",<\.>\?])?/
+
+    # hostname = "http://#{APP_CONFIG['app_host']}:#{APP_CONFIG['app_port'].to_s}/"
 
     args = {:adapter => DATABASE_CONFIG['db_adapter'],
             :host => DATABASE_CONFIG['db_host'],
@@ -32,24 +32,22 @@ class PidApp
     # set database
     $stdout.puts "Establishing connection to the #{DATABASE_CONFIG['db_name']} database on #{DATABASE_CONFIG['db_host']}"
 
-    ActiveRecord::Base.establish_connection(DATABASE_CONFIG["activerecord_db"])
+    ActiveRecord::Base.establish_connection(args)
 
     # # load controllers and models
     # Dir.glob("controllers/*.rb").each { |r| require_relative r }
     Dir.glob("models/*.rb").each { |r| require_relative r }
     
     # establish a connection to the REDIS database
-    @@shorty = Shortcake.new('pid', {:host => APP_CONFIG['redis_host'], :port => APP_CONFIG['redis_port']})
+    @@shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'] })
   
     # process the file of ids, urls
     Pid.all.each do |pid| 
-
       url = if pid.nil? || pid.deactivated
               APP_CONFIG['dead_pid_url']
             else 
               pid.url.to_s
             end
-
       @@shorty.create_or_update(pid.id.to_s, url)
     end
     
