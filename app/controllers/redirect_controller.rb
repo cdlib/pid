@@ -2,7 +2,7 @@ require 'uri'
 
 class PidApp < Sinatra::Base
   redis = Redis.new
-  shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'] })
+  shorty = Shortcake.new('pid', { host: PidApp::APP_CONFIG['redis_host'], port: PidApp::APP_CONFIG['redis_port'] })
   CODE_AND_PARTIAL = Regexp.compile(/^\/PID\/([0-9]{1,12})(.*)/)
 
   get %r{/PID/([0-9]{1,12}/.+)} do

@@ -35,7 +35,7 @@ class PidApp < Sinatra::Base
     halt(404) if @group.nil?
   
     begin
-      @group.update(:name => params[:name], :description => params[:description], :host => request.ip)
+      @group.update(name: params[:name], description: params[:description], host: request.ip)
   
       @msg = MESSAGE_CONFIG['group_update_success']
     rescue Exception => e

@@ -104,14 +104,14 @@ class PidApp < Sinatra::Base
     $stdout.puts 'Creating default administrator'
     
     grp = Group.get(SECURITY_CONFIG['default_group_id']) 
-    grp = Group.new({:id => SECURITY_CONFIG['default_group_id'], :name => SECURITY_CONFIG['default_group_name']}).save if grp.nil?
+    grp = Group.new({id: SECURITY_CONFIG['default_group_id'], name: SECURITY_CONFIG['default_group_name']}).save if grp.nil?
 
-    adm = User.new({:login => SECURITY_CONFIG['default_admin_login'],
-                    :name => SECURITY_CONFIG['default_admin_name'],
-                    :password => SECURITY_CONFIG['default_admin_password'],
-                    :email => SECURITY_CONFIG['default_admin_email'],
-                    :group => grp,
-                    :super => true})
+    adm = User.new({login: SECURITY_CONFIG['default_admin_login'],
+                    name: SECURITY_CONFIG['default_admin_name'],
+                    password: SECURITY_CONFIG['default_admin_password'],
+                    email: SECURITY_CONFIG['default_admin_email'],
+                    group: grp,
+                    super: true})
     grp.users << adm
     grp.save
   end
