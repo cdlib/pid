@@ -120,7 +120,7 @@ class PidApp < Sinatra::Base
   # reload the Redis database from the data stored in the DB
   if DATABASE_CONFIG['rebuild_redis_on_startup'].to_s == 'true'
     $stdout.puts "Rebuilding the Redis database for pid resolution"
-    shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'] })
+    shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'], ssl: APP_CONFIG['redis_use_ssl'] == 'true' })
     shorty.flushall!
     Pid.all.each do |pid| 
       begin
