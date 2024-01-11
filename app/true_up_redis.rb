@@ -43,12 +43,13 @@ class PidApp
     @@shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'] })
   
     # process the file of ids, urls
-    Pid.all.each do |pid| 
+    Pid.all.each do |pid|
       url = if pid.nil? || pid.deactivated
               APP_CONFIG['dead_pid_url']
             else 
               pid.url.to_s
             end
+      $stdout.puts url
       @@shorty.create_or_update(pid.id.to_s, url)
     end
     
