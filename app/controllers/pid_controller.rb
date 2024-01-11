@@ -554,7 +554,7 @@ end
           saved = true
         
         rescue Exception => e
-          msg = MESSAGE_CONFIG['pid_update_failure'] 
+          msg = MESSAGE_CONFIG['pid_update_failure']
           msg += e.message
       
           logger.error "#{current_user.login} - #{msg}\n#{e.message}"
@@ -563,14 +563,14 @@ end
       # The URL is an invalid format
       else
         msg = MESSAGE_CONFIG['pid_update_invalid_url']
-      end 
+      end
     
       # The user does not have permission to revise the PID!
     else
       msg = MESSAGE_CONFIG['pid_unauthorized']
     end
     
-    {:saved? => saved, :msg => msg, :pid => pid}
+    { saved?: saved, msg: msg, pid: pid }
   end
   
 # --------------------------------------------------------------------------------------------------------------
@@ -601,7 +601,7 @@ end
 
         # The URL doesn't exist
         else
-          pid = Pid.mint(url: url, 
+          pid = Pid.mint(url: url,
                          username: current_user.login,
                          group: current_user.group,
                          change_category: change_category,
@@ -631,7 +631,7 @@ end
       msg = MESSAGE_CONFIG['pid_mint_invalid_url']
     end 
     
-    {:saved? => saved, :msg => msg, :pid => pid}
+    { saved?: saved, msg: msg, pid: pid }
   end
 
   # TODO: Do this in ActiveRecord

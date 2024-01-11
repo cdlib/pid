@@ -190,16 +190,16 @@ class PidApp < Sinatra::Base
     if !start_date.nil?
       Group.all.each do |group|
         results << {
-          :group => group.id,
-          :modified => Pid.where(group: group)
-                         .where("modified_at >= ? AND modified_at <= ?", start_date, end_date)
-                         .count,
-          :created => Pid.where(group: group)
-                        .where("created_at >= ? AND created_at <= ?", start_date, end_date)
-                        .count,
-          :deactivated => Pid.where(group: group)
-                            .where("modified_at >= ? AND modified_at <= ? AND deactivated = ?", start_date, end_date, true)
-                            .count
+          group: group.id,
+          modified: Pid.where(group: group)
+                       .where("modified_at >= ? AND modified_at <= ?", start_date, end_date)
+                       .count,
+          created: Pid.where(group: group)
+                      .where("created_at >= ? AND created_at <= ?", start_date, end_date)
+                      .count,
+          deactivated: Pid.where(group: group)
+                          .where("modified_at >= ? AND modified_at <= ? AND deactivated = ?", start_date, end_date, true)
+                          .count
         }
       end
     end

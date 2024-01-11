@@ -6,11 +6,7 @@ elasticache_port = '6379'
 
 # Create a Redis client
 # redis = Redis.new(host: elasticache_endpoint, port: elasticache_port)
-redis = Redis.new(
-    :host => 'redis-lktnel.serverless.usw2.cache.amazonaws.com',
-    :port => 6379,
-    :ssl => :true
-  )
+redis = Redis.new(host: elasticache_endpoint, port: elasticache_port, ssl: true)
 
 # Test the connection
 redis.ping

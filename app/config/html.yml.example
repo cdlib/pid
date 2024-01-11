@@ -209,7 +209,7 @@ admin_text_super:
 dead_pid_text:
   "<h3>The resource you requested is no longer available.</h3>
    The issuing agency has either removed the resource from the Web or has moved it without providing a forwarding address.<br /><br />
-   If you know the current location for the resource or have questions, please contact <a href='mailto:dosullivan@ucsd.edu'>Donal O'Sullivan</a>"
+   If you know the current location for the resource or have questions, please contact (insert email)
 
 edit_pid_duplicate_url: 'This URL is also assigned to PID(s) {others} - (last checked on {last_checked})'
 
