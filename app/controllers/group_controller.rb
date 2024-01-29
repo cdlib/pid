@@ -273,8 +273,8 @@ class PidApp < Sinatra::Base
       group.users.each { |user| ret[:users] << user }
       group.maintainers.each { |maintainer| ret[:maintainers] << User.find(maintainer.user_id) }
 
-      User.all.each { |user| ret[:available_users] << user unless group.users.include?(user) }
-      User.all.each { |user| ret[:available_maintainers] << user unless ret[:maintainers].include?(user) }
+      User.find_each { |user| ret[:available_users] << user unless group.users.include?(user) }
+      User.find_each { |user| ret[:available_maintainers] << user unless ret[:maintainers].include?(user) }
     end
 
     ret

@@ -12,6 +12,6 @@ class Group < ActiveRecord::Base
   validates :host, length: { maximum: 30 }
 
   def self.flush!
-    connection.execute('DELETE FROM groups')
+    self.destroy_all
   end
 end

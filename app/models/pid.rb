@@ -143,7 +143,7 @@ class Pid < ActiveRecord::Base
     skip = false
   
     # Make sure the domain isn't designated as one we cannot scan
-    SkipCheck.all.each { |it| skip = true if url.downcase.include?(it.domain.downcase) }
+    SkipCheck.find_each { |it| skip = true if url.downcase.include?(it.domain.downcase) }
   
     if !skip
       begin

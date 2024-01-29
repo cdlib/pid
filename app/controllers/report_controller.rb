@@ -48,77 +48,77 @@ class PidApp < Sinatra::Base
 # ---------------------------------------------------------------
 # Get the invalid URL report
 # ---------------------------------------------------------------
-  get '/report/invalid' do
-    @moved = [].to_json
-    @not_found = [].to_json
-    @error = [].to_json
+  # get '/report/invalid' do
+  #   @moved = [].to_json
+  #   @not_found = [].to_json
+  #   @error = [].to_json
   
-    @groups = Group.all
-    @skips = SkipCheck.all
+  #   @groups = Group.all
+  #   @skips = SkipCheck.all
   
-    @last_edit_invalid = InvalidUrlReport.where.not(last_checked: nil).first
-    @last_updated_invalid = @last_edit_invalid.last_checked.to_s.gsub(/\s.+/, '')
+  #   @last_edit_invalid = InvalidUrlReport.where.not(last_checked: nil).first
+  #   @last_updated_invalid = @last_edit_invalid.last_checked.to_s.gsub(/\s.+/, '')
   
-    @msg = ""
+  #   @msg = ""
   
-    erb :report_invalid
-  end
+  #   erb :report_invalid
+  # end
 
 # ---------------------------------------------------------------
 # Get the list of PIDs with invalid URLs for the specified group
 # ---------------------------------------------------------------
-  post '/report/invalid' do
-    pids = []
-    moved = []
-    not_found = []
-    error = []
-    @msg = ""
+  # post '/report/invalid' do
+  #   pids = []
+  #   moved = []
+  #   not_found = []
+  #   error = []
+  #   @msg = ""
   
-    begin
-      group = Group.find_by(id: params[:groupid])
+  #   begin
+  #     group = Group.find_by(id: params[:groupid])
   
-      if group
-        pids = Pid.includes(:invalid_url_report).where(group: group).where.not(invalid_url_report: nil)
+  #     if group
+  #       pids = Pid.includes(:invalid_url_report).where(group: group).where.not(invalid_url_report: nil)
   
-        pids.each do |pid|
-          begin
-            if pid.invalid_url_report
-              # Check the URLs for each of the PIDs
-              case pid.invalid_url_report.http_code
-              when 300..399
-                moved << pid
-              when 400..499
-                not_found << pid
-              when 500..999
-                error << pid
-              end
-            end
-          rescue Exception => e
-            error << pid
-          end
-        end
-      else
-        @msg += "#{MESSAGE_CONFIG['reports_failure']} - Group not found"
-        logger.error "#{current_user.login} - #{@msg}"
-      end
-    rescue Exception => e
-      @msg += "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
-      @msg += " - #{e.message}" if current_user.super
-      logger.error "#{current_user.login} - #{@msg}: #{e.message}"
-    end
+  #       pids.each do |pid|
+  #         begin
+  #           if pid.invalid_url_report
+  #             # Check the URLs for each of the PIDs
+  #             case pid.invalid_url_report.http_code
+  #             when 300..399
+  #               moved << pid
+  #             when 400..499
+  #               not_found << pid
+  #             when 500..999
+  #               error << pid
+  #             end
+  #           end
+  #         rescue Exception => e
+  #           error << pid
+  #         end
+  #       end
+  #     else
+  #       @msg += "#{MESSAGE_CONFIG['reports_failure']} - Group not found"
+  #       logger.error "#{current_user.login} - #{@msg}"
+  #     end
+  #   rescue Exception => e
+  #     @msg += "#{MESSAGE_CONFIG['reports_failure']} - #{e.message}"
+  #     @msg += " - #{e.message}" if current_user.super
+  #     logger.error "#{current_user.login} - #{@msg}: #{e.message}"
+  #   end
   
-    @moved = moved.to_json
-    @not_found = not_found.to_json
-    @error = error.to_json
+  #   @moved = moved.to_json
+  #   @not_found = not_found.to_json
+  #   @error = error.to_json
   
-    @groups = Group.all
-    @skips = SkipCheck.all
+  #   @groups = Group.all
+  #   @skips = SkipCheck.all
   
-    @last_edit_invalid = InvalidUrlReport.where.not(last_checked: nil).first
-    @last_updated_invalid = @last_edit_invalid.last_checked.to_s.gsub(/\s.+/, '') 
+  #   @last_edit_invalid = InvalidUrlReport.where.not(last_checked: nil).first
+  #   @last_updated_invalid = @last_edit_invalid.last_checked.to_s.gsub(/\s.+/, '') 
 
-    erb :report_invalid
-  end
+  #   erb :report_invalid
+  # end
   
 # ---------------------------------------------------------------
 # Get a list of duplicate PIDs
@@ -145,8 +145,8 @@ class PidApp < Sinatra::Base
       group = Group.find_by(id: params[:groupid])
       if group
         pids = Pid.includes(:duplicate_url_report)
-                 .where(groups: { id: group.id })
-                 .where.not(duplicate_url_reports: { id: nil })
+                  .where(group_id: group.id)
+                  .where.not(duplicate_url_report_id: nil)
   
         dups = {}
         pids.each do |pid|
@@ -160,7 +160,7 @@ class PidApp < Sinatra::Base
       @msg += " - #{e.message}" if current_user.super
       logger.error "#{current_user.login} - #{@msg}: #{e.message}"
     end
-  
+    
     @json = dups.to_json
     @groups = Group.all
     @last_edit = DuplicateUrlReport.where.not(last_checked: nil).first
@@ -188,7 +188,7 @@ class PidApp < Sinatra::Base
     end_date = params[:end_date].empty? ? "#{Time.now}" : "#{params[:end_date]} 23:59:59"
   
     if !start_date.nil?
-      Group.all.each do |group|
+      Group.find_each do |group|
         results << {
           group: group.id,
           modified: Pid.where(group: group)
@@ -236,10 +236,10 @@ class PidApp < Sinatra::Base
         prior = pid.pid_versions[-2]
   
         # Skip items that only had their note changed!
-        if pid.url != prior.url || pid.deactivated != prior.deactivated || pid.group_id != prior.group_id
+        if pid.url != prior.url || pid.deactivated != prior.deactivated || pid.group_id != prior.group
           types = ''
           types = 'URL change<br />' if pid.url != prior.url
-          types += "Moved from group #{prior.group_id}<br/>" if pid.group_id != prior.group_id
+          types += "Moved from group #{prior.group}<br/>" if pid.group_id != prior.group
           types += 'deactivation' if pid.deactivated != prior.deactivated && pid.deactivated
   
           # If there is only 1 version then this was minted during the time period specified

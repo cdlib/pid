@@ -539,7 +539,7 @@ end
   
           # If there is already a PID out there using that URL
           if !dups.empty? 
-            msg = MESSAGE_CONFIG['pid_duplicate_url_warn'].gsub('{?}', "<a href='#{hostname}link/#{dups[0]}'>#{dups[0]}</a>")
+            msg = MESSAGE_CONFIG['pid_duplicate_url_warn'].gsub('{?}', "<a href='#{hostname}/link/#{dups[0]}'>#{dups[0]}</a>")
           
           else
             # Check to see if the PID's URL is returning an HTTP 200
@@ -597,7 +597,7 @@ end
             interested.save if pid.group != current_user.group
           end
           
-          msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}link/#{pid.id}'>#{pid.id}</a>")
+          msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}/link/#{pid.id}'>#{pid.id}</a>")
 
         # The URL doesn't exist
         else
