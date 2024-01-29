@@ -12,6 +12,6 @@ class Maintainer < ActiveRecord::Base
   belongs_to :user
   
   def self.flush!
-    connection.execute('DELETE FROM maintainers')
+    self.destroy_all
   end
 end

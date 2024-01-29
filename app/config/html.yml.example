@@ -261,7 +261,7 @@ report_modifications_text: "Click on the PID number to view the modification det
 reports_text: 
   "Please select on of the following reports below:
   <ul>
-    <li><a href='/report/invalid' class='letterpress'>PIDs with invalid URLs</a></li>
+    <li>PIDs with invalid URLs (DEPRECATED)</li>
     <li><a href='/report/duplicate' class='letterpress'>PIDs with duplicate URLs</a></li>
     <li><a href='/report/stats' class='letterpress'>PID maintenance statistics</a></li>
     <li><a href='/report/mods' class='letterpress'>PID modification details</a></li>

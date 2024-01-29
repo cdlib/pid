@@ -116,21 +116,6 @@ class PidApp < Sinatra::Base
     grp.save
   end
   
-  # OPTIMIZE - Should this go here?
-  # reload the Redis database from the data stored in the DB
-  if DATABASE_CONFIG['rebuild_redis_on_startup'].to_s == 'true'
-    $stdout.puts "Rebuilding the Redis database for pid resolution"
-    shorty = Shortcake.new('pid', { host: APP_CONFIG['redis_host'], port: APP_CONFIG['redis_port'], ssl: APP_CONFIG['redis_use_ssl'] })
-    shorty.flushall!
-    Pid.all.each do |pid| 
-      begin
-        shorty.create(pid.id.to_s, (pid.deactivated ? APP_CONFIG['dead_pid_url'] : pid.url))
-      rescue Exception => e
-        $stdout.puts "something happened while rebuilding the Redis DB for PID #{pid.id}: #{e.message}"
-      end
-    end
-  end
-  
   helpers do
     include Rack::Utils
     alias_method :h, :escape_html
@@ -141,7 +126,7 @@ class PidApp < Sinatra::Base
     end
     
     def hostname
-      "#{request.scheme.to_s}://#{APP_CONFIG['app_host']}#{':' + APP_CONFIG['app_port'].to_s unless APP_CONFIG['app_port'].nil? }/"
+      "#{request.scheme.to_s}://#{APP_CONFIG['app_host']}#{':' + APP_CONFIG['app_port'].to_s unless APP_CONFIG['app_port'].nil? }"
     end
   
 
@@ -237,6 +222,6 @@ class PidApp < Sinatra::Base
     mail.deliver!
   end
 
-  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}link/inactive" : APP_CONFIG['dead_pid_url']
+  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}/link/inactive" : APP_CONFIG['dead_pid_url']
 end
 

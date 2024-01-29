@@ -14,7 +14,7 @@ class PidApp < Sinatra::Base
     exists = false
   
     # Check if the domain specified is already part of another skip check or if another skip check contains the specified domain.
-    SkipCheck.all.each do |it|
+    SkipCheck.find_each do |it|
       exists = true if params[:domain].downcase.include?(it.domain) || it.domain.include?(params[:domain].downcase)
     end
   

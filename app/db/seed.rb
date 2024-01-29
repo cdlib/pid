@@ -105,7 +105,7 @@ $stdout.puts ".... #{i} out of #{j} groups added to the database."
 $stdout.puts '........ see errors above for information about the groups that could not be added.' if i != j
 
 #DEBUG - view loaded group records
-Group.all.each { |group| $stdout.puts "added - #{group.id} - #{group.description}" } if debug
+Group.find_each { |group| $stdout.puts "added - #{group.id} - #{group.description}" } if debug
 
 
 $stdout.puts ''
@@ -143,7 +143,7 @@ $stdout.puts '........ see errors above for information about the users that cou
 
 
 #DEBUG - view loaded user records
-User.all.each { |user| $stdout.puts "........ added - #{user.id} - #{user.name}" } if debug
+User.find_each { |user| $stdout.puts "........ added - #{user.id} - #{user.name}" } if debug
 
 
 $stdout.puts ''
@@ -175,7 +175,7 @@ end
 $stdout.puts ".... #{i} out of #{j} maintainers added to the database."
 $stdout.puts '........ see errors above for information about the maintainers that could not be added.' if i != j
 
-Maintainer.all.each { |maintainer| $stdout.puts "........ made #{maintainer.user.login} a maintainer of #{maintainer.group.id}" } if debug
+Maintainer.find_each { |maintainer| $stdout.puts "........ made #{maintainer.user.login} a maintainer of #{maintainer.group.id}" } if debug
 
 
 $stdout.puts ''
@@ -289,11 +289,11 @@ $stdout.puts ".... #{i} new PIDs added and #{j} historical PID records (out of #
 $stdout.puts "........ see #{k - (i + j)} errors above for information about the users that could not be added." if (i + j) != k
 
 #DEBUG - view loaded change categories
-ChangeCategory.all.each { |cat| $stdout.puts "added - change category: #{cat.id}" } if debug
+ChangeCategory.find_each { |cat| $stdout.puts "added - change category: #{cat.id}" } if debug
 
 #DEBUG - view loaded user records
 if debug
-  Pid.all.each do |pid|
+  Pid.find_each do |pid|
     $stdout.puts "added - #{pid.id} - #{pid.url} : #{pid.modified_at} - #{pid.username} - #{pid.change_category.inspect}"
     pid.pid_versions.each do |ver|
       $stdout.puts "      history - #{ver.url} : #{ver.created_at} - #{ver.username} - #{ver.change_category.inspect}"

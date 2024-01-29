@@ -77,6 +77,6 @@ class User < ActiveRecord::Base
   end
 
   def self.flush!
-    connection.execute('DELETE FROM users')
+    self.destroy_all
   end
 end

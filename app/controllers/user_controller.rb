@@ -167,7 +167,7 @@ class PidApp < Sinatra::Base
         usr.save
     
         # Create the reset URL
-        url = "#{hostname}user/reset?n=#{usr.id}&c=#{usr.reset_code}"
+        url = "#{hostname}/user/reset?n=#{usr.id}&c=#{usr.reset_code}"
         # Get the notification email settings
         cc = SECURITY_CONFIG['password_reset_email_cc']
         bc = SECURITY_CONFIG['password_reset_email_bcc']
@@ -214,7 +214,7 @@ class PidApp < Sinatra::Base
       @super = current_user.super
   
       @maintainers = {}
-      Maintainer.all.each do |maintainer|
+      Maintainer.find_each do |maintainer|
         # If this isn't the user's main group and the user is a maintainer of the group, add its users
         if maintainer.user == user && maintainer.group != current_user.group && !current_user.super
           User.where(group: maintainer.group).each { |u| @users << u }

@@ -9,6 +9,6 @@ class SkipCheck < ActiveRecord::Base
   validates :group, length: { maximum: 10 }, format: { with: /[A-Z]+/ }
   
   def self.flush!
-    connection.execute('DELETE FROM skip_checks')
+    self.destroy_all
   end
 end

@@ -26,6 +26,6 @@ class Interested < ActiveRecord::Base
   end
 
   def self.flush!
-    connection.execute('DELETE FROM interesteds')
+    self.destroy_all
   end
 end

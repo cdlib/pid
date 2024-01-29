@@ -60,18 +60,20 @@
   // Get the group id for download
   var group = document.forms[0].elements["groupid"];
   var groupid = group.options[group.selectedIndex].value;
-  
+
   var json = $.parseJSON('<%= @json.gsub("'", '%27').gsub("\\", '%5C') %>');
-  
+  var hostname = '<%= hostname %>';
+
   // Add a line to the table for each item in the JSON
   var i = 1;
   $.each(json, function(url, pids) {
-      
+    var links = pids.split(",").map(pid => '<a href="' + hostname + '/link/' + pid + '" style="text-decoration: underline;" target="_blank">' + pid + '</a>')
+    
     $("table tr:last").after("<tr>" +
                               "<td>" + i.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ")</td>" + 
                               "<td><a href=\"" + url + "\" target=\"_blank\" class=\"underline\" title=\"" + url + "\">" +
                                             ((url.length > 80) ? url.substring(0, 79) + " ..." : url) + "</td>" +
-                              "<td>" + pids.replace(/%27/g, '') + "</td>" +
+                              "<td>" + links.join(', ') + "</td>" +
                              // "<td>" + '<%= @last_updated %>' + "</td>" +
                              "</tr>");
     i++;

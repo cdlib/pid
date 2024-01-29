@@ -41,7 +41,8 @@ DuplicateUrlReport.delete_all
 #Reset auto increment value to 0 by truncating table
 ActiveRecord::Base.connection.execute("ALTER TABLE #{DUP_URL_REPORTS_TABLE} AUTO_INCREMENT=1")
 
-@pid.all.each do |p|
+@pid = Pid.select("GROUP_CONCAT(DISTINCT id) AS pid_ids, url").where("deactivated = 0").group('url').having("count(url) > 1")
+@pid.find_each do |p|
     
     pidId_arr = p.pid_ids.split(",")
     pidUrls = []
@@ -49,7 +50,7 @@ ActiveRecord::Base.connection.execute("ALTER TABLE #{DUP_URL_REPORTS_TABLE} AUTO
     # Display each value to the console.
     pidId_arr.each do |id|
        
-      pidUrls << "<a href='#{hostname}link/#{id}'>#{id}</a>"   
+      pidUrls << "<a href='#{hostname}/link/#{id}'>#{id}</a>"   
     end
 	
 

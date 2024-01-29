@@ -9,6 +9,6 @@ class InvalidUrlReport < ActiveRecord::Base
   validates :http_code, presence: true
   
   def self.flush!
-    connection.execute('DELETE FROM invalid_url_reports')
+    self.destroy_all
   end
 end
