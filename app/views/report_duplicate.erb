@@ -100,7 +100,8 @@
         max_pids = pids.length;
       }
       
-      pid_vals = pids.replace(/<a href=%27http:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?\/link\/[0-9]+%27>/g, '').replace(/<\/a>/g, '').split(',')
+      // pid_vals = pids.replace(/<a href=%27http:\/\/[a-zA-Z0-9\-_\.]+(:[0-9]+)?\/link\/[0-9]+%27>/g, '').replace(/<\/a>/g, '').split(',')
+      pid_vals = pids.split(',').map(pid => hostname + '/link/' + pid)
 
       $.each(pid_vals, function(idx, pid) {
         lines += pid + ',';
