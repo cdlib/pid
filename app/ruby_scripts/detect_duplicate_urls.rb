@@ -41,7 +41,7 @@ class PidApp
   # Delete all of the old report results
   $stdout.puts "Deleting old duplicate records - #{Time.now}"
   DuplicateUrlReport.flush!
-  connection.execute("ALTER TABLE duplicate_url_reports AUTO_INCREMENT = 1")
+  ActiveRecord::Base.connection.execute("ALTER TABLE duplicate_url_reports AUTO_INCREMENT = 1")
 
   # Add the DuplicateUrlReport records
   @pid = Pid.select("GROUP_CONCAT(DISTINCT id) AS pid_ids, url").where("deactivated = 0").group('url').having("count(url) > 1")
