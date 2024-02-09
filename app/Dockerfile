@@ -1,23 +1,25 @@
 FROM ruby:3.2.2
 
 # Install system dependencies
-RUN apt-get update -qq && apt-get install -y \
-    libsqlite3-dev \
-    sqlite3 \
-    wget \
-    gnupg \
-    unzip \
-    libnss3 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libatspi2.0-0 \
-    libgtk-3-0 \
-    libx11-xcb1 \
-    libdrm2 \
-    libgbm1 \
-    libasound2 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -qq && \
+    apt-get install -y \
+        libsqlite3-dev \
+        sqlite3 \
+        wget \
+        gnupg \
+        unzip \
+        libnss3 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libatspi2.0-0 \
+        libgtk-3-0 \
+        libx11-xcb1 \
+        libdrm2 \
+        libgbm1 \
+        libasound2 \
+    && apt-get -y upgrade && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Refer to this site for version info: https://googlechromelabs.github.io/chrome-for-testing/#stable
 ARG CHROME_URL=https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chrome-linux64.zip
