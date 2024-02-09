@@ -126,7 +126,7 @@ class PidApp < Sinatra::Base
     end
     
     def hostname
-      "#{request.scheme.to_s}://#{APP_CONFIG['app_host']}#{':' + APP_CONFIG['app_port'].to_s unless APP_CONFIG['app_port'].nil? }"
+      "#{request.scheme.to_s}://#{APP_CONFIG['app_host']}"
     end
   
 
