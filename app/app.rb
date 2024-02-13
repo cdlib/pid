@@ -165,6 +165,8 @@ class PidApp < Sinatra::Base
     def get_search_defaults(params)
       defaults = {:pid_min => 0, :pid_max => 0, :modified_low => '', :modified_high => '', :created_low => '', :created_high => '',
                     :accessed_low => '', :accessed_high => '', :users => [], :group => nil}
+
+      return defaults unless logged_in?
     
       args = {}
       args[:group] = current_user.group unless current_user.super || current_user.read_only
