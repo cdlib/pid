@@ -17,6 +17,9 @@ RUN apt-get update -qq && \
         libdrm2 \
         libgbm1 \
         libasound2 \
+        libde265-0 \
+        libgnutls30 \
+        linux-libc-dev \
     && apt-get -y upgrade && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
