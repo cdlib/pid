@@ -43,13 +43,14 @@ class Pid < ActiveRecord::Base
 
   def revise(params)
     begin
-      current_attributes = self.attributes.transform_keys(&:to_sym)
+      current_attributes = self.attributes.clone.transform_keys(&:to_sym)
       # If we're seeding, it's okay for the modified_at to come through as a param
       # When merging, the argument hash overrides values for matching keys in current_attributes hash.
+      params[:notes] = params[:notes].empty? ? nil : params[:notes]
       if params[:is_seed]
         params = current_attributes.merge(params)
       else
-        params = current_attributes.merge(params).merge({ notes: nil }).except(:modified_at, :created_at)
+        params = current_attributes.merge({ notes: nil}.merge(params)).except(:modified_at, :created_at)
       end
       
       Pid.create_or_update(params)
