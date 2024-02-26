@@ -46,7 +46,11 @@ class Pid < ActiveRecord::Base
       current_attributes = self.attributes.clone.transform_keys(&:to_sym)
       # If we're seeding, it's okay for the modified_at to come through as a param
       # When merging, the argument hash overrides values for matching keys in current_attributes hash.
-      params[:notes] = params[:notes].empty? ? nil : params[:notes]
+
+      if !params[:notes].nil? && params[:notes].empty?
+        params[:notes] = nil
+      end
+      
       if params[:is_seed]
         params = current_attributes.merge(params)
       else
