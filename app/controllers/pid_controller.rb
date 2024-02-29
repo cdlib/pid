@@ -151,7 +151,7 @@ class PidApp < Sinatra::Base
             # If the PID was found and it's in the same group as the user or the user is an admin
             if !pid.nil?
               # Attempt to revise the PID
-              revision = revise_pid(pid, (url.nil?) ? pid.url : url, 'Batch Modified', note, current_user.group, (url.nil?) ? "off" : "on")
+              revision = revise_pid(pid, (url.nil?) ? pid.url : url, 'Batch Modified', note, current_user.group, (url.nil?) ? 'off' : 'on')
   
               # If the revision was successful, add it to the list; otherwise, record it as a failure
               if revision[:saved?]
@@ -522,7 +522,7 @@ end
       if url =~ URI_REGEX || url.nil?
         begin
           # Notify any interested parties if the URL changed or the PID was deactivated
-          notify_interested_parties(pid, url) if (pid.url != url || active != "on")
+          notify_interested_parties(pid, url) if (pid.url != url || active != 'on')
           
           pid.revise(url: (url.nil?) ? pid.url : url,
                      deactivated: active != 'on',
@@ -531,7 +531,7 @@ end
                      group: (group.nil?) ? pid.group : group,
                      username: current_user.login,
                      modified_at: Time.now,
-                     dead_pid_url: DEAD_PID_URL,
+                     dead_pid_url: (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}/link/inactive" : APP_CONFIG['dead_pid_url'],
                      host: request.ip)
                      
           # Only search for duplicates if the URL has changed!

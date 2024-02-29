@@ -33,7 +33,7 @@ Capybara.register_driver :chrome_headless do |app|
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
 
-Capybara.server_port = 3001
+Capybara.server_port = 3000
 Capybara.app_host = "http://localhost:#{Capybara.server_port}" 
 Capybara.default_driver = :chrome_headless
 Capybara.javascript_driver = :chrome_headless
