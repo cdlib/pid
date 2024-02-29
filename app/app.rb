@@ -52,6 +52,11 @@ class PidApp < Sinatra::Base
     APP_CONFIG['redis_use_ssl'] = 'false'
     DATABASE_CONFIG['rebuild_redis_on_startup'] = 'false'
 
+    # ENV variables are not loaded for some reason and these two are needed to define the dead_pid_url
+    # which is crucial for the PID Controller tests.
+    APP_CONFIG['app_host'] = 'localhost' 
+    APP_CONFIG['app_port'] = '3000'
+
     TEST_MODE = true
   end    
 
@@ -224,6 +229,5 @@ class PidApp < Sinatra::Base
     mail.deliver!
   end
 
-  DEAD_PID_URL = (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}/link/inactive" : APP_CONFIG['dead_pid_url']
 end
 

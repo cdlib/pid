@@ -1,6 +1,31 @@
-FROM ruby:3.2.2
+FROM ruby:3.2.2 AS base
 
-# Install system dependencies
+WORKDIR /app
+
+RUN apt-get update -qq && apt-get upgrade -y
+
+COPY Gemfile Gemfile.lock ./
+
+RUN bundle config set --local without 'test' && \
+    bundle install
+
+FROM ruby:3.2.2 AS final
+
+WORKDIR /app
+
+COPY --from=base /usr/local/bundle /usr/local/bundle
+
+COPY . .
+
+EXPOSE 80
+
+CMD ["bundle", "exec", "puma", "-p", "80"]
+
+FROM ruby:3.2.2 AS test
+
+WORKDIR /app
+
+# Download dependencies for testing
 RUN apt-get update -qq && \
     apt-get install -y \
         libsqlite3-dev \
@@ -19,8 +44,8 @@ RUN apt-get update -qq && \
         libasound2 \
         libde265-0 \
         libgnutls30 \
-        linux-libc-dev \
-    && apt-get -y upgrade && \
+        linux-libc-dev && \
+    apt-get -y upgrade && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -47,14 +72,10 @@ RUN mkdir -p $CHROMEDRIVER_INSTALL_DIR \
 # Set the PATH to include Chrome and Chromedriver
 ENV PATH=$CHROME_INSTALL_DIR/chrome-linux64:$CHROMEDRIVER_INSTALL_DIR/chromedriver-linux64:$PATH
 
-WORKDIR /usr/src/app
-
 COPY Gemfile Gemfile.lock ./
 
-RUN bundle install
+RUN bundle install --with test
 
 COPY . .
 
-EXPOSE 80
-
-CMD ["bundle", "exec", "puma", "-p", "80"]
+RUN ["rake", "test"]

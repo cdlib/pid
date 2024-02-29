@@ -1,16 +1,28 @@
 version: '3'
 services:
+  test:
+    platform: linux/amd64
+    build:
+      context: ./app  # Build context is the app directory
+      target: test
+    depends_on:
+      - redis # Ensure the Redis container is started first
+    env_file:
+      - .env  # Load environment variables from the .env file
+
   app:
     platform: linux/amd64
     build:
       context: ./app  # Build context is the app directory
+      target: final
     ports:
-      - "80:80"  # Map host port to container port
+      - "80:80"
     depends_on:
-      - redis  # Ensure the Redis container is started first
+      - test # Ensure that the tests pass first
+      - redis # Ensure the Redis container is started first
     env_file:
       - .env  # Load environment variables from the .env file
-      
+
   redis:
     build:
       context: ./redis  # Build context is the redis directory
