@@ -9,7 +9,7 @@ COPY Gemfile Gemfile.lock ./
 RUN bundle config set --local without 'test' && \
     bundle install
 
-FROM ruby:3.2.2 AS final
+FROM ruby:3.2.2-bookworm AS final
 
 WORKDIR /app
 
