@@ -1,19 +1,33 @@
-FROM ruby:3.2.2 AS base
+FROM ruby:3.2.2-slim-bullseye AS base
+
+RUN apt-get update -qq \
+    && apt-get install -y \
+        default-libmysqlclient-dev \
+    && apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM base AS dependencies
+
+RUN apt-get update -qq \
+    && apt-get install -y \
+        build-essential \
+    && apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-RUN apt-get update -qq && apt-get upgrade -y
 
 COPY Gemfile Gemfile.lock ./
 
 RUN bundle config set --local without 'test' && \
     bundle install
 
-FROM ruby:3.2.2-bookworm AS final
+FROM base AS final
+
+COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 
 WORKDIR /app
-
-COPY --from=base /usr/local/bundle /usr/local/bundle
 
 COPY . .
 
@@ -21,13 +35,13 @@ EXPOSE 80
 
 CMD ["bundle", "exec", "puma", "-p", "80"]
 
-FROM ruby:3.2.2 AS test
-
-WORKDIR /app
+FROM ruby:3.2.2-slim-bullseye AS test
 
 # Download dependencies for testing
-RUN apt-get update -qq && \
-    apt-get install -y \
+RUN apt-get update -qq \
+    && apt-get install -y \
+        build-essential \
+        default-libmysqlclient-dev \
         libsqlite3-dev \
         sqlite3 \
         wget \
@@ -44,10 +58,11 @@ RUN apt-get update -qq && \
         libasound2 \
         libde265-0 \
         libgnutls30 \
-        linux-libc-dev && \
-    apt-get -y upgrade && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+        linux-libc-dev \
+        curl \
+    && apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Refer to this site for version info: https://googlechromelabs.github.io/chrome-for-testing/#stable
 ARG CHROME_URL=https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6045.105/linux64/chrome-linux64.zip
@@ -72,9 +87,12 @@ RUN mkdir -p $CHROMEDRIVER_INSTALL_DIR \
 # Set the PATH to include Chrome and Chromedriver
 ENV PATH=$CHROME_INSTALL_DIR/chrome-linux64:$CHROMEDRIVER_INSTALL_DIR/chromedriver-linux64:$PATH
 
+WORKDIR /app
+
 COPY Gemfile Gemfile.lock ./
 
-RUN bundle install --with test
+RUN bundle config set --local with 'test' && \
+    bundle install
 
 COPY . .
 
