@@ -155,7 +155,10 @@ class Pid < ActiveRecord::Base
         # Test to make sure this is a valid URL
         uri = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = uri.scheme == 'https'
+        http.use_ssl = (uri.scheme == 'https')
+        http.open_timeout = 5 # seconds
+        http.read_timeout = 5 # seconds
+
         request = Net::HTTP::Get.new(uri)
         response = http.request(request)
 
@@ -172,7 +175,8 @@ class Pid < ActiveRecord::Base
         response.code.to_i
   
       rescue Exception => e
-        $stdout.puts "Failure verifying URL #{e.message} - #{url}"
+        msg = "Failure verifying URL #{e.message} - #{url}"
+        $stdout.puts msg
         404
       end
     else
