@@ -160,23 +160,31 @@ class Pid < ActiveRecord::Base
         http.read_timeout = 5 # seconds
 
         request = Net::HTTP::Get.new(uri)
-        response = http.request(request)
 
-        if response.code.to_i >= 300 && response.code.to_i != 302
-          self.invalid_url_report = InvalidUrlReport.create(http_code: response.code.to_i, last_checked: Time.now)
-        else
-          self.invalid_url_report = nil
+        begin
+          response = http.request(request)
+
+          if response.code.to_i >= 300 && response.code.to_i != 302
+            self.invalid_url_report = InvalidUrlReport.create(http_code: response.code.to_i, last_checked: Time.now)
+          else
+            self.invalid_url_report = nil
+          end
+
+          return_val = response.code.to_i
+          
+        rescue Net::OpenTimeout, Net::ReadTimeout
+          self.invalid_url_report = InvalidUrlReport.create(http_code: 504, last_checked: Time.now)
+          
+          return_val = 504
         end
-  
+
         self.mutable = true
         self.save
         self.mutable = false
   
-        response.code.to_i
-  
+        return_val
       rescue Exception => e
-        msg = "Failure verifying URL #{e.message} - #{url}"
-        $stdout.puts msg
+        $stdout.puts "Failure verifying URL #{e.message} - #{url}"
         404
       end
     else

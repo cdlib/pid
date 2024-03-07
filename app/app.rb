@@ -156,11 +156,11 @@ class PidApp < Sinatra::Base
     end
 
 # ---------------------------------------------------------------------------------------------------
-# Check Redis to see if the specified PID has the same URL as another PID
+# Find other PIDs with the same URL as the given PID
 # ---------------------------------------------------------------------------------------------------        
-    def hasDuplicate(url, pid)
+    def findDuplicate(url, pid_id)
       duplicate_ids = Pid.where(url: url).pluck(:id)
-      duplicate_ids.delete(pid) if duplicate_ids.any?
+      duplicate_ids.delete(pid_id) if duplicate_ids.any?
       duplicate_ids
     end
     

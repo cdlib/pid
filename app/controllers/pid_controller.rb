@@ -132,14 +132,14 @@ class PidApp < Sinatra::Base
   
               # If we successfully minted the PID
               if result[:saved?]
-                @mints << result[:pid]
+                @mints << result[:pid_payload]
               else
                 if result[:msg].include?(MESSAGE_CONFIG['pid_mint_failure'])
                   @failures << "URL: #{url} - #{result[:msg]}"
                 elsif result[:msg] == MESSAGE_CONFIG['pid_mint_invalid_url']
                   @failures << "URL: #{url} - #{result[:msg]}"
                 else
-                  @interested << result[:pid]
+                  @interested.concat(result[:pid_payload])
                 end
               end
             else
@@ -343,9 +343,9 @@ post '/link' do
       # If we successfully minted the PID
       if result[:saved?]
         if result[:msg] == MESSAGE_CONFIG['pid_mint_success']
-          @successes << result[:pid]
+          @successes << result[:pid_payload]
         else
-          @dead_urls << result[:pid]
+          @dead_urls << result[:pid_payload]
         end
 
       # We were unable to mint the PID
@@ -355,7 +355,7 @@ post '/link' do
         elsif result[:msg] == MESSAGE_CONFIG['pid_mint_invalid_url']
           @failures[line.strip] = result[:msg]
         else
-          @interested << result[:pid]
+          @interested.concat(result[:pid_payload])
         end
       end
 
@@ -535,8 +535,9 @@ end
                      host: request.ip)
                      
           # Only search for duplicates if the URL has changed!
-          dups = (url != pid.url) ? hasDuplicate(url, pid.id) : []
-  
+          # pid is still the old object with the old URL.
+          dups = (url != pid.url) ? findDuplicate(url, pid.id) : []
+
           # If there is already a PID out there using that URL
           if !dups.empty? 
             msg = MESSAGE_CONFIG['pid_duplicate_url_warn'].gsub('{?}', "<a href='#{hostname}/link/#{dups[0]}'>#{dups[0]}</a>")
@@ -584,20 +585,37 @@ end
     # If the URL is even valid
     if url =~ URI_REGEX
       begin
-        dups = hasDuplicate(url, nil)
+        dups = findDuplicate(url, nil)
         
         if !dups.empty?
-          pid = Pid.find_by(id: dups[0])
-  
-          # If the Interested Party does not already exist
-          if Interested.find_by(pid: pid, group: current_user.group).nil?
-            interested = Interested.new(pid: pid, group: current_user.group)
-  
-            # Don't save the Interested record if the user's group already owns the PID!!!
-            interested.save if pid.group != current_user.group
+          # pid = Pid.find_by(id: dups[0])
+          pids = Pid.where(id: dups).to_a
+
+          msgs = []
+          pids.each do |pid|
+            # If the Interested Party does not already exist
+            if Interested.find_by(pid: pid, group: current_user.group).nil?
+              interested = Interested.new(pid: pid, group: current_user.group)
+    
+              # Don't save the Interested record if the user's group already owns the PID!!!
+              interested.save if pid.group != current_user.group
+            end
+            
+            msgs << MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}/link/#{pid.id}'>#{pid.id}</a>")
           end
+
+          msg = msgs.join('\n')
+
+          return { saved?: saved, msg: msg, pid_payload: pids }
+          # # If the Interested Party does not already exist
+          # if Interested.find_by(pid: pid, group: current_user.group).nil?
+          #   interested = Interested.new(pid: pid, group: current_user.group)
+  
+          #   # Don't save the Interested record if the user's group already owns the PID!!!
+          #   interested.save if pid.group != current_user.group
+          # end
           
-          msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}/link/#{pid.id}'>#{pid.id}</a>")
+          # msg = MESSAGE_CONFIG['pid_duplicate_url'].gsub('{?}', "<a href='#{hostname}/link/#{pid.id}'>#{pid.id}</a>")
 
         # The URL doesn't exist
         else
@@ -631,7 +649,7 @@ end
       msg = MESSAGE_CONFIG['pid_mint_invalid_url']
     end 
     
-    { saved?: saved, msg: msg, pid: pid }
+    { saved?: saved, msg: msg, pid_payload: pid }
   end
 
   # TODO: Do this in ActiveRecord
