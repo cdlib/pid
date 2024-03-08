@@ -186,6 +186,7 @@ class PidApp < Sinatra::Base
 # Process the PIDs search form
 # ---------------------------------------------------------------  
   post '/link/search' do
+    puts "params: #{params}"
     results = []
     @interesteds = []
   
@@ -355,7 +356,11 @@ post '/link' do
         elsif result[:msg] == MESSAGE_CONFIG['pid_mint_invalid_url']
           @failures[line.strip] = result[:msg]
         else
-          @interested.concat(result[:pid_payload])
+          if result[:pid_payload].is_a?(Array)
+            @interested.concat(result[:pid_payload])
+          else
+            @interested << result[:pid_payload]
+          end
         end
       end
 
@@ -524,40 +529,48 @@ end
           # Notify any interested parties if the URL changed or the PID was deactivated
           notify_interested_parties(pid, url) if (pid.url != url || active != 'on')
           
-          pid.revise(url: (url.nil?) ? pid.url : url,
-                     deactivated: active != 'on',
-                     change_category: (change_category.nil?) ? pid.change_category : change_category,
-                     notes: (notes.nil?) ? pid.notes : notes,
-                     group: (group.nil?) ? pid.group : group,
-                     username: current_user.login,
-                     modified_at: Time.now,
-                     dead_pid_url: (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}/link/inactive" : APP_CONFIG['dead_pid_url'],
-                     host: request.ip)
+          pid_id = pid.id
+          
+          revised_pid = pid.revise(
+            url: (url.nil?) ? pid.url : url,
+            deactivated: active != 'on',
+            change_category: (change_category.nil?) ? pid.change_category : change_category,
+            notes: (notes.nil?) ? pid.notes : notes,
+            group: (group.nil?) ? pid.group : group,
+            username: current_user.login,
+            modified_at: Time.now,
+            dead_pid_url: (APP_CONFIG['dead_pid_url'].nil?) ? "#{hostname}/link/inactive" : APP_CONFIG['dead_pid_url'],
+            host: request.ip
+          )
                      
           # Only search for duplicates if the URL has changed!
           # pid is still the old object with the old URL.
-          dups = (url != pid.url) ? findDuplicate(url, pid.id) : []
-
-          # If there is already a PID out there using that URL
-          if !dups.empty? 
-            msg = MESSAGE_CONFIG['pid_duplicate_url_warn'].gsub('{?}', "<a href='#{hostname}/link/#{dups[0]}'>#{dups[0]}</a>")
+          dups = (revised_pid.url != pid.url) ? findDuplicate(url, pid_id) : []
           
+          msgs = []
+          # If there is already a PID out there using that URL
+          if !dups.empty?
+            dup_links = []
+            dups.each do |dup|
+              dup_links << "<a href='#{hostname}/link/#{dup}'>#{dup}</a>"
+            end
+            msgs << MESSAGE_CONFIG['pid_duplicate_url_warn'].gsub('{?}', "[#{dup_links.join(', ')}]")
+          end
+
+          # Check to see if the PID's URL is returning an HTTP 200
+          status_code = revised_pid.verify_url
+          if status_code >= 400
+            msgs << MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', status_code.to_s)
           else
-            # Check to see if the PID's URL is returning an HTTP 200
-            good_url = pid.verify_url
-            if good_url >= 400
-              msg = MESSAGE_CONFIG['pid_revise_dead_url'].gsub('{?}', good_url.to_s)
-            else
-              msg = MESSAGE_CONFIG['pid_update_success']
-            end  
+            msgs << MESSAGE_CONFIG['pid_update_success']
           end  
           
+          msg = msgs.join('\n')
           saved = true
         
         rescue Exception => e
           msg = MESSAGE_CONFIG['pid_update_failure']
           msg += e.message
-      
           logger.error "#{current_user.login} - #{msg}\n#{e.message}"
         end
       

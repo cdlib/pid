@@ -20,8 +20,9 @@ end
 class Pid < ActiveRecord::Base
   has_many :pid_versions
   has_many :interesteds
+  has_one :invalid_url_report
   belongs_to :group
-  belongs_to :invalid_url_report, optional: true
+  # belongs_to :invalid_url_report, optional: true
   belongs_to :duplicate_url_report, optional: true
 
   validates :deactivated, inclusion: { in: [true, false] } # TODO: Default value false, index, db migration?
@@ -143,53 +144,46 @@ class Pid < ActiveRecord::Base
       end
     end
   end
-  
+
   def verify_url
-    skip = false
-  
     # Make sure the domain isn't designated as one we cannot scan
-    SkipCheck.find_each { |it| skip = true if url.downcase.include?(it.domain.downcase) }
-  
-    if !skip
-      begin
-        # Test to make sure this is a valid URL
-        uri = URI.parse(url)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = (uri.scheme == 'https')
-        http.open_timeout = 5 # seconds
-        http.read_timeout = 5 # seconds
+    skip = SkipCheck.any? { |it| url.downcase.include?(it.domain.downcase) }
+    return 200 if skip
 
-        request = Net::HTTP::Get.new(uri)
-
-        begin
-          response = http.request(request)
-
-          if response.code.to_i >= 300 && response.code.to_i != 302
-            self.invalid_url_report = InvalidUrlReport.create(http_code: response.code.to_i, last_checked: Time.now)
-          else
-            self.invalid_url_report = nil
-          end
-
-          return_val = response.code.to_i
-          
-        rescue Net::OpenTimeout, Net::ReadTimeout
-          self.invalid_url_report = InvalidUrlReport.create(http_code: 504, last_checked: Time.now)
-          
-          return_val = 504
-        end
-
-        self.mutable = true
-        self.save
-        self.mutable = false
-  
-        return_val
-      rescue Exception => e
-        $stdout.puts "Failure verifying URL #{e.message} - #{url}"
-        404
-      end
-    else
-      200
+    response_code = nil
+    begin
+      uri = URI.parse(url)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+      http.open_timeout = 10 # seconds
+      http.read_timeout = 10 # seconds
+      request = Net::HTTP::Get.new(uri)
+      response = http.request(request)
+      response_code = response.code.to_i
+    rescue Net::OpenTimeout, Net::ReadTimeout
+      response_code = 504
+    rescue Exception
+      response_code = 500
     end
+
+    if response_code >= 300 && response_code != 302
+      if self.invalid_url_report.nil?
+        self.invalid_url_report = InvalidUrlReport.create(http_code: response_code, last_checked: Time.now, pid_id: self.id)
+      else
+        self.invalid_url_report.update(http_code: response_code, last_checked: Time.now, pid_id: self.id)
+      end
+    end
+
+    if response_code == 200 && !self.invalid_url_report.nil?
+      self.invalid_url_report.destroy
+      self.invalid_url_report = nil
+    end
+
+    self.mutable = true
+    self.save
+    self.mutable = false
+
+    return response_code
   end
   
   def self.mint(params)
