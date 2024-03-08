@@ -22,7 +22,6 @@ class Pid < ActiveRecord::Base
   has_many :interesteds
   has_one :invalid_url_report
   belongs_to :group
-  # belongs_to :invalid_url_report, optional: true
   belongs_to :duplicate_url_report, optional: true
 
   validates :deactivated, inclusion: { in: [true, false] } # TODO: Default value false, index, db migration?
