@@ -4,7 +4,7 @@
 # These reports are executed by a scheduled cron job on the server
 # -----------------------------------------------------------------------------------------------   
 class InvalidUrlReport < ActiveRecord::Base
-  belongs_to :pid, optional: true
+  belongs_to :pid
 
   validates :http_code, presence: true
   
