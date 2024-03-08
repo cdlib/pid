@@ -102,7 +102,7 @@
   
   <% if @pid.errors %>
     <% @pid.errors.full_messages.each do | message | %>
-      <%= message %></br>
+      <%= message %><br>
     <% end %>
   <% end %>
 </section>
@@ -158,7 +158,6 @@
           }else{
             $(".errors").html(xhr.responseText);
           }
-          
         },
         complete: function(xhr, textStatus){
           $("#spinner").hide();
@@ -168,6 +167,7 @@
     // Otherwise display the errors to the user.
     }else{
       $(".errors").html(validation);
+      $("#spinner").hide();
     }
   });
 </script>

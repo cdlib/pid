@@ -60,7 +60,7 @@ group_update_success: 'The group has been saved.'
 
 # PID controller messages
 pid_duplicate_url: 'The URL you specified is already used by PID {?}.<br />You are now registered as an interested party for that PID.<br />You will be notified of any future changes made to the PID.'
-pid_duplicate_url_warn: 'The URL you specified is also used by PID {?}.<br />Your changes have been saved but you may want to consider using the other PID.'
+pid_duplicate_url_warn: 'The URL you specified is also used by PID(s) {?}.<br />Your changes have been saved but you may want to consider using the other PID.'
 pid_mint_dead_url: 'The URL for PID {?} is not active. The PID was created but you should verify that you have supplied the correct URL!'
 pid_mint_default_note: 'Incoming request from {?ip?} to mint {?}'
 pid_mint_empty_url: 'You must provide a URL!'

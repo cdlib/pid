@@ -10,6 +10,9 @@ require 'yaml'
 require 'active_record'
 require 'sinatra/base'
 
+# ActiveRecord::Base.logger = Logger.new(STDOUT)
+# ActiveRecord::Base.logger.level = Logger::DEBUG
+
 class PidApp < Sinatra::Base
   
   $stdout.puts "Loading configuration files"
