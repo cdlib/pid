@@ -45,7 +45,7 @@ class PidClientTestApp < Minitest::Test
 # --------------------------------------------------------------------------------------------------------
 # Search page tests - performed client side because results come back as json and the results table is built client side
 # --------------------------------------------------------------------------------------------------------
-  def test_post_search
+  def test_get_search
     login(@user.login, @pwd)
     
     # Warning, any tests to count the number of <tr> returned should account for the <th> row!
@@ -67,42 +67,43 @@ class PidClientTestApp < Minitest::Test
     trs = page.all("tr")
     assert_equal 3, trs.size, "Expected 2 results but found #{trs.size - 1} on URL search for testme.abc"
 
-    # wilcard match ALL url should fail because not enough criteria
+    # wilcard match 5 urls
     fill_in 'url', with: '.abc'
     click_button 'submit'
     
     trs = page.all("tr")
-    assert_equal 1, trs.size, "Expected 0 results but found #{trs.size - 1} on URL search for .abc"
+    assert_equal 6, trs.size, "Expected 5 results but found #{trs.size - 1} on URL search for .abc"
     fill_in 'url', with: ''
     
-    # wilcard match ALL url should fail because not enough criteria
+    # wilcard match 5 urls
     fill_in 'url', with: 'http://'
     click_button 'submit'
     
     trs = page.all("tr")
     assert_equal 6, trs.size, "Expected 5 results but found #{trs.size - 1} on URL search for http://"
     fill_in 'url', with: ''
-      
+
     # Search for PID ranges
     fill_in 'pid_low', with: '2'
-    execute_script("$('#pid_low').trigger('change');")
-    
+    execute_script("$('#pid_low').trigger('input');")
     fill_in 'pid_high', with: '3'
+    execute_script("$('#pid_high').trigger('input');")
     click_button 'submit'
     
     trs = page.all("tr")
     assert_equal 3, trs.size, "Expected 2 results but found #{trs.size - 1} on PID Range search"
-    fill_in 'pid_low', with: ''
-    execute_script("$('#pid_low').trigger('change');")
 
+    fill_in 'pid_low', with: ''
+    execute_script("$('#pid_low').trigger('input');")
     fill_in 'pid_high', with: ''
+    execute_script("$('#pid_high').trigger('input');")
     
     # Search for users
-    select @mgr.name, from: 'userid'
+    select @mgr.login, from: 'userid'
     click_button 'submit'
     
     trs = page.all("tr")
-    assert_equal 2, trs.size, "Expected 1 result but found #{trs.size - 1} on specific user search"
+    assert_equal 2, trs.size, "Expected 1 result but found #{trs.size - 1} on specific user search" + page.body
     select '', from: 'userid'
     
     # Search for date ranges
@@ -112,13 +113,17 @@ class PidClientTestApp < Minitest::Test
     # fill_in 'modified_low', with: '2013-08-30'
     # fill_in 'modified_high', with: '2013-09-10'
     fill_in 'modified_low', with: '08/30/2013'
+    execute_script("$('#modified_low').trigger('input');")
     fill_in 'modified_high', with: '09/10/2013'
+    execute_script("$('#modified_high').trigger('input');")
     click_button 'submit'
     
     trs = page.all("tr")
     assert_equal 2, trs.size, "Expected 1 result but found #{trs.size - 1} on modified date range search"
     fill_in 'modified_low', with: ''
+    execute_script("$('#modified_low').trigger('input');")
     fill_in 'modified_high', with: ''
+    execute_script("$('#modified_high').trigger('input');")
     
     # Search for inactive
     Pid.find_by(url: 'http://test.cdlib.abc').revise(dead_pid_url: 'http://www.google.com', deactivated: true, group: @group)
@@ -133,21 +138,37 @@ class PidClientTestApp < Minitest::Test
     visit '/user/logout'
   end
   
-  def test_search_pid_auto_populate
+  def test_search_pid_contraints
     login(@user.login, @pwd)
     
     visit '/link/search'
     
     fill_in 'pid_low', with: '2'
-    execute_script("$('#pid_low').trigger('change');")
+    execute_script("$('#pid_low').trigger('input');")
+    click_button 'submit'
 
-    assert_equal '2', page.find('#pid_high').value, "The High Value of the PID range did not default to the value entered in the Low Value!"
+    trs = page.all("tr")
+    assert_equal 0, trs.size, "Expected 0 results because submisison should've been prevented by required field, but found some on PID Range search"
+    fill_in 'pid_low', with: ''
+    execute_script("$('#pid_low').trigger('input');")
+
+    fill_in 'pid_high', with: '3'
+    execute_script("$('#pid_high').trigger('input');")
+    click_button 'submit'
+
+    trs = page.all("tr")
+    assert_equal 0, trs.size, "Expected 0 results because submisison should've been prevented by required field, but found some on PID Range search"
+    fill_in 'pid_high', with: ''
+    execute_script("$('#pid_high').trigger('input');")
+
+    fill_in 'pid_low', with: '2'
+    execute_script("$('#pid_low').trigger('input');")
+    fill_in 'pid_high', with: '3'
+    execute_script("$('#pid_high').trigger('input');")
+    click_button 'submit'
     
-    fill_in 'pid_high', with: '70'
-    fill_in 'pid_low', with: '4'
-    execute_script("$('#pid_low').trigger('change');")
-    
-    assert_equal '70', page.find('#pid_high').value, "The High Value of the PID range was overwritten by the value entered in the Low Value!"
+    trs = page.all("tr")
+    assert_equal 3, trs.size, "Expected 2 results but found #{trs.size - 1} on PID Range search"
   end
 
 # --------------------------------------------------------------------------------------------------------

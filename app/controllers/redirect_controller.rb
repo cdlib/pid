@@ -21,6 +21,12 @@ class PidApp < Sinatra::Base
   get '/PID/:shortcode' do
     url = shorty.get(params[:shortcode])
     url.nil? ? 404 : redirect(url)
+
+    # redirect(url) unless url.nil?
+    # # Go to database to get the URL
+    # url = Pid.where(id: params[:shortcode], active: '1').filtered_result
+    # redirect(url) unless url.nil?
+    # 404
   end
 
 end

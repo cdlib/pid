@@ -9,6 +9,8 @@ require 'erb'
 require 'yaml'
 require 'active_record'
 require 'sinatra/base'
+require "will_paginate/view_helpers/sinatra"
+require "will_paginate/active_record"
 
 # ActiveRecord::Base.logger = Logger.new(STDOUT)
 # ActiveRecord::Base.logger.level = Logger::DEBUG
@@ -170,45 +172,45 @@ class PidApp < Sinatra::Base
 # ---------------------------------------------------------------------------------------------------
 # Retrieve default parameters from the DB for use on PID search and report views
 # ---------------------------------------------------------------------------------------------------    
-    def get_search_defaults(params)
-      defaults = {:pid_min => 0, :pid_max => 0, :modified_low => '', :modified_high => '', :created_low => '', :created_high => '',
-                    :accessed_low => '', :accessed_high => '', :users => [], :group => nil}
+    # def get_search_defaults(params)
+    #   defaults = {:pid_min => 0, :pid_max => 0, :modified_low => '', :modified_high => '', :created_low => '', :created_high => '',
+    #                 :accessed_low => '', :accessed_high => '', :users => [], :group => nil}
 
-      return defaults unless logged_in?
+    #   return defaults unless logged_in?
     
-      args = {}
-      args[:group] = current_user.group unless current_user.super || current_user.read_only
+    #   args = {}
+    #   args[:group] = current_user.group unless current_user.super || current_user.read_only
     
-      if Pid.where(args).exists?
-        params[:pid_min] = Pid.where(args).order(id: :asc).first.id
-        params[:pid_max] = Pid.where(args).order(id: :desc).first.id
-        params[:modified_min] = Pid.where(args).order(modified_at: :asc).first.modified_at.strftime("%m/%d/%Y")
-        params[:modified_max] = Pid.where(args).order(modified_at: :desc).first.modified_at.strftime("%m/%d/%Y")
-        params[:created_min] = Pid.where(args).order(created_at: :asc).first.created_at.strftime("%m/%d/%Y")
-        params[:created_max] = Pid.where(args).order(created_at: :desc).first.created_at.strftime("%m/%d/%Y")
-      end
+    #   if Pid.where(args).exists?
+    #     params[:pid_min] = Pid.where(args).order(id: :asc).first.id
+    #     params[:pid_max] = Pid.where(args).order(id: :desc).first.id
+    #     params[:modified_min] = Pid.where(args).order(modified_at: :asc).first.modified_at.strftime("%m/%d/%Y")
+    #     params[:modified_max] = Pid.where(args).order(modified_at: :desc).first.modified_at.strftime("%m/%d/%Y")
+    #     params[:created_min] = Pid.where(args).order(created_at: :asc).first.created_at.strftime("%m/%d/%Y")
+    #     params[:created_max] = Pid.where(args).order(created_at: :desc).first.created_at.strftime("%m/%d/%Y")
+    #   end
     
-      params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high].to_i < params[:pid_low].to_i
+    #   params[:pid_low], params[:pid_high] = params[:pid_high], params[:pid_low] if params[:pid_high].to_i < params[:pid_low].to_i
     
-      params[:groups] = Group.all
-      params[:users] = User.all
+    #   params[:groups] = Group.all
+    #   params[:users] = User.all
     
-      Maintainer.where(user: current_user).each do |maint|
-        if maint.group != current_user.group
-          User.where(group: maint.group).each do |usr|
-            params[:users] << usr unless params[:users].include?(usr)
-          end
-        end
-      end
+    #   Maintainer.where(user: current_user).each do |maint|
+    #     if maint.group != current_user.group
+    #       User.where(group: maint.group).each do |usr|
+    #         params[:users] << usr unless params[:users].include?(usr)
+    #       end
+    #     end
+    #   end
       
-      params[:users] = params[:users].to_a if params[:users].is_a?(ActiveRecord::Relation)
-      params[:groups] = params[:groups].to_a if params[:groups].is_a?(ActiveRecord::Relation)
+    #   params[:users] = params[:users].to_a if params[:users].is_a?(ActiveRecord::Relation)
+    #   params[:groups] = params[:groups].to_a if params[:groups].is_a?(ActiveRecord::Relation)
 
-      params[:users].sort! { |x, y| x.login <=> y.login }
-      params[:groups].sort! { |x, y| x.id <=> y.id }
+    #   params[:users].sort! { |x, y| x.login <=> y.login }
+    #   params[:groups].sort! { |x, y| x.id <=> y.id }
     
-      params
-    end
+    #   params
+    # end
   end
 
   def valid_email?(email)

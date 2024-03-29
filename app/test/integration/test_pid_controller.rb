@@ -163,7 +163,7 @@ class TestPidController < Minitest::Test
   end
   
 # -----------------------------------------------------------------------------------------------
-  def test_post_search
+  def test_get_search
     # sleep so that the modification date on the pid will differ from the creation date!
     sleep(5)
     
@@ -173,7 +173,7 @@ class TestPidController < Minitest::Test
       pid_set: '',
       userid: '',
       groupid: '',
-      active: 'off',
+      active: '',
       pid_low: '',
       pid_high: '',
       modified_low: '',
@@ -183,94 +183,121 @@ class TestPidController < Minitest::Test
       interesteds: '0'
     }
     
+    # Warning, any tests to count the number of <tr> returned should account for the <th> row!
+
     # Make sure users can see all pids
     args[:url] = '.com'
     post '/user/login', { login: @user.login, password: @pwd }
-    post '/link/search', args # expecting 3 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the User! #{last_response.status}"
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_search_not_enough_criteria']), 'Was able to run a search with not enough criteria!'
-    
+    # Commenting this test out because the search no longer requires url to have at least 4 characters as minimum criteria.
+    # assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_search_not_enough_criteria']), 'Was able to run a search with not enough criteria!'
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 6, tr_count, "Expected 5 results for User but found #{tr_count - 1}"
+    args[:url] = ''
+
     # Make sure users can see all pids
     args[:url] = 'http://'
-    post '/link/search', args # expecting 3 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the User! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 6, json.size, "Expected 6 results for User but found #{json.size}"
+    
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 7, tr_count, "Expected 6 results for User but found #{tr_count - 1}"
+    args[:url] = ''
     get '/user/logout'
     
     # Make sure a search for specific PIDs returns only those PIDs
     args[:pid_set] = "1\r\n3"
+    args[:url] = 'http://'
     post '/user/login', {login: @mgr.login, password: @pwd}
-    post '/link/search', args # expecting 4 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the Maintainer! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 2, json.size, "Expected 2 results for Maintainer but found #{json.size}"
+    
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 3, tr_count, "Expected 2 results for Maintainer but found #{tr_count - 1}"
     args[:pid_set] = ''
+    args[:url] = ''
     get '/user/logout'
     
-    # Make sure the user 2 finds all PIDs 
+    # Make sure the user 2 finds all PIDs
+    args[:url] = 'http://'
     post '/user/login', { login: @user2.login, password: @pwd }
-    post '/link/search', args # expecting 1 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the User 2! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 6, json.size, "Expected 6 result for User 2 but found #{json.size}"
-    
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 7, tr_count, "Expected 6 result for User 2 but found #{tr_count - 1}"
+    args[:url] = ''
+
     # Make sure the user 2 finds their interested party PID
     args[:interesteds] = '1'
-    post '/link/search', args # expecting 1 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the User 2! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 1, json.size, "Expected 1 result for User 2 but found #{json.size}"
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 2, tr_count, "Expected 1 result for User 2 but found #{tr_count - 1}"
     args[:interesteds] = '0'
     get '/user/logout'
     
     # Make sure maintainer can see all PIDs
+    args[:url] = 'http://'
     post '/user/login', {login: @mgr.login, password: @pwd}
-    post '/link/search', args # expecting 4 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the Maintainer! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 6, json.size, "Expected 6 results for Maintainer but found #{json.size}"
+  
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 7, tr_count, "Expected 6 results for Maintainer but found #{tr_count - 1}"
+    args[:url] = ''
     get '/user/logout'
     
     # Make sure admin can see ALL PIDs
+    args[:url] = 'http://'
     post '/user/login', {login: @adm.login, password: @pwd}
-    post '/link/search', args # expecting 6 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the Admin! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 6, json.size, "Expected 6 results for Admin but found #{json.size}"
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 7, tr_count, "Expected 6 results for Admin but found #{tr_count - 1}"
+    args[:url] = ''
     
     # Search by specific url
     args[:url] = 'http://www.yahoo.com'
-    post '/link/search', args # expecting 1 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the specific url search! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 1, json.size, "Expected 1 results for the specific url search but found #{json.size}"
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 2, tr_count, "Expected 1 results for the specific url search but found #{tr_count - 1}"
+    args[:url] = ''
     
     # Search by group
     args[:url] = 'http://'
     args[:groupid] = @group.id
-    post '/link/search', args # expecting 3 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the specific group search! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 3, json.size, "Expected 3 results for the specific group search but found #{json.size}"
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 4, tr_count, "Expected 3 results for the specific group search but found #{tr_count - 1}"
     args[:groupid] = ''
     args[:url] = ''
     
     # Search by user
-    args[:userid] = @user.id
-    post '/link/search', args # expecting 2 results
+    args[:userid] = @user.login
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the specific user search! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 2, json.size, "Expected 2 results for the specific user search but found #{json.size}"
+    
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 3, tr_count, "Expected 2 results for the specific user search but found #{tr_count - 1}"
     args[:userid] = ''
     
     # Search for PID range
     args[:pid_low] = 2
     args[:pid_high] = 4
-    post '/link/search', args # expecting 3 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the specific pid range search! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 3, json.size, "Expected 3 results for the specific pid range search but found #{json.size}"
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 4, tr_count, "Expected 3 results for the specific pid range search but found #{tr_count - 1}"
     args[:pid_low] = ''
     args[:pid_high] = ''
     
@@ -280,18 +307,23 @@ class TestPidController < Minitest::Test
     
     args[:modified_low] = time_check
     args[:modified_high] = Time.now
-    post '/link/search', args # expecting 1 results
+    get '/link/search', args
     assert last_response.ok?, "Search returned no results for the specific modified date range search! #{last_response.status}"
-    json = convert_html_to_json(last_response.body)
-    assert_equal 1, json.size, "Expected 1 results for the specific modified date range search but found #{json.size}"
+
+    Pid.all.each do |pid|
+      puts pid.url
+    end
+
+    tr_count = Nokogiri::HTML(last_response.body).css('tr').size
+    assert_equal 2, tr_count, "Expected 1 results for the specific modified date range search but found #{tr_count - 1}" + last_response.body
     args[:modified_low] = ''
     args[:modified_high] = ''
     
     args[:url] = 'www.abcdefghijklmnop.org'
-    post '/link/search', args # expecting 0 results
+    get '/link/search', args
     assert last_response.ok?, "User did not receive a 200 status code, got a #{last_response.status}"
     assert last_response.body.include?(PidApp::MESSAGE_CONFIG['pid_search_not_found']), 'User did not get a no results messaget!'
-    
+    args[:url] = ''
     get '/user/logout'
   end
   

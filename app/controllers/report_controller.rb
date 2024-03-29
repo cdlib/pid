@@ -267,9 +267,9 @@ class PidApp < Sinatra::Base
 # ---------------------------------------------------------------
 # Reload the default criteria for the reports
 # ---------------------------------------------------------------
-  get '/report/defaults' do
-    get_search_defaults({}).to_json 
-  end
+  # get '/report/defaults' do
+  #   get_search_defaults().to_json 
+  # end
 
 # --------------------------------------------------------------------------------------------------------------
   before '/report' do
@@ -281,12 +281,9 @@ class PidApp < Sinatra::Base
       
 # --------------------------------------------------------------------------------------------------------------
   before '/report/*' do
-    unless request.path_info == '/report/defaults'
-      halt(401) unless logged_in?
-      
-      # If the user has a readonly account prevent them accessing anything
-      halt(403) if current_user.read_only
-    end
+    halt(401) unless logged_in?
+    
+    # If the user has a readonly account prevent them accessing anything
+    halt(403) if current_user.read_only
   end
-  
 end
