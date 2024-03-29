@@ -310,10 +310,6 @@ class TestPidController < Minitest::Test
     get '/link/search', args
     assert last_response.ok?, "Search returned no results for the specific modified date range search! #{last_response.status}"
 
-    Pid.all.each do |pid|
-      puts pid.url
-    end
-
     tr_count = Nokogiri::HTML(last_response.body).css('tr').size
     assert_equal 2, tr_count, "Expected 1 results for the specific modified date range search but found #{tr_count - 1}" + last_response.body
     args[:modified_low] = ''
