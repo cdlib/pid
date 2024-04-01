@@ -268,75 +268,69 @@ end
 # ---------------------------------------------------------------  
   post '/link/edit' do
     @msg = ''
-    @failures = [] 
+    @failures = []
     @mints = []
     @revisions = []
     @interested = []
   
-    if !params[:csv].nil?
-      # if params[:csv][:type] == 'text/csv'
-      begin
-        # Loop through the items in the CSV
-        CSV.foreach(params[:csv][:tempfile], row_sep: :auto, col_sep: ',') do |row|
-          id, url, note = row
-
-          # Strip off the last slash if it exists
-          if !url.nil?
-            url = url.chomp('/')
-          end
-  
-          # If the PID id is nil, they would like to mint the PID
-          if id.nil?
-            # Make sure the URL is not missing
-            if !url.nil?
-              result = mint_pid(url, 'Batch Minted', note, request.ip)
-  
-              # If we successfully minted the PID
-              if result[:saved?]
-                @mints << result[:pid_payload]
-              else
-                if result[:msg].include?(MESSAGE_CONFIG['pid_mint_failure'])
-                  @failures << "URL: #{url} - #{result[:msg]}"
-                elsif result[:msg] == MESSAGE_CONFIG['pid_mint_invalid_url']
-                  @failures << "URL: #{url} - #{result[:msg]}"
-                else
-                  @interested.concat(result[:pid_payload])
-                end
-              end
-            else
-              @failures << "URL: #{url} - #{MESSAGE_CONFIG['batch_process_mint_inactive']}"
-            end
-          else
-            pid = Pid.find_by(id: id)
-  
-            # If the PID was found and it's in the same group as the user or the user is an admin
-            if !pid.nil?
-              # Attempt to revise the PID
-              revision = revise_pid(pid, (url.nil?) ? pid.url : url, 'Batch Modified', note, current_user.group, (url.nil?) ? 'off' : 'on')
-  
-              # If the revision was successful, add it to the list; otherwise, record it as a failure
-              if revision[:saved?]
-                @revisions << Pid.find_by(id: pid.id)
-              else
-                @failures << "PID: #{id} - #{revision[:msg]}"
-              end
-            else
-              @failures << MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', id)
-            end
-          end
-        end # CSV.foreach
-  
-        @msg = MESSAGE_CONFIG['batch_process_success']
-  
-      rescue Exception => e
-        @msg = "#{MESSAGE_CONFIG['batch_process_failure']}<br /><br />#{e.message}"
-      end
-  
-      # else
-      #   @msg = MESSAGE_CONFIG['invalid_file_type']
-      # end
-    else
+    if params[:csv].nil?
       @msg = MESSAGE_CONFIG['no_file_selected']
+      return erb(:edit_pid)
+    end
+
+    if params[:csv][:type] != 'text/csv' || !params[:csv][:filename].end_with?('.csv')
+      @msg = MESSAGE_CONFIG['invalid_file_type']
+      return erb(:edit_pid)
+    end
+
+    begin
+      # Loop through the items in the CSV
+      CSV.foreach(params[:csv][:tempfile], row_sep: :auto, col_sep: ',') do |row|
+        id, url, note = row
+
+        # Strip off the last slash if it exists
+        url = url.chomp('/') if !url.nil?
+
+        # If the PID id is nil, they would like to mint the PID
+        if id.nil?
+          if url.nil? # Can't mint a pid with no URL
+            @failures << "URL: #{url} - #{MESSAGE_CONFIG['batch_process_mint_inactive']}"
+            next
+          end
+
+          result = mint_pid(url, 'Batch Minted', note, request.ip)
+
+          # If we successfully minted the PID
+          if result[:saved?]
+            @mints << result[:pid_payload]
+          elsif result[:msg].include?(MESSAGE_CONFIG['pid_mint_failure']) || result[:msg] == MESSAGE_CONFIG['pid_mint_invalid_url']
+            @failures << "URL: #{url} - #{result[:msg]}"
+          else
+            @interested.concat(result[:pid_payload])
+          end
+        else
+          pid = Pid.find_by(id: id)
+
+          if pid.nil? # Can't edit a PID that doesn't exist
+            @failures << MESSAGE_CONFIG['batch_process_revise_missing'].gsub('{?}', id)
+            next
+          end
+            # Attempt to revise the PID
+          revision = revise_pid(pid, (url.nil?) ? pid.url : url, 'Batch Modified', note, current_user.group, (url.nil?) ? 'off' : 'on')
+
+          # If the revision was successful, add it to the list; otherwise, record it as a failure
+          if revision[:saved?]
+            @revisions << Pid.find_by(id: pid.id)
+          else
+            @failures << "PID: #{id} - #{revision[:msg]}"
+          end
+        end
+      end # CSV.foreach
+
+      @msg = MESSAGE_CONFIG['batch_process_success']
+
+    rescue Exception => e
+      @msg = "#{MESSAGE_CONFIG['batch_process_failure']}<br /><br />#{e.message}"
     end
   
     erb :edit_pid

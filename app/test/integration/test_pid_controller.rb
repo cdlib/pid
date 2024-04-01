@@ -111,7 +111,7 @@ class TestPidController < Minitest::Test
     
     # Non CSV file
     post '/link/edit', {csv: Rack::Test::UploadedFile.new('public/js/pid.js', 'text/csv')}
-    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['batch_process_failure']), 'Was able to submit a CSV file!!'
+    assert last_response.body.include?(PidApp::MESSAGE_CONFIG['invalid_file_type']), 'Was able to submit a non-CSV file!!'
 
     # Create the test CSV file
     File.open('test/pid_batch_test.csv', 'w+') do |file|
