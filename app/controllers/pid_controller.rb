@@ -177,6 +177,8 @@ end
     begin
       # Loop through the items in the CSV
       CSV.foreach(params[:csv][:tempfile], row_sep: :auto, col_sep: ',') do |row|
+        next if row.all?(&:nil?) # Skip empty rows
+
         id, url, note = row
 
         # Strip off the last slash if it exists
