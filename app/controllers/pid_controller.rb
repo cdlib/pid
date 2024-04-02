@@ -37,117 +37,8 @@ end
   end
   
 # ---------------------------------------------------------------
-# Display the PIDs search form
-# ---------------------------------------------------------------
-  # get '/link/search' do
-  #   puts "params: #{params}"
-  #   @json = [].to_json
-  #   @params = get_search_defaults({})
-  
-  #   @params[:pid_low] = ""
-  #   @params[:pid_high] = ""
-  
-  #   @params[:created_low] = ""
-  #   @params[:created_high] = ""
-  
-  #   @params[:modified_low] = ""
-  #   @params[:modified_high] = ""
-  
-  #   @has_interesteds = !Interested.find_by(group: current_user.group).nil?
-  
-  #   erb :search_pid
-  # end
-  
-# ---------------------------------------------------------------
-# Process the PIDs search form
+# Display the PIDs search form, process the PIDs search form
 # ---------------------------------------------------------------  
-  # post '/link/search' do
-  #   puts "params: #{params}"
-  #   results = []
-  #   @interesteds = []
-
-  #   @params = get_search_defaults(params)
-  #   # Limit the search results based on the value in the config
-  #   args = {}
-    
-  #   if @params[:pid_set].empty?
-  #     # Set the search criteria based on the user's input
-  #     args[:url] = ['%', @params[:url], '%'].join if @params[:url].present?
-  #     args[:group_id] = @params[:groupid] if @params[:groupid].present?
-  #     args[:username] = User.find_by(id: @params[:userid]).login unless @params[:userid].empty?
-
-  #     args[:deactivated] = (@params[:active] == '0') if @params[:active].present?
-
-  #     # args[:modified_at] = (@params[:modified_low].empty? ? nil : "#{@params[:modified_low]} 00:00:00")..(@params[:modified_high].empty? ? nil : "#{@params[:modified_high]} 23:59:59")
-  #     if @params[:modified_low].present? && @params[:modified_high].present?
-  #       # start_time = DateTime.parse("#{@params[:modified_low]} 00:00:00")
-  #       # end_time = DateTime.parse("#{@params[:modified_high]} 23:59:59")
-  #       start_time = @params[:modified_low].to_datetime
-  #       end_time = @params[:modified_high].to_datetime.end_of_day
-  #       args[:modified_at] = [start_time, end_time]
-  #     end
-
-  #     # args[:created_at] = (@params[:created_low].empty? ? nil : "#{@params[:created_low]} 00:00:00")..(@params[:created_high].empty? ? nil : "#{@params[:created_high]} 23:59:59")
-  #     if @params[:created_low].present? && @params[:created_high].present?
-  #       # start_time = DateTime.parse("#{@params[:created_low]} 00:00:00")
-  #       # end_time = DateTime.parse("#{@params[:created_high]} 23:59:59")
-  #       start_time = @params[:created_low].to_datetime
-  #       end_time = @params[:created_high].to_datetime.end_of_day
-  #       args[:created_at] = [start_time, end_time]
-  #     end
-
-  #     # If the user specified that they want to see only the interested party items
-  #     if @params[:interesteds].to_s == '1'
-  #       pid_ids = []
-  #       # Determine the starting and ending pid ids
-
-  #       where_condition, values = generate_where_condition_and_values(args)
-  #       relevant_pids = Pid.where(where_condition, *values)
-  #       first = @params[:pid_low].empty? ? relevant_pids.order(id: :asc).first&.id : @params[:pid_low]
-  #       last = @params[:pid_high].empty? ? relevant_pids.order(id: :desc).first&.id : @params[:pid_high]
-  #       # Loop through the interested parties
-  #       Interested.where(group: current_user.group).each do |interest|
-  #         # If the user specified a pid range, we need to adhere to it
-  #         pid_ids << interest.pid.id if interest.pid.id >= first.to_i && interest.pid.id <= last.to_i
-  #       end
-
-  #       # Loop through the collected pids
-  #       pid_ids.each do |pid_id|
-  #         args[:id] = pid_id
-  #         where_condition, values = generate_where_condition_and_values(args)
-  #         watched = Pid.where(where_condition, *values).first
-  #         # Add the pid to the results if it was found
-  #         results << watched unless watched.nil?
-  #       end
-  #     else
-  #       args[:id] = [@params[:pid_low], @params[:pid_high]] if params[:pid_low].present? && params[:pid_high].present?
-  #       # Do not allow searches that are too broad.
-  #       if @params[:url].length > 4 || !@params[:userid].empty? || !@params[:modified_low].empty? || !@params[:modified_high].empty? ||
-  #         !@params[:created_low].empty? || !@params[:created_high].empty? || !@params[:pid_low].empty? || !@params[:pid_high].empty?
-
-  #         where_condition, values = generate_where_condition_and_values(args)
-  #         results = Pid.where(where_condition, *values)
-  #         @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
-  #       else
-  #         @msg = MESSAGE_CONFIG['pid_search_not_enough_criteria']
-  #       end
-  #     end
-  #   else
-  #     params[:pid_set].lines do |line|
-  #       pid = line.gsub("\r\n", '').gsub("\n", '')
-  #       rslt = Pid.find_by(id: pid.gsub(' ', ''))
-  #       results << rslt unless rslt.nil?
-  #     end
-
-  #     @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
-  #   end
-
-  #   @has_interesteds = Interested.where(group: current_user.group).exists?
-  #   @json = results.to_json
-  #   @manages = Maintainer.where(user: current_user).pluck(:group_id)
-  #   erb :search_pid
-  # end
-
   get '/link/search' do
     @groups = Group.all.pluck(:id, :name)
 
@@ -278,7 +169,7 @@ end
       return erb(:edit_pid)
     end
 
-    if params[:csv][:type] != 'text/csv' || !params[:csv][:filename].end_with?('.csv')
+    if !params[:csv][:filename].end_with?('.csv') && !params[:csv][:filename].end_with?('.txt')
       @msg = MESSAGE_CONFIG['invalid_file_type']
       return erb(:edit_pid)
     end
@@ -448,63 +339,10 @@ post '/link' do
 
   erb :new_pid
 end
-  
-# ---------------------------------------------------------------
-# Display the PIDs search form
-# ---------------------------------------------------------------  
-  # get '/public/search' do
-  #   @groups = Group.all
-  #   @hide_nav = true
-    
-  #   erb :public_search_pid
-  # end
     
 # ---------------------------------------------------------------  
-# Process the public search form
+# Display the PIDs search form, process the public search form
 # ---------------------------------------------------------------
-  # post '/public/search' do
-  #   results = []
-  
-  #   # Limit the search results based on the value in the config
-  #   args = {}
-    
-  #   if params[:pid_set].empty?
-  
-  #     # Set the search criteria based on the user's input
-  #     args[:url] = "%#{params[:url]}%" if params[:url].present?
-  #     args[:group_id] = params[:groupid] if params[:groupid].present?
-  #     args[:deactivated] = (params[:active] == '0') if params[:active].present?
-  
-
-  #     args[:id] = [@params[:pid_low], @params[:pid_high]] if params[:pid_low].present? && params[:pid_high].present?
-      
-  #     # Do not allow searches that are too broad.
-  #     if params[:url].length > 4 || (params[:pid_low].present? && params[:pid_high].present?)
-  #       where_condition, values = generate_where_condition_and_values(args)
-  #       results = Pid.where(where_condition, *values)
-  #       @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
-  #     else
-  #       @msg = MESSAGE_CONFIG['pid_search_not_enough_criteria']
-  #     end
-  
-  #   else
-  #     params[:pid_set].lines do |line|
-  #       pid = line.gsub("\r\n", '').gsub("\n", '')
-  
-  #       rslt = Pid.find_by(id: pid.gsub(' ', ''))
-  #       results << rslt unless rslt.nil?
-  #     end
-  
-  #     @msg = MESSAGE_CONFIG['pid_search_not_found'] if results.empty?
-  #   end
-  
-  #   @json = results.to_json
-  #   @groups = Group.all
-  #   @hide_nav = true
-  
-  #   erb :public_search_pid
-  # end
-
   get '/public/search' do
     @hide_nav = true
     @groups = Group.all.pluck(:id, :name)
@@ -713,6 +551,7 @@ end
           msg = msgs.join('\n')
 
           return { saved?: saved, msg: msg, pid_payload: pids }
+
           # # If the Interested Party does not already exist
           # if Interested.find_by(pid: pid, group: current_user.group).nil?
           #   interested = Interested.new(pid: pid, group: current_user.group)
