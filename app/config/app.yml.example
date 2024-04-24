@@ -3,16 +3,16 @@ organization_name: 'California Digital Library'
 application_name: 'PID Service'
 
 # The server and port where the main PID application will be hosted (comment out the port if you do not need to specify)
-app_host: 'localhost'
-app_port: 3000
+app_host: <%= ENV['APP_HOST'] %>
+app_port: <%= ENV['APP_PORT'] %>
 
 # The url that the system should direct users to when an inactive PID is requested
-dead_pid_url: 'http://localhost:3000/link/inactive' 
+dead_pid_url: <%= ENV['DEAD_PID_URL'] %>
 
 # Redis host and port are required
-redis_host: 'localhost'
-redis_port: 6379
-redis_use_ssl: 'false'
+redis_host: <%= ENV['REDIS_HOST'] %>
+redis_port: <%= ENV['REDIS_PORT'] %>
+redis_use_ssl: <%= ENV['REDIS_USE_SSL'] %>
 
 # Limit the number of results that are returned during a PID search
 search_results_limit: 50
@@ -21,10 +21,10 @@ search_results_limit: 50
 max_upload_csv_size: 10240   #10MB
 
 # The email address that the system uses to send mail (SMTP)
-email_sender_address: 'system@domain.org'
+email_sender_address: <%= ENV['SMTP_SENDER_ADDRESS'] %>
 
 # Smtp settings if we're using that
-smtp_host: 'server.domain.org'
-smtp_port: 587
-smtp_username: 'user'
-smtp_password: 'password'
+smtp_host: <%= ENV['SMTP_HOST'] %>
+smtp_port: <%= ENV['SMTP_PORT'] %>
+smtp_username: <%= ENV['SMTP_USERNAME'] %>
+smtp_password: <%= ENV['SMTP_PASSWORD'] %>

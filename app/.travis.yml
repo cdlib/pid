@@ -1,5 +1,0 @@
-# Travis Integration
-# This config file tells travis how to run tests. The default call is "rake" which runs the test suite.
-language: ruby
-rvm:
-  - "1.9.3"

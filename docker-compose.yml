@@ -4,7 +4,7 @@ services:
     platform: linux/amd64
     build:
       context: ./app  # Build context is the app directory
-      target: test
+      dockerfile: Dockerfile.test  # Use Dockerfile.test
     depends_on:
       - redis # Ensure the Redis container is started first
     env_file:
@@ -14,6 +14,7 @@ services:
     platform: linux/amd64
     build:
       context: ./app  # Build context is the app directory
+      dockerfile: Dockerfile.app  # Use Dockerfile.app
       target: final
     ports:
       - "80:80"

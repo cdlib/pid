@@ -1,9 +1,5 @@
 # PID Service (a.k.a PURL Service)
 
-###BUILD STATUS:
-[![Build Status](https://secure.travis-ci.org/cdlib/pid.png)](http://travis-ci.org/cdlib/pid)
-[![Dependency Status](https://gemnasium.com/cdlib/pid.png)](https://gemnasium.com/cdlib/pid)
-
 ## Overview
 
 The PID service is a redesign of OCLC's old PURL service which became the Zephiera PURLZ service which eventually was absorbed into the Callimachus Project.
@@ -27,73 +23,43 @@ When the third party moves that article to some.site.org/new/path/to/same/file.h
 
 ## Dependencies
 
-- Ruby >= 1.9.3
-- Rubygems >= 2.0.7 and the Bundler gem
-- Redis >= 2.6.16 (link resolver uses in-memory Redis)
-- MySql DB to host the administration data
-- SQLite for testing
-- PhantomJS for testing 
+The whole application, including dependencies like Redis, is Dockerized and can be run as a container. Libraries and packages are managed by Bundler; please refer to the Gemfile and Gemfile.lock files for more information. Aside from those, here is a list of things you need to run the application on your machine:
+- Docker
+- A MySQL database to act as a database for the service (see the Database Structure section).
+- SMTP server for sending emails. This only concerns the password reset feature.
 
 ## Installation
 
-- Make sure all of the dependencies are installed
-- Make sure you have a MySQL database ready for this system to use (see below for SQL to create the DB)
-- > git clone https://github.com/cdlib/pid
-- Replace all of the ./config/*.yml.example with *.yml versions. The best way to do this is to create a local folder outside of the project and place your versions of the configuration files there. Then create symbolic links to those files in the ./config directory within this project. This will prevent your files from being changed when updating the project from GitHub.
-- > gem install bundler
-- > gem install extensions
-- > bundle install
+- Install Docker
+- Make sure you have a MySQL database ready for this system to use.
+- Clone the repository: `git clone https://github.com/cdlib/pid`
+- Replace the `.env.example` file with a `.env` file and fill in the necessary values.
+- Replace `./config/*.yml.example` files with `*.yml` versions. Note how some fields reference environment variables in the .env file.
 
-## Updating
-- If you did not place your versions of the yml config files into an external folder, you will want to back them up. then in the project folder run > git stash
-- > git pull origin master
-- Move your configuration files back into the project folder if necessary
 
-## Usage
-- Start Redis: > rake redis:start
-- Stop Redis: > rake redis:stop
-- Start the PURL Service > thin -R config.ru start -p [port]
-- To seed the MySQL DB with legacy data (See below for details) > thin -R config.ru -e 'seeded' start
-- Test everything > rake test
-- Test the non-UI components > rake test_app
-- Test the UI only > rake test_client
+## Running the Application
+
+- Navigate to the root directory of the project and run `docker-compose up --build` to start the application. This will start the Redis container as well as the application container, but only after making sure the tests pass. You can modify the `docker-compose.yml` file to skip the tests.
+- If you rebuild the Redis container (or build it for the first time), you need to initialize it with data from the database. Follow the steps below.
+  1. Open a new terminal.
+  1. Run `docker ps` and find the application container (by default the image name is `pid-app`). Note the name of the container (this is not necessarily the same as the image name, and by default the name should be `pid-app-1`), this is the value for `<container_name>` in the next step.
+  1. Run `docker exec -it <container_name> /bin/bash` to enter the application container.
+  1. Run `ruby ruby_scripts/synchronize_redis.rb` to synchronize the Redis cache with the database. This can take a few minutes, depending on the size of your database. Note that this process is for initializing Redis to agree with an existing database; as you mint and modify the database via the application interface Redis should be updated automatically.
+- There's another script to checks for duplicate URLs. This is not as crucial to the functioning of the application as Redis, but you can run it by following the steps above, except replace the command in the final step with `ruby ruby_scripts/detect_duplicate_urls.rb`.
+- As you update the application, rebuild by running `docker-compose up --build`.
+- To start the application without rebuilding, run `docker-compose up`.
+- To tear down, run `docker-compose down`.
+- Once the containers are up and running, you can access the web page for the service at `http://localhost:<app_port>`. You can modify `<app_port>` in the `.env` file, but by default it's 80.
+
+## Running Tests
+
+- Tests are automatically run with `docker-compose up --build`. However, if you wish to run tests manually, navigate to the root directory and run `docker-compose build test`.
+- If you want to run individual tests, you can replace the line `RUN ["rake", "test"]` in `Dockerfile.test` before running the manual command above. Below are some examples; you can refer to the Ruby and Rake documentation for more information. 
+  - `RUN ["rake", "test_client", "TEST=test/client/test_user_views.rb"]`
+  - `RUN ["ruby", "-I", "test", "test/integration/test_pid_controller.rb", "-n", "test_post_pid"]`
 
 ## Database Structure
 
-TODO: Generate SQL statements to create tables and indexes  
-  
-###Seeding The Database With Legacy Data:
-  **WARNING:** This process will wipe out all of the data in your tables if the flush_tables value is true in the /db/seed.yml file !!! 
+TODO: Generate SQL statements to create tables and indexes.
 
-  For seeding the database, the system is expecting your legacy csv data files to be found at ~/pid_legacy_db/ (this location can be modified 
-  within the /db/seed.yml). The system is expecting 4 separate files, one for Groups, one for Users, and one for PIDs, and one for the 
-  Maintainers/Managers of Groups. The files should be comma, not tab delimited!!
-  
-  The PIDs file should include all historical information about a PID on separate lines. the lines should appear in chronological order: 
-  For example:
-* id,url,modified_at,username,change_category, notes
-* 123,http://www.google.com/,2000-04-19 13:43:10,jdoe,BATCH,null
-* 123,http://www.google.com/search?q=ruby+format+date&oq=ruby+format+date,2000-10-18 14:33:25,jdoe,USER_ENTERED,Testing
-* 123,http://www.google.com/search?q=ruby+config,2007-11-14 15:03:03,jdoe,USER_ENTERED,null
-
-  In the example above, the first line will create the initial PID record, and all subsequent lines will 'revise' the PID. Each revision will
-  update the url, change_category, modified_at, and deactivated (should the URL be null) status of the PID record, and then add itself to the
-  PidVersion recordset.
-  
-  You may include any combination of available attributes (see their respective .rb files) for each object in your csv files as long as you 
-  include all of the required attributes. For example if User.affiliation is not important to you, you may exclude it from the users.csv.
-  
-  The first line of the each csv file should contain the attribute names, and those names should match the property names in the model.rb. 
-  For example:
-* id,name,description
-* ADMIN,Administrators,Institution's administrators
-      
-  When referencing groups or users within a csv file, use user_id/group_id as the csv headers when you want the actual id value and 
-  user/group as the csv header when you want the entire model. The maintainers.csv is expecting the entire user and group objects.
-  
-  A template for each of the 4 csv files can be found in /db/templates/
-  
-  This import process will skip records that have issues loading and will notify you of the item's id and the nature of the issue. You can then 
-  either manually add these records through the GUI or rerun the seed process after correcting the problems. Make sure you comment out the 
-  flush! lines at the top of /db/seed.rb to prevent the seed process from deleting all of the records added during the initial seed!! 
-  
+Please refer to the schema file `/app/db/schema.rb` to see the structure of the database. The schema file was generated by Active Record while connected to the actual database for the service. It is currently used to initialize the database for testing with SQLite, so it should be a good reference, though unfortunately it doesn't include the indexes and constraints. Please contact lam.pham@ucop.edu for more information.
