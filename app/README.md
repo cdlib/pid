@@ -1,13 +1,13 @@
 ## Running the Application
 
-- Navigate to the root directory of the project (where `docker-compose.yml` exists) and run `docker-compose up --build` to start the application. This will start the Redis container as well as the application container, but only after making sure the tests pass. You can modify the `docker-compose.yml` file to skip the tests.
+- Navigate to the root directory of the project (where `docker-compose.yml` exists) and run `docker-compose up --build` to build and start the application. This will build the Redis container as well as the application container, but only after making sure the tests pass. You can modify the `docker-compose.yml` file to skip the tests.
 - If you rebuild the Redis container or build it for the first time, you will need to initialize it with data from the database. Follow the steps below.
   1. Open a new terminal.
   1. Run `docker ps` and find the application container (by default the image name is `pid-app`). Note the name of the container (this is not necessarily the same as the image name, and by default the name should be `pid-app-1`), this is the value for `<container_name>` in the next step.
   1. Run `docker exec -it <container_name> /bin/bash` to enter the application container.
   1. Run `ruby ruby_scripts/synchronize_redis.rb` to synchronize the Redis cache with the database. This can take a few minutes, depending on the size of your database. Note that this process is for initializing Redis to agree with an existing database; as you modify the database via the application's interface, Redis should be updated automatically.
 - There's another script to checks for duplicate URLs. This is not as crucial to the functioning of the application as Redis, but you can run it by following the steps above, except replace the command in the final step with `ruby ruby_scripts/detect_duplicate_urls.rb`.
-- As you update the application, rebuild by running `docker-compose up --build`.
+- As you update the application, rebuild by running `docker-compose build` (or `docker-compose up --build` to build and start).
 - To start the application without rebuilding, run `docker-compose up`.
 - To tear down, run `docker-compose down`.
 - Once the containers are up and running, you can access the web page for the service at `http://localhost:<app_port>`. You can modify `<app_port>` in the `.env` file, but by default it's 80.

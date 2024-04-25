@@ -1,4 +1,3 @@
-version: '3'
 services:
   test:
     platform: linux/amd64
