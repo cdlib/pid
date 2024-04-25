@@ -24,7 +24,7 @@ When the third party moves that article to some.site.org/new/path/to/same/file.h
 ## Dependencies
 
 The whole application, including dependencies like Redis, is Dockerized and can be run as a container. Libraries and packages are managed by Bundler; please refer to the Gemfile and Gemfile.lock files for more information. Aside from those, here is a list of things you need to run the application on your machine:
-- Docker
+- [Docker](https://www.docker.com/products/docker-desktop/)
 - A MySQL database to act as a database for the service (see the Database Structure section).
 - SMTP server for sending emails. This only concerns the password reset feature.
 

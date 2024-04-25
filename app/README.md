@@ -1,5 +1,6 @@
 ## Running the Application
 
+- Clone the repository: `git clone https://github.com/cdlib/pid.git`.
 - Navigate to the root directory of the project (where `docker-compose.yml` exists) and run `docker-compose up --build` to build and start the application. This will build the Redis container as well as the application container, but only after making sure the tests pass. You can modify the `docker-compose.yml` file to skip the tests.
 - If you rebuild the Redis container or build it for the first time, you will need to initialize it with data from the database. Follow the steps below.
   1. Open a new terminal.
@@ -14,8 +15,9 @@
 
 ## Running Tests
 
-- Tests are automatically run with `docker-compose up --build`. However, if you wish to run tests manually, navigate to the root directory and run `docker-compose build test`.
-- If you want to run individual tests, you can replace the line `RUN ["rake", "test"]` in `Dockerfile.test` before running the manual command above. Below are some examples; you can refer to the Ruby and Rake documentation for more information. 
+Assuming you've cloned the repository (`git clone https://github.com/cdlib/pid.git`), tests are automatically run with `docker-compose up --build`. If you wish to run tests manually:
+- If you want to run all the tests, navigate to the root directory and run `docker-compose build test`.
+- If you want to run individual tests, you can replace the line `RUN ["rake", "test"]` (which runs all the tests) in `Dockerfile.test` before running the command above. Below are some examples; you can refer to the Ruby and Rake documentation for more information.
   - `RUN ["rake", "test_client", "TEST=test/client/test_user_views.rb"]`
   - `RUN ["ruby", "-I", "test", "test/integration/test_pid_controller.rb", "-n", "test_post_pid"]`
 
