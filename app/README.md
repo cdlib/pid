@@ -1,23 +1,32 @@
 ## Running the Application
 
-- Clone the repository: `git clone https://github.com/cdlib/pid.git`.
-- Navigate to the root directory of the project (where `docker-compose.yml` exists) and run `docker-compose up --build` to build and start the application. This will build the Redis container as well as the application container, but only after making sure the tests pass. You can modify the `docker-compose.yml` file to skip the tests.
+- Make sure you have the repository cloned (`git clone https://github.com/cdlib/pid.git`).
+- Navigate to the root directory of the project (where `docker-compose.yml` exists).
+- Replace the `.env.example` file with a `.env` file and fill in the necessary values.
+  > Generate a 64-character hex for the session secret. The SMTP stuff is optional.
+- Replace `/app/config/*.yml.example` files with `*.yml` versions.
+  > The `.example` files are primarily for reference, though they will be sufficient to get the app running; you can modify the values to implement your own configuration. Naturally, if you wish to connect to an external database, you may need to be on VPN.
+- Using `docker-compose`:
+  - Run `docker-compose up --build` to build and start the application.
+    > This will build the Redis container as well as the application container, but only after making sure the tests pass. You can modify the `docker-compose.yml` file to skip the tests.
+  - As you update the application, rebuild by running `docker-compose build`.
+  - To start the application without or after rebuilding, run `docker-compose up`.
+  - To tear down, run `docker-compose down`.
+- Once the containers are up and running, you can access the web page for the service at `http://localhost:<app_port>`.
+  > You can modify `<app_port>` in the `.env` file, but by default it's 80.
 - If you rebuild the Redis container or build it for the first time, you will need to initialize it with data from the database. Follow the steps below.
   1. Open a new terminal.
   1. Run `docker ps` and find the application container (by default the image name is `pid-app`). Note the name of the container (this is not necessarily the same as the image name, and by default the name should be `pid-app-1`), this is the value for `<container_name>` in the next step.
   1. Run `docker exec -it <container_name> /bin/bash` to enter the application container.
   1. Run `ruby ruby_scripts/synchronize_redis.rb` to synchronize the Redis cache with the database. This can take a few minutes, depending on the size of your database. Note that this process is for initializing Redis to agree with an existing database; as you modify the database via the application's interface, Redis should be updated automatically.
 - There's another script to checks for duplicate URLs. This is not as crucial to the functioning of the application as Redis, but you can run it by following the steps above, except replace the command in the final step with `ruby ruby_scripts/detect_duplicate_urls.rb`.
-- As you update the application, rebuild by running `docker-compose build` (or `docker-compose up --build` to build and start).
-- To start the application without rebuilding, run `docker-compose up`.
-- To tear down, run `docker-compose down`.
-- Once the containers are up and running, you can access the web page for the service at `http://localhost:<app_port>`. You can modify `<app_port>` in the `.env` file, but by default it's 80.
+
 
 ## Running Tests
 
-Assuming you've cloned the repository (`git clone https://github.com/cdlib/pid.git`), tests are automatically run with `docker-compose up --build`. If you wish to run tests manually:
+Assuming you've cloned the repository (`git clone https://github.com/cdlib/pid.git`), tests are automatically run with `docker-compose up --build`. To run tests manually:
 - If you want to run all the tests, navigate to the root directory and run `docker-compose build test`.
-- If you want to run individual tests, you can replace the line `RUN ["rake", "test"]` (which runs all the tests) in `Dockerfile.test` before running the command above. Below are some examples; you can refer to the Ruby and Rake documentation for more information.
+- If you want to run individual tests, you can replace the line `RUN ["rake", "test"]` (which runs all the tests) in `Dockerfile.test` before running the command above. Below are some examples, you can refer to the Ruby and Rake documentation for more information.
   - `RUN ["rake", "test_client", "TEST=test/client/test_user_views.rb"]`
   - `RUN ["ruby", "-I", "test", "test/integration/test_pid_controller.rb", "-n", "test_post_pid"]`
 

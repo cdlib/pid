@@ -32,6 +32,6 @@ The whole application, including dependencies like Redis, is Dockerized and can 
 
 - Install Docker
 - Make sure you have a MySQL database ready for this system to use.
+- Optionally get an SMTP server for sending emails.
 - Clone the repository: `git clone https://github.com/cdlib/pid`
-- Replace the `.env.example` file with a `.env` file and fill in the necessary values.
-- Replace `./config/*.yml.example` files with `*.yml` versions. Note how some fields reference environment variables in the .env file.
+- Refer to the [README](https://github.com/cdlib/pid/blob/master/app/README.md) file in the app directory for more information on running the application.
