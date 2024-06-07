@@ -29,9 +29,11 @@ The whole application, including dependencies like Redis, is Dockerized and can 
 - SMTP server for sending emails. This only concerns the password reset feature.
 
 ## Installation
-
+To run the application locally, do the following:
 - Install Docker
 - Make sure you have a MySQL database ready for this system to use.
 - Optionally get an SMTP server for sending emails.
 - Clone the repository: `git clone https://github.com/cdlib/pid`
 - Refer to the [README](https://github.com/cdlib/pid/blob/master/app/README.md) file in the app directory for more information on running the application.
+
+To deploy the application in the cloud, refer to the [pid-env](https://github.com/cdlib/pid-env/tree/master) repository.
