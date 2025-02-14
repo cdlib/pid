@@ -14,3 +14,4 @@ log/*.pid
 log/*.out
 log/*.gz
 scripts/.ipynb_checkpoints/*
+app/db/test.sqlite3*

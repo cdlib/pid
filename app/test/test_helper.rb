@@ -16,9 +16,25 @@ require 'selenium-webdriver'
 
 Capybara.app = PidApp
 
-chrome_binary_path = '/opt/google/chrome/chrome-linux64/chrome'
-chrome_driver_path = '/usr/local/bin/chromedriver-linux64/chromedriver'
+# In test_helper.rb
+
+if RUBY_PLATFORM.include?('linux') || ENV['DOCKER'] == 'true' || File.exist?('/.dockerenv')
+  # When running in a Docker container (or on Linux)
+  chrome_binary_path = '/opt/google/chrome/chrome-linux64/chrome'
+  chrome_driver_path = '/usr/local/bin/chromedriver-linux64/chromedriver'
+elsif RUBY_PLATFORM.include?('darwin')
+  # When running on a Mac
+  chrome_binary_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  chrome_driver_path = '/opt/homebrew/bin/chromedriver'
+else
+  raise "Unsupported platform for Chrome driver configuration."
+end
+
 Selenium::WebDriver::Chrome::Service.driver_path = chrome_driver_path
+
+# Optionally, if you need to set the Chrome binary:
+Selenium::WebDriver::Chrome.path = chrome_binary_path
+
 
 Capybara.register_driver :chrome_headless do |app|
   options = Selenium::WebDriver::Chrome::Options.new
