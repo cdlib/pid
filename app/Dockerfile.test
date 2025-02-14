@@ -1,4 +1,4 @@
-FROM ruby:3.2.2-slim-bullseye
+FROM ruby:3.3.7-slim-bullseye
 
 # Download dependencies for testing
 RUN apt-get update -qq \

@@ -102,7 +102,7 @@ These instructions assume you are working on a Mac with Homebrew installed.
     
 6.  **Manually Install the mysql2 Gem**  
     The gemfile specifies a particular version (e.g., `0.5.6`). Install it manually using the proper flags to ensure it finds both MySQL and zstd libraries. Replace `0.5.6` with the version specified in your Gemfile.lock if different.
-
+    `export LIBRARY_PATH="/opt/homebrew/opt/zstd/lib:$LIBRARY_PATH"`
     
     `gem install mysql2 --version 0.5.6 -- \   --with-mysql-config=/opt/homebrew/opt/mysql-client/bin/mysql_config \   --with-ldflags="-L/opt/homebrew/opt/zstd/lib" \   --with-cppflags="-I/opt/homebrew/opt/zstd/include"`
     

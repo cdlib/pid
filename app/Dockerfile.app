@@ -1,4 +1,4 @@
-FROM ruby:3.2.2-slim-bullseye AS base
+FROM ruby:3.3.7-slim-bullseye AS base
 
 RUN apt-get update -qq \
     && apt-get install -y \
