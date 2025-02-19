@@ -1,6 +1,5 @@
 services:
   test:
-    platform: linux/amd64
     build:
       context: ./app  # Build context is the app directory
       dockerfile: Dockerfile.test  # Use Dockerfile.test
@@ -10,7 +9,6 @@ services:
       - .env  # Load environment variables from the .env file
 
   app:
-    platform: linux/amd64
     build:
       context: ./app  # Build context is the app directory
       dockerfile: Dockerfile.app  # Use Dockerfile.app
