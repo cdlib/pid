@@ -1,4 +1,7 @@
-FROM ruby:3.3.7-slim-bullseye
+ARG TARGET_PLATFORM=linux/amd64
+ARG IMAGE_TAG=3.3.7-slim-bullseye
+
+FROM --platform=${TARGET_PLATFORM} ruby:${IMAGE_TAG}
 
 # Download dependencies for testing
 RUN apt-get update -qq \

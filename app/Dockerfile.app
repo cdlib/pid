@@ -1,4 +1,7 @@
-FROM ruby:3.3.7-slim-bullseye AS base
+ARG TARGET_PLATFORM=linux/amd64
+ARG IMAGE_TAG=3.3.7-slim-bullseye
+
+FROM --platform=${TARGET_PLATFORM} ruby:${IMAGE_TAG} AS base
 
 RUN apt-get update -qq \
     && apt-get install -y \
@@ -23,7 +26,7 @@ COPY Gemfile Gemfile.lock ./
 RUN bundle config set --local without 'test' && \
     bundle install
 
-FROM base AS final
+FROM --platform=$TARGET_PLATFORM base AS final
 
 COPY --from=dependencies /usr/local/bundle /usr/local/bundle
 
