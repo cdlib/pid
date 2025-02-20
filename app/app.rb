@@ -63,15 +63,7 @@ class PidApp < Sinatra::Base
     APP_CONFIG['app_port'] = '3000'
 
     TEST_MODE = true
-  end    
-
-  set :session_secret, SECURITY_CONFIG['session_secret']
-
-  enable :sessions # enable cookie-based sessions
-  
-  set :sessions, :expire_after => SECURITY_CONFIG['session_expires']
-  
-  set :root, File.dirname(__FILE__)
+  end
 
   configure :development do
     enable :logging
@@ -80,8 +72,16 @@ class PidApp < Sinatra::Base
 
   configure :production do
     enable :logging
-    set :host_authorization, { permitted_hosts: [] }
+    set :host_authorization, { permitted_hosts: [APP_CONFIG['app_host']] }
   end
+
+  set :session_secret, SECURITY_CONFIG['session_secret']
+
+  enable :sessions # enable cookie-based sessions
+  
+  set :sessions, :expire_after => SECURITY_CONFIG['session_expires']
+  
+  set :root, File.dirname(__FILE__)
   
   ses_smtp_host = APP_CONFIG['smtp_host']
   ses_smtp_port = APP_CONFIG['smtp_port']
