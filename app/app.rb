@@ -72,9 +72,15 @@ class PidApp < Sinatra::Base
   set :sessions, :expire_after => SECURITY_CONFIG['session_expires']
   
   set :root, File.dirname(__FILE__)
-  
-  configure :development, :production, :stage do
+
+  configure :development do
     enable :logging
+    set :host_authorization, { permitted_hosts: [] }
+  end
+
+  configure :production do
+    enable :logging
+    set :host_authorization, { permitted_hosts: [] }
   end
   
   ses_smtp_host = APP_CONFIG['smtp_host']
