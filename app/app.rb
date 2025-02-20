@@ -65,12 +65,7 @@ class PidApp < Sinatra::Base
     TEST_MODE = true
   end
 
-  configure :development do
-    enable :logging
-    set :host_authorization, { permitted_hosts: [] }
-  end
-
-  configure :production do
+  configure :development, :production do
     enable :logging
     set :host_authorization, { permitted_hosts: [APP_CONFIG['app_host']] }
   end

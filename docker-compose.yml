@@ -3,6 +3,8 @@ services:
     build:
       context: ./app  # Build context is the app directory
       dockerfile: Dockerfile.test  # Use Dockerfile.test
+      args:
+        - TARGET_PLATFORM=linux/arm64 # Change depending on the target platform
     depends_on:
       - redis # Ensure the Redis container is started first
     env_file:
@@ -13,6 +15,8 @@ services:
       context: ./app  # Build context is the app directory
       dockerfile: Dockerfile.app  # Use Dockerfile.app
       target: final
+      args:
+        - TARGET_PLATFORM=linux/arm64 # Change depending on the target platform
     ports:
       - "80:80"
     depends_on:
@@ -24,5 +28,7 @@ services:
   redis:
     build:
       context: ./redis  # Build context is the redis directory
+      args:
+        - TARGET_PLATFORM=linux/arm64 # Change depending on the target platform
     ports:
       - "6379:6379"  # Map host port to container port
