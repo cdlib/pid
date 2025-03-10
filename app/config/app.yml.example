@@ -5,6 +5,7 @@ application_name: 'PID Service'
 # The server and port where the main PID application will be hosted (comment out the port if you do not need to specify)
 app_host: <%= ENV['APP_HOST'] %>
 app_port: <%= ENV['APP_PORT'] %>
+alt_app_hosts: <%= ENV['ALT_APP_HOSTS'] %> 
 
 # The url that the system should direct users to when an inactive PID is requested
 dead_pid_url: <%= ENV['DEAD_PID_URL'] %>

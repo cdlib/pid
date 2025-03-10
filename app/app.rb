@@ -42,7 +42,7 @@ class PidApp < Sinatra::Base
     username: DATABASE_CONFIG['db_username'],
     password: DATABASE_CONFIG['db_password']
   }
-  
+
   TEST_MODE = false
 
   # If we're in test mode switch to SQLite and a temp Redis secret
@@ -66,8 +66,9 @@ class PidApp < Sinatra::Base
   end
 
   configure :development, :production do
+    PERMITTED_HOSTNAMES = [APP_CONFIG['app_host']] + (APP_CONFIG['alt_app_hosts'] || "").split(',').map(&:strip)
     enable :logging
-    set :host_authorization, { permitted_hosts: [APP_CONFIG['app_host']] }
+    set :host_authorization, { permitted_hosts: PERMITTED_HOSTNAMES }
   end
 
   set :session_secret, SECURITY_CONFIG['session_secret']
