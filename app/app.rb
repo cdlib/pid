@@ -68,7 +68,7 @@ class PidApp < Sinatra::Base
   configure :development, :production do
     enable :logging
     
-    PERMITTED_HOSTNAMES = [APP_CONFIG['app_host']] + (APP_CONFIG['alt_app_hosts'] || "").split(',').map(&:strip)
+    PERMITTED_HOSTNAMES = [] # allow all hosts
     set :host_authorization, { permitted_hosts: PERMITTED_HOSTNAMES }
   end
 
